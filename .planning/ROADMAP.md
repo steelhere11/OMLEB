@@ -30,12 +30,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Unauthorized users cannot access admin routes; technicians cannot see admin pages and vice versa
   4. The app can be installed to a phone's home screen via "Add to Home Screen" and loads quickly on weak signal
   5. Database schema is deployed with all tables and RLS policies using SECURITY DEFINER helper functions
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 01-01: Next.js project scaffold, Supabase project setup, Tailwind CSS, deployment to Vercel
-- [ ] 01-02: Auth system (login, account creation, middleware, role-based routing, RLS policies)
-- [ ] 01-03: PWA configuration (manifest, service worker, app shell caching, mobile-first layout)
+- [ ] 01-01-PLAN.md — Next.js 16 scaffold, Tailwind v4, Supabase clients, database schema SQL with RLS
+- [ ] 01-02-PLAN.md — Auth system (proxy, server actions, login pages, user management)
+- [ ] 01-03-PLAN.md — App shells (admin sidebar, technician tabs) and PWA (manifest, service worker, offline)
 
 ### Phase 2: Admin Data Management
 **Goal**: Admin can create and manage all reference data that technician reporting depends on
@@ -113,7 +113,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/3 | Not started | - |
+| 1. Foundation | 0/3 | Planned | - |
 | 2. Admin Data Management | 0/2 | Not started | - |
 | 3. Technician Reporting | 0/3 | Not started | - |
 | 4. Photo Capture & Signatures | 0/3 | Not started | - |
