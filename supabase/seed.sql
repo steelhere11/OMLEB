@@ -1,0 +1,65 @@
+-- ============================================================================
+-- OMLEB HVAC -- Seed Data & Setup Instructions
+-- ============================================================================
+-- Run this file AFTER schema.sql and rls.sql in Supabase SQL Editor.
+-- ============================================================================
+
+-- ============================================================================
+-- FIRST ADMIN ACCOUNT SETUP
+-- ============================================================================
+-- The first admin account MUST be created manually via Supabase Dashboard:
+--
+-- 1. Go to: Supabase Dashboard -> Authentication -> Users -> Add User
+-- 2. Enter email and password for the admin account
+-- 3. Click the created user -> Edit -> App Metadata
+-- 4. Set app_metadata to: {"rol": "admin"}
+-- 5. Save
+--
+-- The handle_new_user() trigger will auto-create the public.users row.
+-- The admin can then create all other accounts through the app.
+-- ============================================================================
+
+-- ============================================================================
+-- VERIFY SETUP
+-- ============================================================================
+-- After creating the admin user, run these queries to verify everything works:
+--
+-- Check public.users was created by the trigger:
+--   SELECT id, email, nombre, rol FROM public.users;
+--
+-- Check RLS is enabled on all tables:
+--   SELECT tablename, rowsecurity
+--   FROM pg_tables
+--   WHERE schemaname = 'public'
+--     AND tablename IN (
+--       'users', 'clientes', 'sucursales', 'equipos', 'folios',
+--       'folio_asignados', 'reportes', 'reporte_equipos',
+--       'reporte_fotos', 'reporte_materiales'
+--     );
+--
+-- Check all policies exist:
+--   SELECT tablename, policyname
+--   FROM pg_policies
+--   WHERE schemaname = 'public'
+--   ORDER BY tablename, policyname;
+--
+-- Check private schema helper functions exist:
+--   SELECT routine_name
+--   FROM information_schema.routines
+--   WHERE routine_schema = 'private';
+-- ============================================================================
+
+-- ============================================================================
+-- OPTIONAL: Sample data for development/testing
+-- ============================================================================
+-- Uncomment the block below ONLY in development environments.
+-- This requires at least one admin user to already exist in auth.users.
+--
+-- INSERT INTO public.clientes (nombre) VALUES
+--   ('BBVA Mexico'),
+--   ('Banorte');
+--
+-- INSERT INTO public.sucursales (nombre, numero, direccion) VALUES
+--   ('Sucursal Centro', '001', 'Av. Reforma 123, CDMX'),
+--   ('Sucursal Norte', '002', 'Blvd. Industrial 456, Monterrey');
+-- ============================================================================
