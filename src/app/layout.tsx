@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter } from "next/font/google";
+import { InstallPrompt } from "@/components/shared/install-prompt";
 import "./globals.css";
 
 const inter = Inter({
@@ -30,7 +31,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es" dir="ltr">
-      <body className={`${inter.variable} antialiased`}>{children}</body>
+      <body className={`${inter.variable} antialiased`}>
+        {children}
+        <InstallPrompt />
+      </body>
     </html>
   );
 }
