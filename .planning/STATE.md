@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 1 of 5 (Foundation)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-24 -- Completed 01-01-PLAN.md
+Last activity: 2026-02-24 -- Completed 01-02-PLAN.md
 
-Progress: [#.........] 7% (1/14 plans)
+Progress: [##........] 14% (2/14 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 12 min
-- Total execution time: 0.2 hours
+- Total plans completed: 2
+- Average duration: 8 min
+- Total execution time: 0.3 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 1/3 | 12 min | 12 min |
+| 01-foundation | 2/3 | 16 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 12 min
-- Trend: baseline
+- Last 5 plans: 12 min, 4 min
+- Trend: accelerating
 
 *Updated after each plan completion*
 
@@ -50,11 +50,17 @@ Recent decisions affecting current work:
 - [01-01]: Used NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY naming convention (not ANON_KEY)
 - [01-01]: Inter font for mobile readability, ON DELETE RESTRICT for business-critical tables
 - [01-01]: 42 RLS policies with SECURITY DEFINER helpers in private schema
+- [01-02]: Proxy creates separate read-only Supabase client for role checking after updateSession
+- [01-02]: Generic Spanish login error to prevent email enumeration
+- [01-02]: Dual insert on user creation (Supabase Auth + public.users table)
+- [01-02]: Minimal layouts for login routes to prevent parent nav wrapping
+- [01-02]: UI components: Button (variant/size/loading/fullWidth), Input (error/password toggle), Label (required)
 
 ### Pending Todos
 
-- User must create Supabase project and run SQL files before Plan 01-02 can use real auth
+- User must create Supabase project and run SQL files before auth can be tested with real credentials
 - User must set env vars in .env.local with real Supabase credentials
+- User must create first admin account in Supabase Dashboard
 
 ### Blockers/Concerns
 
@@ -65,5 +71,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 01-01-PLAN.md (project scaffold + database schema)
+Stopped at: Completed 01-02-PLAN.md (authentication system)
 Resume file: None
