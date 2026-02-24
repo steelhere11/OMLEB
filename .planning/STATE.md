@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 1 of 5 (Foundation)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-02-23 -- Roadmap created
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-24 -- Completed 01-01-PLAN.md
 
-Progress: [..........] 0% (0/14 plans)
+Progress: [#.........] 7% (1/14 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 12 min
+- Total execution time: 0.2 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-foundation | 1/3 | 12 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: -
-- Trend: -
+- Last 5 plans: 12 min
+- Trend: baseline
 
 *Updated after each plan completion*
 
@@ -47,10 +47,14 @@ Recent decisions affecting current work:
 - [Research]: Use getUserMedia (not file input) for camera -- Android 14/15 broke file input capture
 - [Research]: Use SECURITY DEFINER functions for RLS from day one -- prevents infinite recursion
 - [Research]: PDF generation client-side with @react-pdf/renderer -- avoids Vercel serverless limits
+- [01-01]: Used NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY naming convention (not ANON_KEY)
+- [01-01]: Inter font for mobile readability, ON DELETE RESTRICT for business-critical tables
+- [01-01]: 42 RLS policies with SECURITY DEFINER helpers in private schema
 
 ### Pending Todos
 
-None yet.
+- User must create Supabase project and run SQL files before Plan 01-02 can use real auth
+- User must set env vars in .env.local with real Supabase credentials
 
 ### Blockers/Concerns
 
@@ -60,6 +64,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-23
-Stopped at: Roadmap created, ready to plan Phase 1
+Last session: 2026-02-24
+Stopped at: Completed 01-01-PLAN.md (project scaffold + database schema)
 Resume file: None
