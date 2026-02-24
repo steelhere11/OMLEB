@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+/* OMLEB HVAC -- Brand Theme (CSS-first Tailwind v4) */
+/* Placeholder steel blue palette -- replace when company logo/brand provided */
+
+@theme {
+  /* Brand color scale (steel blue) */
+  --color-brand-50: oklch(0.97 0.01 250);
+  --color-brand-100: oklch(0.93 0.02 250);
+  --color-brand-200: oklch(0.87 0.04 250);
+  --color-brand-300: oklch(0.78 0.08 250);
+  --color-brand-400: oklch(0.68 0.12 250);
+  --color-brand-500: oklch(0.55 0.15 250);
+  --color-brand-600: oklch(0.48 0.15 250);
+  --color-brand-700: oklch(0.40 0.15 250);
+  --color-brand-800: oklch(0.33 0.12 250);
+  --color-brand-900: oklch(0.25 0.10 250);
+
+  /* Admin dark theme surfaces */
+  --color-admin-bg: oklch(0.15 0.01 250);
+  --color-admin-surface: oklch(0.20 0.01 250);
+  --color-admin-border: oklch(0.30 0.01 250);
+
+  /* Technician light theme surfaces */
+  --color-tech-bg: oklch(0.98 0 0);
+  --color-tech-surface: oklch(1.0 0 0);
+
+  /* Report status colors */
+  --color-status-completado: oklch(0.60 0.15 145);
+  --color-status-en-espera: oklch(0.75 0.15 85);
+  --color-status-en-progreso: oklch(0.55 0.15 250);
+
+  /* Font family */
+  --font-sans: var(--font-inter);
+}
+
+/* Base body styles */
+body {
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
