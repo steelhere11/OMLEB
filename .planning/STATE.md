@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Field technicians can quickly submit complete daily reports (with photos, equipment details, materials, and diagnostics) from their phone on-site -- no WhatsApp, no paper, no back-and-forth.
-**Current focus:** Phase 3: Technician Reporting (In Progress)
+**Current focus:** Phase 3: Technician Reporting (Complete)
 
 ## Current Position
 
 Phase: 3 of 5 (Technician Reporting)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-27 -- Completed 03-02-PLAN.md
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-02-27 -- Completed 03-03-PLAN.md
 
-Progress: [######....] 46% (6/13 plans)
+Progress: [#######...] 54% (7/13 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
+- Total plans completed: 7
 - Average duration: 6 min
-- Total execution time: 0.6 hours
+- Total execution time: 0.7 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [######....] 46% (6/13 plans)
 |-------|-------|-------|----------|
 | 01-foundation | 2/3 | 16 min | 8 min |
 | 02-admin-data-management | 2/2 | 13 min | 7 min |
-| 03-technician-reporting | 2/3 | 11 min | 6 min |
+| 03-technician-reporting | 3/3 | 15 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 7 min, 7 min, 6 min, 4 min, 7 min
+- Last 5 plans: 7 min, 6 min, 4 min, 7 min, 4 min
 - Trend: stable/fast
 
 *Updated after each plan completion*
@@ -75,6 +75,9 @@ Recent decisions affecting current work:
 - [03-02]: Realtime refresh banner (not auto-refresh) to avoid disrupting active editing
 - [03-02]: Hide bottom tab bar on report routes for maximum mobile screen real estate
 - [03-02]: Per-entry save buttons with inline success/error indicators
+- [03-03]: onEntriesChange callback pattern for cross-section reactive validation (equipment count -> completado block)
+- [03-03]: Tappable card UI for status selection instead of dropdown (critical mobile UX for important actions)
+- [03-03]: Dynamic form rows with crypto.randomUUID() client-side IDs and datalist for common units
 
 ### Pending Todos
 
@@ -89,9 +92,10 @@ Recent decisions affecting current work:
 - [Phase 4]: Photo capture is highest-risk component -- getUserMedia + canvas + GPS overlay + compression on budget Android phones. Prototype early.
 - [Phase 5]: PDF with 20+ embedded photos needs validation at scale. Run a spike during Phase 5 planning.
 - [Phase 3]: Cuadrilla concurrent-edit conflict resolution: DECIDED -- last-write-wins with Realtime refresh banner (implemented in 03-02).
+- [Phase 3]: COMPLETE -- full technician reporting flow functional end-to-end (folio list -> report -> equipment -> materials -> status -> submit).
 
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 03-02-PLAN.md (technician report UI -- folio list, report form, equipment section)
+Stopped at: Completed 03-03-PLAN.md (materials section, status section, Phase 3 complete)
 Resume file: None
