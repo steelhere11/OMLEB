@@ -106,7 +106,7 @@ export default async function SucursalesPage() {
                           Editar
                         </Link>
                         <Link
-                          href={`/admin/equipos?sucursal=${sucursal.id}`}
+                          href={`/admin/equipos/${sucursal.id}`}
                           className="text-sm font-medium text-gray-400 transition-colors hover:text-white"
                         >
                           Ver equipos
