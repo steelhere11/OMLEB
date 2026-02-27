@@ -244,6 +244,94 @@ All table and column names are in Spanish since they represent domain-specific d
 
 ---
 
+V1.5 — Guided Maintenance Workflows
+Overview
+Pre-loaded step-by-step maintenance workflows that guide technicians through preventive and corrective work on mini splits and mini chillers. Replaces free-text reporting with structured, evidence-driven workflows.
+New Tables (run supabase/migration-workflows.sql AFTER schema.sql + rls.sql)
+tipos_equipo — Admin-extensible equipment type catalog
+
+slug (unique key: mini_split_interior, mini_split_exterior, mini_chiller, otro)
+nombre (Spanish display name)
+is_system (true = pre-seeded, cannot be deleted)
+Admins can add new types; technicians see them in dropdowns
+equipos.tipo_equipo_id (new FK) replaces the old free-text tipo_equipo column
+
+plantillas_pasos — Pre-loaded preventive maintenance step templates
+
+tipo_equipo_slug → matches tipos_equipo.slug
+tipo_mantenimiento (preventivo | correctivo)
+orden (step sequence: 1, 2, 3...)
+nombre, procedimiento (Spanish text)
+evidencia_requerida (jsonb array: [{etapa: "antes"|"durante"|"despues", descripcion: "..."}])
+lecturas_requeridas (jsonb array: [{nombre, unidad, rango_min, rango_max}])
+es_obligatorio (boolean)
+
+fallas_correctivas — Pre-loaded corrective issue library
+
+tipo_equipo_slug → matches tipos_equipo.slug
+nombre, diagnostico (Spanish text)
+evidencia_requerida (jsonb, same format as plantillas_pasos)
+materiales_tipicos (jsonb string array)
+
+reporte_pasos — Tracks technician completion of each step
+
+reporte_equipo_id (FK → reporte_equipos)
+plantilla_paso_id (FK → plantillas_pasos, set for preventive)
+falla_correctiva_id (FK → fallas_correctivas, set for corrective)
+completado (boolean)
+notas (text)
+lecturas (jsonb: {amperaje_compresor: 12.5, voltaje_l1l2: 220})
+completed_at (timestamp)
+
+valores_referencia — Reference values for real-time reading validation
+
+nombre (unique key like "presion_succion_r410a")
+unidad, rango_min, rango_max, notas
+
+Modified existing table:
+
+reporte_fotos: added reporte_paso_id (FK → reporte_pasos, nullable) to tie photos to specific steps
+reporte_fotos: added 'durante' to etiqueta check constraint
+
+Seed Data (run supabase/seed-workflows.sql AFTER migration-workflows.sql)
+
+4 system equipment types (mini_split_interior, mini_split_exterior, mini_chiller, otro)
+13 indoor mini split preventive steps
+10 outdoor mini split preventive steps
+14 mini chiller preventive steps
+15 mini split corrective issues (split between interior and exterior)
+12 mini chiller corrective issues
+15 reference values for reading validation
+
+TypeScript Types
+
+New types in src/types/workflows.ts: TipoEquipo, PlantillaPaso, FallaCorrectiva, ReportePaso, ValorReferencia, EvidenciaRequerida, LecturaRequerida
+
+Technician Workflow Change
+Current flow: Select folio → select equipment → free-text fields → attach photos → submit
+New flow: Select folio → select equipment → choose preventivo/correctivo:
+
+Preventivo: App detects tipo_equipo from equipos table, loads matching plantillas_pasos in order. Each step = swipeable card with: step name, procedure, labeled camera buttons (📷 ANTES / 📷 DURANTE / 📷 DESPUÉS), numeric reading inputs with real-time range validation.
+Correctivo: App shows picker with fallas_correctivas matching equipment type. Tech selects issue(s), app loads required evidence and materials list. Multiple issues selectable per equipment.
+
+Admin Capabilities
+
+Admin can add new equipment types via tipos_equipo (these appear in dropdowns)
+Admin can manage workflow templates via plantillas_pasos and fallas_correctivas
+Admin can update reference values for validation ranges
+System-seeded types (is_system=true) cannot be deleted
+
+Implementation Notes
+
+The equipos table now has both tipo_equipo (old free text, kept for backward compat) and tipo_equipo_id (new FK). App code should use tipo_equipo_id. Drop tipo_equipo column when migration is complete.
+Reading validation: compare technician inputs against valores_referencia ranges. Show yellow warning if outside range (don't block submission — techs know their equipment).
+Photo evidence per step: reporte_fotos.reporte_paso_id links photos to specific workflow steps.
+Steps with es_obligatorio=false can be skipped.
+lecturas with unidad="texto" are free-text fields (model numbers, etc.), not numeric.
+lecturas with unidad="Sí/No" should render as a toggle, not a text field.
+
+---
+
 ## Code Conventions
 
 - **File names**: kebab-case in English (e.g., `branch-form.tsx`, `report-list.tsx`)
