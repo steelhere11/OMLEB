@@ -9,6 +9,8 @@ const variantClasses = {
     "border border-brand-300 text-brand-700 hover:bg-brand-50 focus-visible:ring-brand-400",
   danger:
     "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-400",
+  outline:
+    "border border-admin-border text-text-1 hover:bg-admin-surface-hover focus-visible:ring-accent",
 } as const;
 
 const sizeClasses = {

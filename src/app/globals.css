@@ -79,6 +79,53 @@ body {
   animation: popover-in 0.12s ease both;
 }
 
+/* ── Admin form input overrides (unlayered → wins over @layer utilities) ── */
+.admin-input,
+.admin-textarea,
+.admin-select {
+  border-radius: 6px;
+  font-size: 13px;
+  padding: 8px 12px;
+  background-color: var(--color-admin-surface-elevated);
+  border-color: var(--color-admin-border);
+  color: var(--color-text-0);
+}
+
+.admin-input {
+  min-height: unset;
+}
+
+.admin-textarea {
+  min-height: 100px;
+}
+
+.admin-select {
+  min-height: unset;
+  padding-right: 32px;
+}
+
+.admin-input::placeholder,
+.admin-textarea::placeholder {
+  color: var(--color-text-3);
+}
+
+.admin-input:focus,
+.admin-textarea:focus,
+.admin-select:focus {
+  box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.25);
+  --tw-ring-shadow: 0 0 #0000;
+  --tw-ring-offset-shadow: 0 0 #0000;
+  border-color: var(--color-admin-border);
+}
+
+/* Error messages inside admin form fields — override shared component red-600 */
+.admin-input ~ p[role="alert"],
+.admin-textarea ~ p[role="alert"],
+.admin-select ~ p[role="alert"] {
+  font-size: 12px;
+  color: var(--color-status-error);
+}
+
 /* Inset row divider — 14px inset from both edges */
 @utility row-inset-divider {
   position: relative;

@@ -11,7 +11,7 @@ Use this file to resume the admin UI redesign after a context reset. It contains
 | **Phase 0 — Foundation (tokens + fonts)** | DONE | `design: phase 0 — color tokens and typography setup` |
 | **Phase 1 — Sidebar** | DONE | `design: phase 1 — sidebar redesign` |
 | **Phase 2 — Tables & List Pages** | DONE | `design: phase 2 — list pages and table pattern` |
-| **Phase 3 — Forms** | TODO | |
+| **Phase 3 — Forms** | DONE | `design: phase 3 — form pages` |
 | **Phase 4 — Dashboard & Login** | TODO | |
 | **Phase 5 — Polish** | TODO | |
 
@@ -45,13 +45,40 @@ Use this file to resume the admin UI redesign after a context reset. It contains
 - Added `row-inset-divider` CSS utility to `globals.css`
 - Rewrote `src/components/admin/delete-button.tsx` as ghost destructive (`text-text-3 hover:text-status-error`)
 
+### Phase 3 — Forms
+- Added `.admin-input`, `.admin-textarea`, `.admin-select` CSS classes in `globals.css` (unlayered — wins over Tailwind utilities)
+- Focus ring override: `box-shadow: 0 0 0 2px rgba(148,163,184,0.25)` replacing Tailwind ring
+- Error message override: `font-size: 12px` + `color: status-error` via sibling selector
+- Added `outline` variant to `src/components/ui/button.tsx` (`border-admin-border`, `text-text-1`, `hover:bg-admin-surface-hover`)
+- Restyled all 9 form pages/components:
+  - `clientes/nuevo/page.tsx`, `clientes/[id]/editar/edit-form.tsx`
+  - `sucursales/nuevo/page.tsx`, `sucursales/[id]/editar/edit-form.tsx`
+  - `equipos/[sucursalId]/nuevo/page.tsx`, `equipos/[sucursalId]/[id]/editar/edit-form.tsx`
+  - `folios/nuevo/create-form.tsx`, `folios/[id]/editar/edit-form.tsx`
+  - `usuarios/nuevo/page.tsx`
+- Removed redundant `min-h-dvh bg-admin-bg px-4 py-8 text-white` page wrappers (admin layout provides bg + padding)
+- Container: `max-w-[480px]` centered
+- Card: `rounded-[10px]`, `admin-surface` bg, `admin-border` border
+- Labels: `text-[13px] text-text-1`
+- Inputs/Selects/Textareas: `admin-input`/`admin-select`/`admin-textarea` class (elevated bg, 6px radius, 13px font)
+- Error banners: `border-status-error/30 bg-admin-surface` with `text-status-error`
+- Warning banners: same pattern with `status-warning`
+- Success state (usuarios): `border-status-success/30 bg-admin-surface` with success icon
+- Submit buttons: `variant="outline"` with `fullWidth`
+- Back links: `text-[13px] text-text-2 hover:text-text-1` with `h-3.5 w-3.5` icon
+- Page titles: `text-[22px] font-bold tracking-[-0.025em] text-text-0`
+- File inputs (clientes): outline-style file button (`border-admin-border`, no fill)
+- Folio edit: read-only info bar restyled (`admin-surface-elevated`, `font-mono` on folio number)
+- Cuadrilla checkbox lists: `admin-surface-elevated` bg, `accent` checkbox color, status-based role badges
+- Tech pages completely untouched — shared UI components only received additive `outline` variant
+
 ---
 
 ## What Remains
 
-### Phase 3 — Forms
+### ~~Phase 3 — Forms~~ (DONE)
 
-Restyle all admin form pages (create/edit for all entities). Files to modify:
+~~Restyle all admin form pages (create/edit for all entities).~~ Files modified:
 
 - `src/app/admin/clientes/nuevo/page.tsx`
 - `src/app/admin/clientes/[id]/editar/page.tsx`
