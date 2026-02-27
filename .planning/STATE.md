@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 3 of 5 (Technician Reporting)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-27 -- Completed 03-01-PLAN.md
+Last activity: 2026-02-27 -- Completed 03-02-PLAN.md
 
-Progress: [######....] 38% (5/13 plans)
+Progress: [######....] 46% (6/13 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: 6 min
-- Total execution time: 0.5 hours
+- Total execution time: 0.6 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [######....] 38% (5/13 plans)
 |-------|-------|-------|----------|
 | 01-foundation | 2/3 | 16 min | 8 min |
 | 02-admin-data-management | 2/2 | 13 min | 7 min |
-| 03-technician-reporting | 1/3 | 4 min | 4 min |
+| 03-technician-reporting | 2/3 | 11 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 4 min, 7 min, 6 min, 4 min
+- Last 5 plans: 7 min, 7 min, 6 min, 4 min, 7 min
 - Trend: stable/fast
 
 *Updated after each plan completion*
@@ -70,6 +70,11 @@ Recent decisions affecting current work:
 - [03-01]: Pre-fill new daily reports with equipo_id + tipo_trabajo from previous report (text fields start fresh)
 - [03-01]: updateReportStatus syncs parent folio estatus to match report estatus
 - [03-01]: createEquipoFromField allows tecnico/ayudante roles with revisado=false and agregado_por tracking
+- [03-02]: Accordion-style equipment entries to prevent overwhelming mobile screens
+- [03-02]: Optimistic entry removal with revert on server error
+- [03-02]: Realtime refresh banner (not auto-refresh) to avoid disrupting active editing
+- [03-02]: Hide bottom tab bar on report routes for maximum mobile screen real estate
+- [03-02]: Per-entry save buttons with inline success/error indicators
 
 ### Pending Todos
 
@@ -83,10 +88,10 @@ Recent decisions affecting current work:
 
 - [Phase 4]: Photo capture is highest-risk component -- getUserMedia + canvas + GPS overlay + compression on budget Android phones. Prototype early.
 - [Phase 5]: PDF with 20+ embedded photos needs validation at scale. Run a spike during Phase 5 planning.
-- [Phase 3]: Cuadrilla concurrent-edit conflict resolution needs UX decision (silent overwrite vs refresh toast). Decide during Phase 3 planning.
+- [Phase 3]: Cuadrilla concurrent-edit conflict resolution: DECIDED -- last-write-wins with Realtime refresh banner (implemented in 03-02).
 
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 03-01-PLAN.md (reporting server layer -- migration, validations, server actions)
+Stopped at: Completed 03-02-PLAN.md (technician report UI -- folio list, report form, equipment section)
 Resume file: None
