@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { EquipmentSection } from "./equipment-section";
+import { MaterialsSection } from "./materials-section";
+import { StatusSection } from "./status-section";
 import type {
   ReporteEquipo,
   Equipo,
@@ -41,6 +43,7 @@ export function ReportForm({
   sucursalId,
   clienteNombre,
   initialEntries,
+  initialMaterials,
   availableEquipment,
   teamMembers,
   currentStatus,
@@ -49,6 +52,7 @@ export function ReportForm({
   const router = useRouter();
   const [showRefreshBanner, setShowRefreshBanner] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [equipmentCount, setEquipmentCount] = useState(initialEntries.length);
 
   const todayFormatted = new Date().toLocaleDateString("es-MX", {
     weekday: "long",
@@ -236,21 +240,30 @@ export function ReportForm({
         sucursalId={sucursalId}
         isCompleted={isCompleted}
         onUnsavedChange={setHasUnsavedChanges}
+        onEntriesChange={setEquipmentCount}
       />
 
-      {/* Materials placeholder - Plan 03 */}
-      <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4">
-        <p className="text-sm text-gray-400 text-center">
-          Materiales — Plan 03
-        </p>
-      </div>
+      {/* Divider */}
+      <hr className="border-gray-200" />
 
-      {/* Status placeholder - Plan 03 */}
-      <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4">
-        <p className="text-sm text-gray-400 text-center">
-          Estatus — Plan 03
-        </p>
-      </div>
+      {/* Materials Section */}
+      <MaterialsSection
+        reporteId={reporteId}
+        initialMaterials={initialMaterials}
+        isCompleted={isCompleted}
+        onUnsavedChange={setHasUnsavedChanges}
+      />
+
+      {/* Divider */}
+      <hr className="border-gray-200" />
+
+      {/* Status and Submit Section */}
+      <StatusSection
+        reporteId={reporteId}
+        currentStatus={currentStatus}
+        hasEquipmentEntries={equipmentCount > 0}
+        isCompleted={isCompleted}
+      />
     </div>
   );
 }

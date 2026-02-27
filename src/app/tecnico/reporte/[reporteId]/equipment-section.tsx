@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { saveEquipmentEntry, removeEquipmentEntry } from "@/app/actions/reportes";
 import { EquipmentEntryForm } from "./equipment-entry-form";
 import { AddEquipmentModal } from "./add-equipment-modal";
@@ -15,6 +15,7 @@ interface EquipmentSectionProps {
   sucursalId: string;
   isCompleted: boolean;
   onUnsavedChange?: (hasChanges: boolean) => void;
+  onEntriesChange?: (count: number) => void;
 }
 
 export function EquipmentSection({
@@ -24,6 +25,7 @@ export function EquipmentSection({
   sucursalId,
   isCompleted,
   onUnsavedChange,
+  onEntriesChange,
 }: EquipmentSectionProps) {
   const [entries, setEntries] =
     useState<(ReporteEquipo & { equipos: Equipo })[]>(initialEntries);
@@ -32,6 +34,11 @@ export function EquipmentSection({
   const [isRemoving, startRemoveTransition] = useTransition();
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedEquipoId, setSelectedEquipoId] = useState("");
+
+  // Notify parent of entry count changes for reactive validation
+  useEffect(() => {
+    onEntriesChange?.(entries.length);
+  }, [entries.length, onEntriesChange]);
 
   // Filter out equipment already added to the report
   const usedEquipoIds = new Set(entries.map((e) => e.equipo_id));
