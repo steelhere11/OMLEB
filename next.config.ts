@@ -11,6 +11,12 @@ const withSerwist = withSerwistInit({
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  turbopack: {},
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "5mb",
+    },
+  },
 };
 
 export default withSerwist(nextConfig);
