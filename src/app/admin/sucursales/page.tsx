@@ -15,116 +15,82 @@ export default async function SucursalesPage() {
   const list = (sucursales as Sucursal[] | null) ?? [];
 
   return (
-    <div className="min-h-dvh bg-admin-bg px-4 py-8 text-white">
-      <div className="mx-auto max-w-4xl">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Sucursales</h1>
+    <div className="mx-auto max-w-4xl">
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-[22px] font-bold tracking-[-0.025em] text-text-0">
+          Sucursales
+        </h1>
+        <Link
+          href="/admin/sucursales/nuevo"
+          className="inline-flex items-center gap-1.5 rounded-[6px] border border-admin-border px-3 py-1.5 text-[13px] font-medium text-text-1 transition-colors duration-[80ms] hover:bg-admin-surface-hover"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Crear Sucursal
+        </Link>
+      </div>
+
+      {/* Branch List */}
+      {list.length === 0 ? (
+        <div className="rounded-[10px] border border-admin-border bg-admin-surface py-28 text-center">
+          <p className="text-[13px] text-text-3">No hay sucursales registradas</p>
           <Link
             href="/admin/sucursales/nuevo"
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+            className="mt-3 inline-block text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Crear Sucursal
+            Crear primera sucursal →
           </Link>
         </div>
+      ) : (
+        <div className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-surface">
+          {/* Header row */}
+          <div className="flex items-center border-b border-admin-border-subtle px-[14px] py-[10px] text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
+            <div className="w-[200px]">Nombre</div>
+            <div className="w-[100px]">Numero</div>
+            <div className="flex-1">Direccion</div>
+            <div className="w-[200px] text-right">Acciones</div>
+          </div>
 
-        {/* Branch List */}
-        {list.length === 0 ? (
-          <div className="rounded-xl border border-admin-border bg-admin-surface p-12 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-admin-border bg-admin-bg">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                />
-              </svg>
-            </div>
-            <p className="text-lg font-medium text-gray-300">
-              No hay sucursales registradas
-            </p>
-            <p className="mt-1 text-sm text-gray-500">
-              Crea la primera sucursal para comenzar
-            </p>
-            <Link
-              href="/admin/sucursales/nuevo"
-              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-3 font-medium text-white transition-colors hover:bg-brand-600"
+          {/* Data rows */}
+          {list.map((sucursal, i) => (
+            <div
+              key={sucursal.id}
+              className={`flex items-center px-[14px] py-[9px] transition-colors duration-[80ms] hover:bg-admin-surface-hover${i > 0 ? " row-inset-divider" : ""}`}
             >
-              Crear primera sucursal
-            </Link>
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-xl border border-admin-border bg-admin-surface">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-admin-border text-left text-sm text-gray-400">
-                  <th className="px-6 py-4 font-medium">Nombre</th>
-                  <th className="px-6 py-4 font-medium">Numero</th>
-                  <th className="px-6 py-4 font-medium">Direccion</th>
-                  <th className="px-6 py-4 font-medium">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-admin-border">
-                {list.map((sucursal) => (
-                  <tr key={sucursal.id} className="hover:bg-admin-bg/50">
-                    <td className="px-6 py-4 font-medium text-white">
-                      {sucursal.nombre}
-                    </td>
-                    <td className="px-6 py-4 text-gray-300">
-                      {sucursal.numero}
-                    </td>
-                    <td className="px-6 py-4 text-gray-300">
-                      {sucursal.direccion}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <Link
-                          href={`/admin/sucursales/${sucursal.id}/editar`}
-                          className="text-sm font-medium text-brand-400 transition-colors hover:text-brand-300"
-                        >
-                          Editar
-                        </Link>
-                        <Link
-                          href={`/admin/equipos/${sucursal.id}`}
-                          className="text-sm font-medium text-gray-400 transition-colors hover:text-white"
-                        >
-                          Ver equipos
-                        </Link>
-                        <DeleteButton
-                          id={sucursal.id}
-                          action={deleteSucursal}
-                          confirmMessage="Esta seguro de eliminar esta sucursal?"
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+              <div className="w-[200px] text-[13px] font-medium text-text-0">
+                {sucursal.nombre}
+              </div>
+              <div className="w-[100px] font-mono text-[13px] text-text-1">
+                {sucursal.numero}
+              </div>
+              <div className="flex-1 text-[13px] text-text-1">
+                {sucursal.direccion}
+              </div>
+              <div className="flex w-[200px] items-center justify-end gap-3">
+                <Link
+                  href={`/admin/sucursales/${sucursal.id}/editar`}
+                  className="text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
+                >
+                  Editar →
+                </Link>
+                <Link
+                  href={`/admin/equipos/${sucursal.id}`}
+                  className="text-[13px] font-medium text-text-2 transition-colors duration-[80ms] hover:text-text-0"
+                >
+                  Equipos
+                </Link>
+                <DeleteButton
+                  id={sucursal.id}
+                  action={deleteSucursal}
+                  confirmMessage="Esta seguro de eliminar esta sucursal?"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

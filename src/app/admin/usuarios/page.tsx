@@ -18,111 +18,81 @@ export default async function UsuariosPage() {
     ayudante: "Ayudante",
   };
 
+  const rolBadge: Record<string, string> = {
+    admin: "bg-text-1/10 text-text-1",
+    tecnico: "bg-status-progress/10 text-status-progress",
+    ayudante: "bg-status-warning/10 text-status-warning",
+  };
+
   return (
-    <div className="min-h-dvh bg-admin-bg px-4 py-8 text-white">
-      <div className="mx-auto max-w-4xl">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Usuarios</h1>
+    <div className="mx-auto max-w-4xl">
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-[22px] font-bold tracking-[-0.025em] text-text-0">
+          Usuarios
+        </h1>
+        <Link
+          href="/admin/usuarios/nuevo"
+          className="inline-flex items-center gap-1.5 rounded-[6px] border border-admin-border px-3 py-1.5 text-[13px] font-medium text-text-1 transition-colors duration-[80ms] hover:bg-admin-surface-hover"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Crear Usuario
+        </Link>
+      </div>
+
+      {/* User List */}
+      {userList.length === 0 ? (
+        <div className="rounded-[10px] border border-admin-border bg-admin-surface py-28 text-center">
+          <p className="text-[13px] text-text-3">No hay usuarios registrados</p>
           <Link
             href="/admin/usuarios/nuevo"
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+            className="mt-3 inline-block text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Crear Usuario
+            Crear primer usuario →
           </Link>
         </div>
+      ) : (
+        <div className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-surface">
+          {/* Header row */}
+          <div className="flex items-center border-b border-admin-border-subtle px-[14px] py-[10px] text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
+            <div className="w-[200px]">Nombre</div>
+            <div className="flex-1">Correo</div>
+            <div className="w-[120px]">Rol</div>
+            <div className="w-[140px] text-right">Fecha</div>
+          </div>
 
-        {/* User List */}
-        {userList.length === 0 ? (
-          <div className="rounded-xl border border-admin-border bg-admin-surface p-12 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-admin-border bg-admin-bg">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            </div>
-            <p className="text-lg font-medium text-gray-300">
-              No hay usuarios registrados
-            </p>
-            <p className="mt-1 text-sm text-gray-500">
-              Crea el primer usuario para comenzar
-            </p>
-            <Link
-              href="/admin/usuarios/nuevo"
-              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-3 font-medium text-white transition-colors hover:bg-brand-600"
+          {/* Data rows */}
+          {userList.map((user, i) => (
+            <div
+              key={user.id}
+              className={`flex items-center px-[14px] py-[9px] transition-colors duration-[80ms] hover:bg-admin-surface-hover${i > 0 ? " row-inset-divider" : ""}`}
             >
-              Crear primer usuario
-            </Link>
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-xl border border-admin-border bg-admin-surface">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-admin-border text-left text-sm text-gray-400">
-                  <th className="px-6 py-4 font-medium">Nombre</th>
-                  <th className="px-6 py-4 font-medium">Correo</th>
-                  <th className="px-6 py-4 font-medium">Rol</th>
-                  <th className="px-6 py-4 font-medium">Fecha de creacion</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-admin-border">
-                {userList.map((user) => (
-                  <tr key={user.id} className="hover:bg-admin-bg/50">
-                    <td className="px-6 py-4 font-medium text-white">
-                      {user.nombre}
-                    </td>
-                    <td className="px-6 py-4 text-gray-300">{user.email}</td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          user.rol === "admin"
-                            ? "bg-brand-900/50 text-brand-300"
-                            : user.rol === "tecnico"
-                              ? "bg-green-900/50 text-green-300"
-                              : "bg-yellow-900/50 text-yellow-300"
-                        }`}
-                      >
-                        {rolLabels[user.rol] ?? user.rol}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-400">
-                      {new Date(user.created_at).toLocaleDateString("es-MX", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+              <div className="w-[200px] text-[13px] font-medium text-text-0">
+                {user.nombre}
+              </div>
+              <div className="flex-1 text-[13px] text-text-1">
+                {user.email}
+              </div>
+              <div className="w-[120px]">
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${rolBadge[user.rol] ?? "bg-text-1/10 text-text-1"}`}
+                >
+                  {rolLabels[user.rol] ?? user.rol}
+                </span>
+              </div>
+              <div className="w-[140px] text-right font-mono text-[13px] text-text-2">
+                {new Date(user.created_at).toLocaleDateString("es-MX", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

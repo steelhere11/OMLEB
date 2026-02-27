@@ -34,161 +34,116 @@ export default async function EquiposSucursalPage({
   const list = (equipos as Equipo[] | null) ?? [];
 
   return (
-    <div className="min-h-dvh bg-admin-bg px-4 py-8 text-white">
-      <div className="mx-auto max-w-4xl">
-        {/* Back link */}
-        <Link
-          href="/admin/equipos"
-          className="mb-6 inline-flex items-center gap-1 text-sm text-gray-400 transition-colors hover:text-white"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          Volver a equipos
-        </Link>
+    <div className="mx-auto max-w-4xl">
+      {/* Back link */}
+      <Link
+        href="/admin/equipos"
+        className="mb-4 inline-flex items-center gap-1 text-[13px] text-text-2 transition-colors duration-[80ms] hover:text-text-1"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Volver a equipos
+      </Link>
 
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">
-              Equipos — {branch.nombre} ({branch.numero})
-            </h1>
-          </div>
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h1 className="text-[22px] font-bold tracking-[-0.025em] text-text-0">
+            Equipos
+          </h1>
+          <span className="text-[22px] text-text-3">—</span>
+          <span className="text-[22px] font-bold tracking-[-0.025em] text-text-0">
+            {branch.nombre}
+          </span>
+          <span className="font-mono text-[14px] text-text-3">
+            ({branch.numero})
+          </span>
+        </div>
+        <Link
+          href={`/admin/equipos/${sucursalId}/nuevo`}
+          className="inline-flex items-center gap-1.5 rounded-[6px] border border-admin-border px-3 py-1.5 text-[13px] font-medium text-text-1 transition-colors duration-[80ms] hover:bg-admin-surface-hover"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Crear Equipo
+        </Link>
+      </div>
+
+      {/* Equipment List */}
+      {list.length === 0 ? (
+        <div className="rounded-[10px] border border-admin-border bg-admin-surface py-28 text-center">
+          <p className="text-[13px] text-text-3">No hay equipos en esta sucursal</p>
           <Link
             href={`/admin/equipos/${sucursalId}/nuevo`}
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+            className="mt-3 inline-block text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Crear Equipo
+            Crear primer equipo →
           </Link>
         </div>
+      ) : (
+        <div className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-surface">
+          {/* Header row */}
+          <div className="flex items-center border-b border-admin-border-subtle px-[14px] py-[10px] text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
+            <div className="w-[140px]">Etiqueta</div>
+            <div className="w-[100px]">Marca</div>
+            <div className="w-[100px]">Modelo</div>
+            <div className="w-[120px]">Serie</div>
+            <div className="flex-1">Tipo</div>
+            <div className="w-[100px]">Estado</div>
+            <div className="w-[140px] text-right">Acciones</div>
+          </div>
 
-        {/* Equipment List */}
-        {list.length === 0 ? (
-          <div className="rounded-xl border border-admin-border bg-admin-surface p-12 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-admin-border bg-admin-bg">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            </div>
-            <p className="text-lg font-medium text-gray-300">
-              No hay equipos en esta sucursal
-            </p>
-            <p className="mt-1 text-sm text-gray-500">
-              Crea el primer equipo para esta sucursal
-            </p>
-            <Link
-              href={`/admin/equipos/${sucursalId}/nuevo`}
-              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-3 font-medium text-white transition-colors hover:bg-brand-600"
+          {/* Data rows */}
+          {list.map((equipo, i) => (
+            <div
+              key={equipo.id}
+              className={`flex items-center px-[14px] py-[9px] transition-colors duration-[80ms] hover:bg-admin-surface-hover${i > 0 ? " row-inset-divider" : ""}`}
             >
-              Crear primer equipo
-            </Link>
-          </div>
-        ) : (
-          <div className="overflow-hidden rounded-xl border border-admin-border bg-admin-surface">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-admin-border text-left text-sm text-gray-400">
-                  <th className="px-6 py-4 font-medium">Etiqueta</th>
-                  <th className="px-6 py-4 font-medium">Marca</th>
-                  <th className="px-6 py-4 font-medium">Modelo</th>
-                  <th className="px-6 py-4 font-medium">Serie</th>
-                  <th className="px-6 py-4 font-medium">Tipo</th>
-                  <th className="px-6 py-4 font-medium">Estado</th>
-                  <th className="px-6 py-4 font-medium">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-admin-border">
-                {list.map((equipo) => (
-                  <tr key={equipo.id} className="hover:bg-admin-bg/50">
-                    <td className="px-6 py-4 font-medium text-white">
-                      {equipo.numero_etiqueta}
-                    </td>
-                    <td className="px-6 py-4 text-gray-300">
-                      {equipo.marca ?? "—"}
-                    </td>
-                    <td className="px-6 py-4 text-gray-300">
-                      {equipo.modelo ?? "—"}
-                    </td>
-                    <td className="px-6 py-4 text-gray-300">
-                      {equipo.numero_serie ?? "—"}
-                    </td>
-                    <td className="px-6 py-4 text-gray-300">
-                      {equipo.tipo_equipo ?? "—"}
-                    </td>
-                    <td className="px-6 py-4">
-                      {equipo.revisado ? (
-                        <span className="inline-flex items-center rounded-full bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-400">
-                          Revisado
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full bg-yellow-900/30 px-2.5 py-0.5 text-xs font-medium text-yellow-400">
-                          Pendiente revision
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <Link
-                          href={`/admin/equipos/${sucursalId}/${equipo.id}/editar`}
-                          className="text-sm font-medium text-brand-400 transition-colors hover:text-brand-300"
-                        >
-                          Editar
-                        </Link>
-                        <DeleteButton
-                          id={equipo.id}
-                          action={deleteEquipo}
-                          confirmMessage="Esta seguro de eliminar este equipo?"
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+              <div className="w-[140px] font-mono text-[13px] font-medium text-text-0">
+                {equipo.numero_etiqueta}
+              </div>
+              <div className="w-[100px] text-[13px] text-text-1">
+                {equipo.marca ?? "—"}
+              </div>
+              <div className="w-[100px] text-[13px] text-text-1">
+                {equipo.modelo ?? "—"}
+              </div>
+              <div className="w-[120px] font-mono text-[13px] text-text-2">
+                {equipo.numero_serie ?? "—"}
+              </div>
+              <div className="flex-1 text-[13px] text-text-1">
+                {equipo.tipo_equipo ?? "—"}
+              </div>
+              <div className="w-[100px]">
+                {equipo.revisado ? (
+                  <span className="inline-flex items-center rounded-full bg-status-success/10 px-2.5 py-0.5 text-xs font-medium text-status-success">
+                    Revisado
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center rounded-full bg-status-warning/10 px-2.5 py-0.5 text-xs font-medium text-status-warning">
+                    Pendiente
+                  </span>
+                )}
+              </div>
+              <div className="flex w-[140px] items-center justify-end gap-3">
+                <Link
+                  href={`/admin/equipos/${sucursalId}/${equipo.id}/editar`}
+                  className="text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
+                >
+                  Editar →
+                </Link>
+                <DeleteButton
+                  id={equipo.id}
+                  action={deleteEquipo}
+                  confirmMessage="Esta seguro de eliminar este equipo?"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

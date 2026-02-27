@@ -34,128 +34,98 @@ export default async function EquiposPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-admin-bg px-4 py-8 text-white">
-      <div className="mx-auto max-w-4xl">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Equipos</h1>
-        </div>
+    <div className="mx-auto max-w-4xl">
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-[22px] font-bold tracking-[-0.025em] text-text-0">
+          Equipos
+        </h1>
+      </div>
 
-        {/* Equipment List Grouped by Branch */}
-        {list.length === 0 ? (
-          <div className="rounded-xl border border-admin-border bg-admin-surface p-12 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-admin-border bg-admin-bg">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
+      {/* Equipment List Grouped by Branch */}
+      {list.length === 0 ? (
+        <div className="rounded-[10px] border border-admin-border bg-admin-surface py-28 text-center">
+          <p className="text-[13px] text-text-3">No hay equipos registrados</p>
+          <Link
+            href="/admin/sucursales"
+            className="mt-3 inline-block text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
+          >
+            Ir a sucursales →
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {Array.from(grouped.entries()).map(
+            ([sucursalId, { sucursal, items }]) => (
+              <div
+                key={sucursalId}
+                className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-surface"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            </div>
-            <p className="text-lg font-medium text-gray-300">
-              No hay equipos registrados
-            </p>
-            <p className="mt-1 text-sm text-gray-500">
-              Agrega equipos desde la seccion de sucursales
-            </p>
-            <Link
-              href="/admin/sucursales"
-              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-3 font-medium text-white transition-colors hover:bg-brand-600"
-            >
-              Ir a sucursales
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {Array.from(grouped.entries()).map(
-              ([sucursalId, { sucursal, items }]) => (
-                <div
-                  key={sucursalId}
-                  className="overflow-hidden rounded-xl border border-admin-border bg-admin-surface"
-                >
-                  {/* Branch header */}
-                  <div className="flex items-center justify-between border-b border-admin-border px-6 py-4">
-                    <div>
-                      <h2 className="text-lg font-semibold text-white">
-                        {sucursal.nombre}
-                      </h2>
-                      {sucursal.numero && (
-                        <p className="text-sm text-gray-400">
-                          Sucursal #{sucursal.numero}
-                        </p>
+                {/* Branch header */}
+                <div className="flex items-center justify-between border-b border-admin-border-subtle px-[14px] py-[10px]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[14px] font-semibold tracking-[-0.01em] text-text-0">
+                      {sucursal.nombre}
+                    </span>
+                    {sucursal.numero && (
+                      <span className="font-mono text-[12px] text-text-3">
+                        #{sucursal.numero}
+                      </span>
+                    )}
+                  </div>
+                  <Link
+                    href={`/admin/equipos/${sucursalId}`}
+                    className="text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
+                  >
+                    Ver todos ({items.length}) →
+                  </Link>
+                </div>
+
+                {/* Column headers */}
+                <div className="flex items-center border-b border-admin-border-subtle px-[14px] py-[8px] text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
+                  <div className="w-[160px]">Etiqueta</div>
+                  <div className="w-[120px]">Marca</div>
+                  <div className="flex-1">Modelo</div>
+                  <div className="w-[120px]">Tipo</div>
+                  <div className="w-[120px] text-right">Estado</div>
+                </div>
+
+                {/* Equipment rows */}
+                {items.map((equipo, i) => (
+                  <div
+                    key={equipo.id}
+                    className={`flex items-center px-[14px] py-[9px] transition-colors duration-[80ms] hover:bg-admin-surface-hover${i > 0 ? " row-inset-divider" : ""}`}
+                  >
+                    <div className="w-[160px] font-mono text-[13px] font-medium text-text-0">
+                      {equipo.numero_etiqueta}
+                    </div>
+                    <div className="w-[120px] text-[13px] text-text-1">
+                      {equipo.marca ?? "—"}
+                    </div>
+                    <div className="flex-1 text-[13px] text-text-1">
+                      {equipo.modelo ?? "—"}
+                    </div>
+                    <div className="w-[120px] text-[13px] text-text-1">
+                      {equipo.tipo_equipo ?? "—"}
+                    </div>
+                    <div className="w-[120px] text-right">
+                      {equipo.revisado ? (
+                        <span className="inline-flex items-center rounded-full bg-status-success/10 px-2.5 py-0.5 text-xs font-medium text-status-success">
+                          Revisado
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-status-warning/10 px-2.5 py-0.5 text-xs font-medium text-status-warning">
+                          Pendiente
+                        </span>
                       )}
                     </div>
-                    <Link
-                      href={`/admin/equipos/${sucursalId}`}
-                      className="text-sm font-medium text-brand-400 transition-colors hover:text-brand-300"
-                    >
-                      Ver todos ({items.length})
-                    </Link>
                   </div>
-
-                  {/* Equipment rows */}
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b border-admin-border text-left text-sm text-gray-400">
-                        <th className="px-6 py-3 font-medium">Etiqueta</th>
-                        <th className="px-6 py-3 font-medium">Marca</th>
-                        <th className="px-6 py-3 font-medium">Modelo</th>
-                        <th className="px-6 py-3 font-medium">Tipo</th>
-                        <th className="px-6 py-3 font-medium">Estado</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-admin-border">
-                      {items.map((equipo) => (
-                        <tr
-                          key={equipo.id}
-                          className="hover:bg-admin-bg/50"
-                        >
-                          <td className="px-6 py-3 font-medium text-white">
-                            {equipo.numero_etiqueta}
-                          </td>
-                          <td className="px-6 py-3 text-gray-300">
-                            {equipo.marca ?? "—"}
-                          </td>
-                          <td className="px-6 py-3 text-gray-300">
-                            {equipo.modelo ?? "—"}
-                          </td>
-                          <td className="px-6 py-3 text-gray-300">
-                            {equipo.tipo_equipo ?? "—"}
-                          </td>
-                          <td className="px-6 py-3">
-                            {equipo.revisado ? (
-                              <span className="inline-flex items-center rounded-full bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-400">
-                                Revisado
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center rounded-full bg-yellow-900/30 px-2.5 py-0.5 text-xs font-medium text-yellow-400">
-                                Pendiente revision
-                              </span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )
-            )}
-          </div>
-        )}
-      </div>
+                ))}
+              </div>
+            )
+          )}
+        </div>
+      )}
     </div>
   );
 }

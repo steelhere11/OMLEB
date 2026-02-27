@@ -17,19 +17,19 @@ const statusConfig: Record<
 > = {
   abierto: {
     label: "Abierto",
-    className: "bg-blue-900/30 text-blue-400",
+    className: "bg-status-progress/10 text-status-progress",
   },
   en_progreso: {
     label: "En Progreso",
-    className: "bg-yellow-900/30 text-yellow-400",
+    className: "bg-status-progress/10 text-status-progress",
   },
   completado: {
     label: "Completado",
-    className: "bg-green-900/30 text-green-400",
+    className: "bg-status-success/10 text-status-success",
   },
   en_espera: {
     label: "En Espera",
-    className: "bg-orange-900/30 text-orange-400",
+    className: "bg-status-warning/10 text-status-warning",
   },
 };
 
@@ -46,134 +46,98 @@ export default async function FoliosPage() {
   const list = (folios as FolioWithRelations[] | null) ?? [];
 
   return (
-    <div className="min-h-dvh bg-admin-bg px-4 py-8 text-white">
-      <div className="mx-auto max-w-5xl">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Folios</h1>
+    <div className="mx-auto max-w-5xl">
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-[22px] font-bold tracking-[-0.025em] text-text-0">
+          Folios
+        </h1>
+        <Link
+          href="/admin/folios/nuevo"
+          className="inline-flex items-center gap-1.5 rounded-[6px] border border-admin-border px-3 py-1.5 text-[13px] font-medium text-text-1 transition-colors duration-[80ms] hover:bg-admin-surface-hover"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Crear Folio
+        </Link>
+      </div>
+
+      {/* Folio List */}
+      {list.length === 0 ? (
+        <div className="rounded-[10px] border border-admin-border bg-admin-surface py-28 text-center">
+          <p className="text-[13px] text-text-3">No hay folios registrados</p>
           <Link
             href="/admin/folios/nuevo"
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-brand-600"
+            className="mt-3 inline-block text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-            Crear Folio
+            Crear primer folio →
           </Link>
         </div>
-
-        {/* Folio List */}
-        {list.length === 0 ? (
-          <div className="rounded-xl border border-admin-border bg-admin-surface p-12 text-center">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-admin-border bg-admin-bg">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"
-                />
-              </svg>
+      ) : (
+        <div className="overflow-x-auto overflow-y-visible rounded-[10px] border border-admin-border bg-admin-surface">
+          <div className="min-w-[800px]">
+            {/* Header row */}
+            <div className="flex items-center border-b border-admin-border-subtle px-[14px] py-[10px] text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
+              <div className="w-[100px]">Folio</div>
+              <div className="w-[160px]">Sucursal</div>
+              <div className="w-[120px]">Cliente</div>
+              <div className="w-[100px]">Estatus</div>
+              <div className="w-[80px]">Equipo</div>
+              <div className="flex-1">Fecha</div>
+              <div className="w-[90px] text-right">Acciones</div>
             </div>
-            <p className="text-lg font-medium text-gray-300">
-              No hay folios registrados
-            </p>
-            <p className="mt-1 text-sm text-gray-500">
-              Crea el primer folio para comenzar
-            </p>
-            <Link
-              href="/admin/folios/nuevo"
-              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-3 font-medium text-white transition-colors hover:bg-brand-600"
-            >
-              Crear primer folio
-            </Link>
+
+            {/* Data rows */}
+            {list.map((folio, i) => {
+              const status = statusConfig[folio.estatus] ?? statusConfig.abierto;
+              return (
+                <div
+                  key={folio.id}
+                  className={`flex items-center px-[14px] py-[9px] transition-colors duration-[80ms] hover:bg-admin-surface-hover${i > 0 ? " row-inset-divider" : ""}`}
+                >
+                  <div className="w-[100px] font-mono text-[13px] font-medium text-text-0">
+                    {folio.numero_folio}
+                  </div>
+                  <div className="w-[160px] text-[13px] text-text-1">
+                    {folio.sucursales
+                      ? `${folio.sucursales.nombre} (${folio.sucursales.numero})`
+                      : "—"}
+                  </div>
+                  <div className="w-[120px] text-[13px] text-text-1">
+                    {folio.clientes?.nombre ?? "—"}
+                  </div>
+                  <div className="w-[100px]">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}
+                    >
+                      {status.label}
+                    </span>
+                  </div>
+                  <div className="w-[80px] font-mono text-[13px] text-text-2">
+                    {folio.folio_asignados.length}
+                  </div>
+                  <div className="flex-1 font-mono text-[13px] text-text-2">
+                    {new Date(folio.created_at).toLocaleDateString("es-MX", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </div>
+                  <div className="w-[90px] text-right">
+                    <Link
+                      href={`/admin/folios/${folio.id}/editar`}
+                      className="text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
+                    >
+                      Editar →
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        ) : (
-          <div className="overflow-hidden rounded-xl border border-admin-border bg-admin-surface">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-admin-border text-left text-sm text-gray-400">
-                  <th className="px-6 py-4 font-medium">Numero Folio</th>
-                  <th className="px-6 py-4 font-medium">Sucursal</th>
-                  <th className="px-6 py-4 font-medium">Cliente</th>
-                  <th className="px-6 py-4 font-medium">Estatus</th>
-                  <th className="px-6 py-4 font-medium">Equipo asignado</th>
-                  <th className="px-6 py-4 font-medium">Fecha</th>
-                  <th className="px-6 py-4 font-medium">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-admin-border">
-                {list.map((folio) => {
-                  const status = statusConfig[folio.estatus] ?? statusConfig.abierto;
-                  return (
-                    <tr key={folio.id} className="hover:bg-admin-bg/50">
-                      <td className="px-6 py-4 font-medium text-white">
-                        {folio.numero_folio}
-                      </td>
-                      <td className="px-6 py-4 text-gray-300">
-                        {folio.sucursales
-                          ? `${folio.sucursales.nombre} (${folio.sucursales.numero})`
-                          : "—"}
-                      </td>
-                      <td className="px-6 py-4 text-gray-300">
-                        {folio.clientes?.nombre ?? "—"}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}
-                        >
-                          {status.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-gray-300">
-                        {folio.folio_asignados.length}{" "}
-                        {folio.folio_asignados.length === 1
-                          ? "usuario"
-                          : "usuarios"}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-400">
-                        {new Date(folio.created_at).toLocaleDateString(
-                          "es-MX",
-                          {
-                            day: "2-digit",
-                            month: "short",
-                            year: "numeric",
-                          }
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <Link
-                          href={`/admin/folios/${folio.id}/editar`}
-                          className="text-sm font-medium text-brand-400 transition-colors hover:text-brand-300"
-                        >
-                          Editar
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

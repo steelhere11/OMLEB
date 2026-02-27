@@ -78,3 +78,17 @@ body {
 @utility animate-popover-in {
   animation: popover-in 0.12s ease both;
 }
+
+/* Inset row divider — 14px inset from both edges */
+@utility row-inset-divider {
+  position: relative;
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 14px;
+    right: 14px;
+    height: 1px;
+    background: var(--color-admin-border-subtle);
+  }
+}

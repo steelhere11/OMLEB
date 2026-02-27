@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { Button } from "@/components/ui/button";
 import type { ActionState } from "@/types/actions";
 
 interface DeleteButtonProps {
@@ -27,22 +26,21 @@ export function DeleteButton({
     <div>
       <form action={formAction}>
         <input type="hidden" name="id" value={id} />
-        <Button
+        <button
           type="submit"
-          variant="danger"
-          size="sm"
-          loading={isPending}
+          disabled={isPending}
           onClick={(e) => {
             if (!confirm(confirmMessage)) {
               e.preventDefault();
             }
           }}
+          className="text-[13px] font-medium text-text-3 transition-colors duration-[80ms] hover:text-status-error disabled:opacity-50"
         >
-          Eliminar
-        </Button>
+          {isPending ? "..." : "Eliminar"}
+        </button>
       </form>
       {state?.error && (
-        <p className="mt-1.5 max-w-xs text-xs text-red-400">{state.error}</p>
+        <p className="mt-1 max-w-xs text-[12px] text-status-error">{state.error}</p>
       )}
     </div>
   );
