@@ -5,33 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Field technicians can quickly submit complete daily reports (with photos, equipment details, materials, and diagnostics) from their phone on-site -- no WhatsApp, no paper, no back-and-forth.
-**Current focus:** Phase 2: Admin Data Management
+**Current focus:** Phase 2: Admin Data Management (Complete)
 
 ## Current Position
 
 Phase: 2 of 5 (Admin Data Management)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-02-27 -- Completed 02-01-PLAN.md
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-02-27 -- Completed 02-02-PLAN.md
 
-Progress: [###.......] 21% (3/14 plans)
+Progress: [####......] 29% (4/14 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 8 min
-- Total execution time: 0.4 hours
+- Total plans completed: 4
+- Average duration: 7 min
+- Total execution time: 0.5 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 2/3 | 16 min | 8 min |
-| 02-admin-data-management | 1/2 | 7 min | 7 min |
+| 02-admin-data-management | 2/2 | 13 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 12 min, 4 min, 7 min
+- Last 5 plans: 12 min, 4 min, 7 min, 6 min
 - Trend: stable/fast
 
 *Updated after each plan completion*
@@ -61,6 +61,10 @@ Recent decisions affecting current work:
 - [02-01]: Return success state (not redirect) after delete for inline FK error display
 - [02-01]: Reusable DeleteButton component for any entity with FK protection
 - [02-01]: next/image remotePatterns with **.supabase.co wildcard for dynamic Supabase URLs
+- [02-02]: Equipment routes use [sucursalId] dynamic segments for branch scoping
+- [02-02]: Folio user reassignment uses delete-all + re-insert pattern for simplicity
+- [02-02]: Optional equipment fields use .optional().or(z.literal("")) for empty form string handling
+- [02-02]: Folio status is view-only in Phase 2; status changes come from Phase 3
 
 ### Pending Todos
 
@@ -78,5 +82,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 02-01-PLAN.md (clients and branches CRUD)
+Stopped at: Completed 02-02-PLAN.md (equipment and folio CRUD -- Phase 2 complete)
 Resume file: None
