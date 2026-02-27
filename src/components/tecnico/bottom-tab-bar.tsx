@@ -49,6 +49,11 @@ const tabs = [
 export function BottomTabBar() {
   const pathname = usePathname();
 
+  // Hide tab bar during report editing to maximize screen real estate
+  if (pathname.startsWith("/tecnico/reporte/")) {
+    return null;
+  }
+
   const isActive = (href: string) => {
     if (href === "/tecnico") return pathname === "/tecnico";
     return pathname.startsWith(href);
