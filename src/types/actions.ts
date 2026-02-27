@@ -3,4 +3,5 @@ export interface ActionState {
   fieldErrors?: Record<string, string[] | undefined>;
   success?: boolean;
   message?: string;
+  data?: unknown;
 }
