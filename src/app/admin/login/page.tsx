@@ -14,17 +14,17 @@ export default function AdminLoginPage() {
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-admin-bg px-4 py-8">
-      <div className="w-full max-w-sm rounded-2xl border border-admin-border bg-admin-surface p-8 shadow-2xl">
+      <div className="w-full max-w-sm rounded-[10px] border border-admin-border bg-admin-surface p-8">
         {/* Logo / Brand */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full border border-admin-border bg-admin-bg">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-admin-surface-elevated">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8 text-brand-400"
+              className="h-7 w-7 text-text-2"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={2}
+              strokeWidth={1.5}
             >
               <path
                 strokeLinecap="round"
@@ -33,8 +33,8 @@ export default function AdminLoginPage() {
               />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-white">OMLEB</h1>
-          <p className="mt-1 text-sm text-gray-400">
+          <h1 className="text-[22px] font-bold tracking-[-0.025em] text-text-0">OMLEB</h1>
+          <p className="mt-1 text-[13px] text-text-2">
             Panel de Administracion
           </p>
         </div>
@@ -42,7 +42,7 @@ export default function AdminLoginPage() {
         {/* Login Form */}
         <form action={formAction} className="space-y-5">
           <div>
-            <Label htmlFor="email" required className="text-gray-300">
+            <Label htmlFor="email" required className="text-[13px] text-text-1">
               Correo electronico
             </Label>
             <Input
@@ -52,12 +52,12 @@ export default function AdminLoginPage() {
               autoComplete="email"
               placeholder="admin@omleb.com"
               required
-              className="mt-1.5 border-admin-border bg-admin-bg text-white placeholder:text-gray-500"
+              className="admin-input mt-1.5"
             />
           </div>
 
           <div>
-            <Label htmlFor="password" required className="text-gray-300">
+            <Label htmlFor="password" required className="text-[13px] text-text-1">
               Contrasena
             </Label>
             <Input
@@ -68,12 +68,13 @@ export default function AdminLoginPage() {
               placeholder="••••••••"
               required
               error={state?.error}
-              className="mt-1.5 border-admin-border bg-admin-bg text-white placeholder:text-gray-500"
+              className="admin-input mt-1.5"
             />
           </div>
 
           <Button
             type="submit"
+            variant="outline"
             fullWidth
             size="lg"
             loading={isPending}

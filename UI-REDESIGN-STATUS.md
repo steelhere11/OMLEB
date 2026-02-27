@@ -12,7 +12,7 @@ Use this file to resume the admin UI redesign after a context reset. It contains
 | **Phase 1 — Sidebar** | DONE | `design: phase 1 — sidebar redesign` |
 | **Phase 2 — Tables & List Pages** | DONE | `design: phase 2 — list pages and table pattern` |
 | **Phase 3 — Forms** | DONE | `design: phase 3 — form pages` |
-| **Phase 4 — Dashboard & Login** | TODO | |
+| **Phase 4 — Dashboard & Login** | DONE | `design: phase 4 — dashboard and login` |
 | **Phase 5 — Polish** | TODO | |
 
 ---
