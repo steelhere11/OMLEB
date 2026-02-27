@@ -188,3 +188,83 @@ export async function deleteEquipo(
   revalidatePath("/admin/equipos");
   return { success: true, message: "Equipo eliminado exitosamente" };
 }
+
+// ── Create Equipment from Field (Technician) ────────────────────────────
+// Allows technicians/helpers to add equipment on-site.
+// Equipment is flagged with revisado=false for admin review.
+
+export async function createEquipoFromField(
+  _prevState: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
+  // 1. Verify authenticated user (tecnico or ayudante — NOT admin-only)
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "No autorizado" };
+  }
+
+  const rol = user.app_metadata?.rol;
+  if (rol !== "tecnico" && rol !== "ayudante" && rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  // 2. Validate with Zod
+  const rawData = {
+    sucursal_id: formData.get("sucursal_id"),
+    numero_etiqueta: formData.get("numero_etiqueta"),
+    marca: formData.get("marca"),
+    modelo: formData.get("modelo"),
+    numero_serie: formData.get("numero_serie"),
+    tipo_equipo: formData.get("tipo_equipo"),
+  };
+
+  const result = equipoSchema.safeParse(rawData);
+  if (!result.success) {
+    const flattened = z.flattenError(result.error);
+    return { fieldErrors: flattened.fieldErrors };
+  }
+
+  // 3. Prepare insert data (empty strings become null for optional fields)
+  const insertData: Record<string, unknown> = {
+    sucursal_id: result.data.sucursal_id,
+    numero_etiqueta: result.data.numero_etiqueta,
+    agregado_por: user.id,
+    revisado: false, // Tech-added equipment flagged for admin review
+  };
+
+  if (result.data.marca && result.data.marca !== "") {
+    insertData.marca = result.data.marca;
+  }
+  if (result.data.modelo && result.data.modelo !== "") {
+    insertData.modelo = result.data.modelo;
+  }
+  if (result.data.numero_serie && result.data.numero_serie !== "") {
+    insertData.numero_serie = result.data.numero_serie;
+  }
+  if (result.data.tipo_equipo && result.data.tipo_equipo !== "") {
+    insertData.tipo_equipo = result.data.tipo_equipo;
+  }
+
+  // 4. Insert into database
+  const { data: equipo, error: dbError } = await supabase
+    .from("equipos")
+    .insert(insertData)
+    .select("id")
+    .single();
+
+  if (dbError) {
+    return { error: "Error al agregar el equipo: " + dbError.message };
+  }
+
+  // 5. Revalidate and return with new equipment ID
+  revalidatePath("/tecnico");
+  return {
+    success: true,
+    message: "Equipo agregado",
+    data: { id: equipo.id },
+  };
+}
