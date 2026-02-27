@@ -5,22 +5,22 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Field technicians can quickly submit complete daily reports (with photos, equipment details, materials, and diagnostics) from their phone on-site -- no WhatsApp, no paper, no back-and-forth.
-**Current focus:** Phase 2: Admin Data Management (Complete)
+**Current focus:** Phase 3: Technician Reporting (In Progress)
 
 ## Current Position
 
-Phase: 2 of 5 (Admin Data Management)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-02-27 -- Completed 02-02-PLAN.md
+Phase: 3 of 5 (Technician Reporting)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-27 -- Completed 03-01-PLAN.md
 
-Progress: [####......] 29% (4/14 plans)
+Progress: [######....] 38% (5/13 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 7 min
+- Total plans completed: 5
+- Average duration: 6 min
 - Total execution time: 0.5 hours
 
 **By Phase:**
@@ -29,9 +29,10 @@ Progress: [####......] 29% (4/14 plans)
 |-------|-------|-------|----------|
 | 01-foundation | 2/3 | 16 min | 8 min |
 | 02-admin-data-management | 2/2 | 13 min | 7 min |
+| 03-technician-reporting | 1/3 | 4 min | 4 min |
 
 **Recent Trend:**
-- Last 5 plans: 12 min, 4 min, 7 min, 6 min
+- Last 5 plans: 4 min, 7 min, 6 min, 4 min
 - Trend: stable/fast
 
 *Updated after each plan completion*
@@ -65,6 +66,10 @@ Recent decisions affecting current work:
 - [02-02]: Folio user reassignment uses delete-all + re-insert pattern for simplicity
 - [02-02]: Optional equipment fields use .optional().or(z.literal("")) for empty form string handling
 - [02-02]: Folio status is view-only in Phase 2; status changes come from Phase 3
+- [03-01]: Handle unique constraint race condition by catching PostgreSQL 23505 and retrying SELECT
+- [03-01]: Pre-fill new daily reports with equipo_id + tipo_trabajo from previous report (text fields start fresh)
+- [03-01]: updateReportStatus syncs parent folio estatus to match report estatus
+- [03-01]: createEquipoFromField allows tecnico/ayudante roles with revisado=false and agregado_por tracking
 
 ### Pending Todos
 
@@ -72,6 +77,7 @@ Recent decisions affecting current work:
 - User must set env vars in .env.local with real Supabase credentials
 - User must create first admin account in Supabase Dashboard
 - User must run supabase/storage.sql in Supabase SQL Editor to create client logos bucket
+- User must run supabase/migration-03-reporting.sql in Supabase SQL Editor after schema.sql and rls.sql
 
 ### Blockers/Concerns
 
@@ -82,5 +88,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 02-02-PLAN.md (equipment and folio CRUD -- Phase 2 complete)
+Stopped at: Completed 03-01-PLAN.md (reporting server layer -- migration, validations, server actions)
 Resume file: None
