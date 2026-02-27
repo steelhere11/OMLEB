@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundation** - Auth, database schema, PWA shell, role-based routing
 - [x] **Phase 2: Admin Data Management** - CRUD for clients, branches, equipment, folios
-- [ ] **Phase 3: Technician Reporting** - Daily report form with equipment entries, materials, status, shared cuadrilla reports
+- [x] **Phase 3: Technician Reporting** - Daily report form with equipment entries, materials, status, shared cuadrilla reports
 - [ ] **Phase 4: Photo Capture & Signatures** - Camera with GPS overlay, gallery upload, photo labels, digital signature
 - [ ] **Phase 5: Admin Review & PDF Export** - Report list, edit/approve workflow, branded PDF generation
 
@@ -68,9 +68,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — DB migration (unique constraint, RLS fix, Realtime), Zod validation schemas, all report server actions
-- [ ] 03-02-PLAN.md — Folio list, folio detail, report page, report form shell with Realtime, equipment section with add-from-field
-- [ ] 03-03-PLAN.md — Materials log section, status/submit section, report form integration
+- [x] 03-01-PLAN.md — DB migration (unique constraint, RLS fix, Realtime), Zod validation schemas, all report server actions
+- [x] 03-02-PLAN.md — Folio list, folio detail, report page, report form shell with Realtime, equipment section with add-from-field
+- [x] 03-03-PLAN.md — Materials log section, status/submit section, report form integration
 
 ### Phase 4: Photo Capture & Signatures
 **Goal**: Technicians can capture GPS/time-stamped photos and collect client signatures directly in the report -- replacing the external stamping app entirely
@@ -115,7 +115,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 |-------|----------------|--------|-----------|
 | 1. Foundation | 2/3 | In progress | - |
 | 2. Admin Data Management | 2/2 | Complete | 2026-02-27 |
-| 3. Technician Reporting | 0/3 | Not started | - |
+| 3. Technician Reporting | 3/3 | Complete | 2026-02-27 |
 | 4. Photo Capture & Signatures | 0/3 | Not started | - |
 | 5. Admin Review & PDF Export | 0/3 | Not started | - |
 

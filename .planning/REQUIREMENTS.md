@@ -25,7 +25,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Equipment Management
 
 - [x] **EQUP-01**: Admin can create, edit, and delete equipment per branch (etiqueta, marca, modelo, serie, tipo)
-- [ ] **EQUP-02**: Technician can add new equipment from the field (flagged for admin review)
+- [x] **EQUP-02**: Technician can add new equipment from the field (flagged for admin review)
 
 ### Folio / Work Order Management
 
@@ -34,13 +34,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Technician Reporting
 
-- [ ] **REPT-01**: Technician can view list of assigned folios
-- [ ] **REPT-02**: Per-equipment entries: work type (preventivo/correctivo), diagnostico, trabajo realizado, observaciones
-- [ ] **REPT-03**: Materials used log: cantidad, unidad, descripcion with add-row
-- [ ] **REPT-04**: Report status: En Progreso / En Espera / Completado
-- [ ] **REPT-05**: Multiple cuadrilla members contribute to one shared daily report per folio
-- [ ] **REPT-06**: Technician can submit completed report
-- [ ] **REPT-07**: Auto-draft from previous day (same folio pre-populates equipment list)
+- [x] **REPT-01**: Technician can view list of assigned folios
+- [x] **REPT-02**: Per-equipment entries: work type (preventivo/correctivo), diagnostico, trabajo realizado, observaciones
+- [x] **REPT-03**: Materials used log: cantidad, unidad, descripcion with add-row
+- [x] **REPT-04**: Report status: En Progreso / En Espera / Completado
+- [x] **REPT-05**: Multiple cuadrilla members contribute to one shared daily report per folio
+- [x] **REPT-06**: Technician can submit completed report
+- [x] **REPT-07**: Auto-draft from previous day (same folio pre-populates equipment list)
 
 ### Photos
 
@@ -139,16 +139,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLNT-01 | Phase 2 | Pending |
 | SUCR-01 | Phase 2 | Pending |
 | EQUP-01 | Phase 2 | Pending |
-| EQUP-02 | Phase 3 | Pending |
+| EQUP-02 | Phase 3 | Complete |
 | FOLI-01 | Phase 2 | Pending |
 | FOLI-02 | Phase 2 | Pending |
-| REPT-01 | Phase 3 | Pending |
-| REPT-02 | Phase 3 | Pending |
-| REPT-03 | Phase 3 | Pending |
-| REPT-04 | Phase 3 | Pending |
-| REPT-05 | Phase 3 | Pending |
-| REPT-06 | Phase 3 | Pending |
-| REPT-07 | Phase 3 | Pending |
+| REPT-01 | Phase 3 | Complete |
+| REPT-02 | Phase 3 | Complete |
+| REPT-03 | Phase 3 | Complete |
+| REPT-04 | Phase 3 | Complete |
+| REPT-05 | Phase 3 | Complete |
+| REPT-06 | Phase 3 | Complete |
+| REPT-07 | Phase 3 | Complete |
 | FOTO-01 | Phase 4 | Pending |
 | FOTO-02 | Phase 4 | Pending |
 | FOTO-03 | Phase 4 | Pending |
@@ -171,4 +171,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-23*
-*Last updated: 2026-02-23 after roadmap creation*
+*Last updated: 2026-02-27 after Phase 3 completion*
