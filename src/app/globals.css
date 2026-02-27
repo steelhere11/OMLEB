@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 /* OMLEB HVAC -- Brand Theme (CSS-first Tailwind v4) */
-/* Placeholder steel blue palette -- replace when company logo/brand provided */
+/* Linear/Mercury-inspired dark admin + light technician */
 
 @theme {
-  /* Brand color scale (steel blue) */
+  /* ── Brand color scale (steel blue — kept for tech side & legacy refs) ── */
   --color-brand-50: oklch(0.97 0.01 250);
   --color-brand-100: oklch(0.93 0.02 250);
   --color-brand-200: oklch(0.87 0.04 250);
@@ -16,22 +16,46 @@
   --color-brand-800: oklch(0.33 0.12 250);
   --color-brand-900: oklch(0.25 0.10 250);
 
-  /* Admin dark theme surfaces */
-  --color-admin-bg: oklch(0.15 0.01 250);
-  --color-admin-surface: oklch(0.20 0.01 250);
-  --color-admin-border: oklch(0.30 0.01 250);
+  /* ── Admin dark theme surfaces ── */
+  --color-admin-bg: #111113;
+  --color-admin-surface: #18181b;
+  --color-admin-surface-hover: #1c1c1f;
+  --color-admin-surface-elevated: #1e1e22;
+  --color-admin-border: #27272a;
+  --color-admin-border-subtle: #222225;
 
-  /* Technician light theme surfaces */
+  /* ── Sidebar ── */
+  --color-sidebar-bg: #141416;
+  --color-sidebar-border: #1e1e21;
+
+  /* ── Accent (restrained — active indicators, links, focus rings) ── */
+  --color-accent: #94a3b8;
+
+  /* ── Admin text scale ── */
+  --color-text-0: #fafafa;
+  --color-text-1: #a1a1aa;
+  --color-text-2: #71717a;
+  --color-text-3: #52525b;
+  --color-text-4: #3f3f46;
+
+  /* ── Technician light theme surfaces (unchanged) ── */
   --color-tech-bg: oklch(0.98 0 0);
   --color-tech-surface: oklch(1.0 0 0);
 
-  /* Report status colors */
-  --color-status-completado: oklch(0.60 0.15 145);
-  --color-status-en-espera: oklch(0.75 0.15 85);
-  --color-status-en-progreso: oklch(0.55 0.15 250);
+  /* ── Status colors (semantic only) ── */
+  --color-status-success: #22c55e;
+  --color-status-warning: #eab308;
+  --color-status-progress: #3b82f6;
+  --color-status-error: #ef4444;
 
-  /* Font family */
+  /* Legacy aliases for tech side — maps old names to new status tokens */
+  --color-status-completado: #22c55e;
+  --color-status-en-espera: #eab308;
+  --color-status-en-progreso: #3b82f6;
+
+  /* ── Font families ── */
   --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
 /* Base body styles */
