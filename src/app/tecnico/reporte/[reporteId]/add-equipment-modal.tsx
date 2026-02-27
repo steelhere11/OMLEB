@@ -1,15 +1,17 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { createEquipoFromField } from "@/app/actions/equipos";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { Equipo } from "@/types";
+import { Select } from "@/components/ui/select";
+import type { Equipo, TipoEquipo } from "@/types";
 import type { ActionState } from "@/types/actions";
 
 interface AddEquipmentModalProps {
   sucursalId: string;
+  tiposEquipo: TipoEquipo[];
   isOpen: boolean;
   onClose: () => void;
   onEquipmentCreated: (equipo: Equipo) => void;
@@ -17,6 +19,7 @@ interface AddEquipmentModalProps {
 
 export function AddEquipmentModal({
   sucursalId,
+  tiposEquipo,
   isOpen,
   onClose,
   onEquipmentCreated,
@@ -27,11 +30,24 @@ export function AddEquipmentModal({
   );
   const formRef = useRef<HTMLFormElement>(null);
   const prevSuccessRef = useRef(false);
+  const [selectedTipoId, setSelectedTipoId] = useState("");
+  const [customTipoText, setCustomTipoText] = useState("");
+
+  // Find the "otro" tipo for fallback
+  const otroTipo = tiposEquipo.find((t) => t.slug === "otro");
+  const isOtroSelected = selectedTipoId === otroTipo?.id;
 
   // Handle success: notify parent and close
   useEffect(() => {
     if (state?.success && state.data && !prevSuccessRef.current) {
       prevSuccessRef.current = true;
+
+      // Determine tipo_equipo text for the optimistic Equipo
+      const selectedTipo = tiposEquipo.find((t) => t.id === selectedTipoId);
+      const tipoText = isOtroSelected && customTipoText
+        ? customTipoText
+        : selectedTipo?.nombre ?? null;
+
       const newEquipo: Equipo = {
         id: (state.data as { id: string }).id,
         sucursal_id: sucursalId,
@@ -49,11 +65,8 @@ export function AddEquipmentModal({
           (formRef.current?.querySelector(
             '[name="numero_serie"]'
           ) as HTMLInputElement)?.value || null,
-        tipo_equipo:
-          (formRef.current?.querySelector(
-            '[name="tipo_equipo"]'
-          ) as HTMLInputElement)?.value || null,
-        tipo_equipo_id: null,
+        tipo_equipo: tipoText,
+        tipo_equipo_id: selectedTipoId || null,
         agregado_por: null,
         revisado: false,
         created_at: new Date().toISOString(),
@@ -63,8 +76,10 @@ export function AddEquipmentModal({
       onEquipmentCreated(newEquipo);
       onClose();
       formRef.current?.reset();
+      setSelectedTipoId("");
+      setCustomTipoText("");
     }
-  }, [state, sucursalId, onEquipmentCreated, onClose]);
+  }, [state, sucursalId, onEquipmentCreated, onClose, tiposEquipo, selectedTipoId, isOtroSelected, customTipoText]);
 
   // Reset prevSuccessRef when modal re-opens
   useEffect(() => {
@@ -88,7 +103,7 @@ export function AddEquipmentModal({
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-lg rounded-xl bg-white p-6 shadow-xl">
+      <div className="relative w-full max-w-lg rounded-xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-lg font-bold text-gray-900">
@@ -133,6 +148,18 @@ export function AddEquipmentModal({
         {/* Form */}
         <form ref={formRef} action={formAction} className="space-y-4">
           <input type="hidden" name="sucursal_id" value={sucursalId} />
+          {/* Hidden field for tipo_equipo_id */}
+          <input type="hidden" name="tipo_equipo_id" value={selectedTipoId} />
+          {/* Hidden field for tipo_equipo text (for backward compat) */}
+          <input
+            type="hidden"
+            name="tipo_equipo"
+            value={
+              isOtroSelected && customTipoText
+                ? customTipoText
+                : tiposEquipo.find((t) => t.id === selectedTipoId)?.nombre ?? ""
+            }
+          />
 
           {/* Numero/Etiqueta (required) */}
           <div>
@@ -146,6 +173,39 @@ export function AddEquipmentModal({
               required
               error={fieldErrors?.numero_etiqueta?.[0]}
             />
+          </div>
+
+          {/* Tipo de equipo (dropdown) */}
+          <div>
+            <Label htmlFor="modal-tipo-equipo" className="mb-1.5">
+              Tipo de Equipo
+            </Label>
+            <Select
+              id="modal-tipo-equipo"
+              value={selectedTipoId}
+              onChange={(e) => {
+                setSelectedTipoId(e.target.value);
+                if (e.target.value !== otroTipo?.id) {
+                  setCustomTipoText("");
+                }
+              }}
+            >
+              <option value="">Seleccionar tipo...</option>
+              {tiposEquipo.map((tipo) => (
+                <option key={tipo.id} value={tipo.id}>
+                  {tipo.nombre}
+                </option>
+              ))}
+            </Select>
+            {isOtroSelected && (
+              <div className="mt-2">
+                <Input
+                  placeholder="Especifica el tipo de equipo..."
+                  value={customTipoText}
+                  onChange={(e) => setCustomTipoText(e.target.value)}
+                />
+              </div>
+            )}
           </div>
 
           {/* Marca (optional) */}
@@ -184,19 +244,6 @@ export function AddEquipmentModal({
               name="numero_serie"
               placeholder="Ej. ABC123456"
               error={fieldErrors?.numero_serie?.[0]}
-            />
-          </div>
-
-          {/* Tipo de equipo (optional) */}
-          <div>
-            <Label htmlFor="modal-tipo-equipo" className="mb-1.5">
-              Tipo de Equipo
-            </Label>
-            <Input
-              id="modal-tipo-equipo"
-              name="tipo_equipo"
-              placeholder="Ej. Mini Split, Paquete, Chiller"
-              error={fieldErrors?.tipo_equipo?.[0]}
             />
           </div>
 

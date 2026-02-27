@@ -12,6 +12,7 @@ import type {
   Equipo,
   ReporteMaterial,
   ReporteEstatus,
+  TipoEquipo,
 } from "@/types";
 
 interface ReportFormProps {
@@ -21,9 +22,10 @@ interface ReportFormProps {
   sucursalNombre: string;
   sucursalId: string;
   clienteNombre: string;
-  initialEntries: (ReporteEquipo & { equipos: Equipo })[];
+  initialEntries: (ReporteEquipo & { equipos: Equipo & { tipos_equipo?: { slug: string; nombre: string } | null } })[];
   initialMaterials: ReporteMaterial[];
   availableEquipment: Equipo[];
+  tiposEquipo: TipoEquipo[];
   teamMembers: { nombre: string; rol: string }[];
   currentStatus: ReporteEstatus;
   isCompleted: boolean;
@@ -45,6 +47,7 @@ export function ReportForm({
   initialEntries,
   initialMaterials,
   availableEquipment,
+  tiposEquipo,
   teamMembers,
   currentStatus,
   isCompleted,
@@ -237,6 +240,7 @@ export function ReportForm({
         reporteId={reporteId}
         initialEntries={initialEntries}
         availableEquipment={availableEquipment}
+        tiposEquipo={tiposEquipo}
         sucursalId={sucursalId}
         isCompleted={isCompleted}
         onUnsavedChange={setHasUnsavedChanges}

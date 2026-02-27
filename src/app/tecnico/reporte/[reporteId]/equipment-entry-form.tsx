@@ -3,13 +3,19 @@
 import { useState, useTransition } from "react";
 import { saveEquipmentEntry } from "@/app/actions/reportes";
 import { WorkTypeToggle } from "@/components/tecnico/work-type-toggle";
+import { WorkflowPreventive } from "./workflow-preventive";
+import { WorkflowCorrective } from "./workflow-corrective";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import type { ReporteEquipo, Equipo, TipoTrabajo } from "@/types";
 
 interface EquipmentEntryFormProps {
-  entry: ReporteEquipo & { equipos: Equipo };
+  entry: ReporteEquipo & {
+    equipos: Equipo & {
+      tipos_equipo?: { slug: string; nombre: string } | null;
+    };
+  };
   reporteId: string;
   onRemove: () => void;
   isCompleted: boolean;
@@ -29,10 +35,6 @@ export function EquipmentEntryForm({
   const [tipoTrabajo, setTipoTrabajo] = useState<TipoTrabajo>(
     entry.tipo_trabajo
   );
-  const [diagnostico, setDiagnostico] = useState(entry.diagnostico ?? "");
-  const [trabajoRealizado, setTrabajoRealizado] = useState(
-    entry.trabajo_realizado ?? ""
-  );
   const [observaciones, setObservaciones] = useState(
     entry.observaciones ?? ""
   );
@@ -41,14 +43,15 @@ export function EquipmentEntryForm({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const equipo = entry.equipos;
+  const tipoEquipoSlug = equipo.tipos_equipo?.slug ?? "otro";
 
   const handleSave = () => {
     startSaveTransition(async () => {
       const formData = new FormData();
       formData.set("equipo_id", entry.equipo_id);
       formData.set("tipo_trabajo", tipoTrabajo);
-      formData.set("diagnostico", diagnostico);
-      formData.set("trabajo_realizado", trabajoRealizado);
+      formData.set("diagnostico", "");
+      formData.set("trabajo_realizado", "");
       formData.set("observaciones", observaciones);
 
       const result = await saveEquipmentEntry(
@@ -95,11 +98,18 @@ export function EquipmentEntryForm({
           <p className="text-sm font-bold text-gray-900">
             {equipo.numero_etiqueta}
           </p>
-          {(equipo.marca || equipo.modelo) && (
-            <p className="text-xs text-gray-500">
-              {[equipo.marca, equipo.modelo].filter(Boolean).join(" ")}
-            </p>
-          )}
+          <div className="flex items-center gap-2">
+            {(equipo.marca || equipo.modelo) && (
+              <p className="text-xs text-gray-500">
+                {[equipo.marca, equipo.modelo].filter(Boolean).join(" ")}
+              </p>
+            )}
+            {equipo.tipos_equipo && (
+              <span className="text-xs text-gray-400">
+                · {equipo.tipos_equipo.nombre}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Work type indicator */}
@@ -149,48 +159,25 @@ export function EquipmentEntryForm({
             />
           </div>
 
-          {/* Diagnostico */}
-          <div>
-            <Label htmlFor={`diagnostico-${entry.id}`} className="mb-2">
-              Diagnostico
-            </Label>
-            <Textarea
-              id={`diagnostico-${entry.id}`}
-              value={diagnostico}
-              onChange={(e) => {
-                setDiagnostico(e.target.value);
-                handleFieldChange();
-              }}
-              onFocus={handleInputFocus}
-              placeholder="Describe el diagnostico del equipo..."
-              disabled={isCompleted}
-              className="min-h-[80px]"
+          {/* Workflow section — conditionally renders based on tipo_trabajo */}
+          {tipoTrabajo === "preventivo" ? (
+            <WorkflowPreventive
+              reporteEquipoId={entry.id}
+              tipoEquipoSlug={tipoEquipoSlug}
+              isCompleted={isCompleted}
             />
-          </div>
-
-          {/* Trabajo realizado */}
-          <div>
-            <Label htmlFor={`trabajo-${entry.id}`} className="mb-2">
-              Trabajo Realizado
-            </Label>
-            <Textarea
-              id={`trabajo-${entry.id}`}
-              value={trabajoRealizado}
-              onChange={(e) => {
-                setTrabajoRealizado(e.target.value);
-                handleFieldChange();
-              }}
-              onFocus={handleInputFocus}
-              placeholder="Describe el trabajo realizado..."
-              disabled={isCompleted}
-              className="min-h-[80px]"
+          ) : (
+            <WorkflowCorrective
+              reporteEquipoId={entry.id}
+              tipoEquipoSlug={tipoEquipoSlug}
+              isCompleted={isCompleted}
             />
-          </div>
+          )}
 
-          {/* Observaciones */}
+          {/* General observations textarea */}
           <div>
             <Label htmlFor={`observaciones-${entry.id}`} className="mb-2">
-              Observaciones
+              Observaciones generales
             </Label>
             <Textarea
               id={`observaciones-${entry.id}`}
@@ -200,7 +187,7 @@ export function EquipmentEntryForm({
                 handleFieldChange();
               }}
               onFocus={handleInputFocus}
-              placeholder="Observaciones adicionales..."
+              placeholder="Observaciones adicionales sobre este equipo..."
               disabled={isCompleted}
               className="min-h-[80px]"
             />

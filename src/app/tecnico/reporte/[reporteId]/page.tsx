@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { ReportForm } from "./report-form";
-import type { ReporteEstatus, ReporteEquipo, Equipo, ReporteMaterial } from "@/types";
+import type { ReporteEstatus, ReporteEquipo, Equipo, ReporteMaterial, TipoEquipo } from "@/types";
 
 type ReportWithRelations = {
   id: string;
@@ -46,11 +46,11 @@ export default async function ReportePage({
 
   const typedReport = report as unknown as ReportWithRelations;
 
-  // Fetch equipment entries with equipment details
+  // Fetch equipment entries with equipment details and tipo_equipo join
   const { data: entries } = await supabase
     .from("reporte_equipos")
     .select(
-      "id, reporte_id, equipo_id, tipo_trabajo, diagnostico, trabajo_realizado, observaciones, equipos(id, sucursal_id, numero_etiqueta, marca, modelo, numero_serie, tipo_equipo, agregado_por, revisado, created_at, updated_at)"
+      "id, reporte_id, equipo_id, tipo_trabajo, diagnostico, trabajo_realizado, observaciones, equipos(id, sucursal_id, numero_etiqueta, marca, modelo, numero_serie, tipo_equipo, tipo_equipo_id, agregado_por, revisado, created_at, updated_at, tipos_equipo:tipo_equipo_id(slug, nombre))"
     )
     .eq("reporte_id", reporteId);
 
@@ -67,6 +67,13 @@ export default async function ReportePage({
     .select("*")
     .eq("sucursal_id", sucursalId)
     .order("numero_etiqueta");
+
+  // Fetch tipos_equipo for the add-equipment modal
+  const { data: tiposEquipo } = await supabase
+    .from("tipos_equipo")
+    .select("*")
+    .order("is_system", { ascending: false })
+    .order("nombre", { ascending: true });
 
   // Fetch team members
   const folioId = typedReport.folio_id;
@@ -99,10 +106,11 @@ export default async function ReportePage({
       sucursalId={sucursalId}
       clienteNombre={folio?.clientes?.nombre ?? ""}
       initialEntries={
-        (entries as unknown as (ReporteEquipo & { equipos: Equipo })[]) ?? []
+        (entries as unknown as (ReporteEquipo & { equipos: Equipo & { tipos_equipo?: { slug: string; nombre: string } | null } })[]) ?? []
       }
       initialMaterials={(materials as ReporteMaterial[]) ?? []}
       availableEquipment={(availableEquipment as Equipo[]) ?? []}
+      tiposEquipo={(tiposEquipo as TipoEquipo[]) ?? []}
       teamMembers={teamMembers}
       currentStatus={typedReport.estatus}
       isCompleted={isCompleted}

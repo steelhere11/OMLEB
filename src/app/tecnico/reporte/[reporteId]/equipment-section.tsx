@@ -6,12 +6,13 @@ import { EquipmentEntryForm } from "./equipment-entry-form";
 import { AddEquipmentModal } from "./add-equipment-modal";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
-import type { ReporteEquipo, Equipo } from "@/types";
+import type { ReporteEquipo, Equipo, TipoEquipo } from "@/types";
 
 interface EquipmentSectionProps {
   reporteId: string;
-  initialEntries: (ReporteEquipo & { equipos: Equipo })[];
+  initialEntries: (ReporteEquipo & { equipos: Equipo & { tipos_equipo?: { slug: string; nombre: string } | null } })[];
   availableEquipment: Equipo[];
+  tiposEquipo: TipoEquipo[];
   sucursalId: string;
   isCompleted: boolean;
   onUnsavedChange?: (hasChanges: boolean) => void;
@@ -22,13 +23,14 @@ export function EquipmentSection({
   reporteId,
   initialEntries,
   availableEquipment,
+  tiposEquipo,
   sucursalId,
   isCompleted,
   onUnsavedChange,
   onEntriesChange,
 }: EquipmentSectionProps) {
   const [entries, setEntries] =
-    useState<(ReporteEquipo & { equipos: Equipo })[]>(initialEntries);
+    useState<(ReporteEquipo & { equipos: Equipo & { tipos_equipo?: { slug: string; nombre: string } | null } })[]>(initialEntries);
   const [allEquipment, setAllEquipment] = useState<Equipo[]>(availableEquipment);
   const [isAdding, startAddTransition] = useTransition();
   const [isRemoving, startRemoveTransition] = useTransition();
@@ -64,7 +66,7 @@ export function EquipmentSection({
         // We need to refetch to get the entry ID, or construct it optimistically
         // Since the server action doesn't return the new entry ID, we'll use router.refresh via a page-level mechanism
         // For now, construct an optimistic entry
-        const optimisticEntry: ReporteEquipo & { equipos: Equipo } = {
+        const optimisticEntry: ReporteEquipo & { equipos: Equipo & { tipos_equipo?: { slug: string; nombre: string } | null } } = {
           id: crypto.randomUUID(), // temporary ID until refresh
           reporte_id: reporteId,
           equipo_id: selectedEquipoId,
@@ -72,7 +74,7 @@ export function EquipmentSection({
           diagnostico: null,
           trabajo_realizado: null,
           observaciones: null,
-          equipos: equipo,
+          equipos: { ...equipo, tipos_equipo: undefined },
         };
 
         setEntries((prev) => [...prev, optimisticEntry]);
@@ -210,6 +212,7 @@ export function EquipmentSection({
       {/* Add equipment modal */}
       <AddEquipmentModal
         sucursalId={sucursalId}
+        tiposEquipo={tiposEquipo}
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onEquipmentCreated={handleEquipmentCreated}

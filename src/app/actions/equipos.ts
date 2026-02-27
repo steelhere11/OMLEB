@@ -249,6 +249,12 @@ export async function createEquipoFromField(
     insertData.tipo_equipo = result.data.tipo_equipo;
   }
 
+  // Handle tipo_equipo_id from the new dropdown
+  const tipoEquipoId = formData.get("tipo_equipo_id") as string;
+  if (tipoEquipoId && tipoEquipoId !== "") {
+    insertData.tipo_equipo_id = tipoEquipoId;
+  }
+
   // 4. Insert into database
   const { data: equipo, error: dbError } = await supabase
     .from("equipos")
