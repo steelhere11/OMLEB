@@ -13,7 +13,7 @@ This roadmap delivers a PWA that replaces WhatsApp-based HVAC field reporting wi
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundation** - Auth, database schema, PWA shell, role-based routing
-- [ ] **Phase 2: Admin Data Management** - CRUD for clients, branches, equipment, folios
+- [x] **Phase 2: Admin Data Management** - CRUD for clients, branches, equipment, folios
 - [ ] **Phase 3: Technician Reporting** - Daily report form with equipment entries, materials, status, shared cuadrilla reports
 - [ ] **Phase 4: Photo Capture & Signatures** - Camera with GPS overlay, gallery upload, photo labels, digital signature
 - [ ] **Phase 5: Admin Review & PDF Export** - Report list, edit/approve workflow, branded PDF generation
@@ -50,8 +50,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Shared infrastructure (Zod, UI components, storage SQL), client CRUD with logo upload, branch CRUD with delete
-- [ ] 02-02-PLAN.md — Equipment CRUD (per-branch with global view) and folio management with cuadrilla assignment
+- [x] 02-01-PLAN.md — Shared infrastructure (Zod, UI components, storage SQL), client CRUD with logo upload, branch CRUD with delete
+- [x] 02-02-PLAN.md — Equipment CRUD (per-branch with global view) and folio management with cuadrilla assignment
 
 ### Phase 3: Technician Reporting
 **Goal**: Technicians can create and submit complete daily reports from their phone (text content, equipment entries, materials -- no photos or signatures yet)
@@ -113,8 +113,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/3 | Planned | - |
-| 2. Admin Data Management | 0/2 | Not started | - |
+| 1. Foundation | 2/3 | In progress | - |
+| 2. Admin Data Management | 2/2 | Complete | 2026-02-27 |
 | 3. Technician Reporting | 0/3 | Not started | - |
 | 4. Photo Capture & Signatures | 0/3 | Not started | - |
 | 5. Admin Review & PDF Export | 0/3 | Not started | - |

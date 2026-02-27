@@ -16,21 +16,21 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Client Management
 
-- [ ] **CLNT-01**: Admin can create and edit clients (nombre, logo)
+- [x] **CLNT-01**: Admin can create and edit clients (nombre, logo)
 
 ### Branch Management
 
-- [ ] **SUCR-01**: Admin can create, edit, and delete branches (nombre, numero, direccion)
+- [x] **SUCR-01**: Admin can create, edit, and delete branches (nombre, numero, direccion)
 
 ### Equipment Management
 
-- [ ] **EQUP-01**: Admin can create, edit, and delete equipment per branch (etiqueta, marca, modelo, serie, tipo)
+- [x] **EQUP-01**: Admin can create, edit, and delete equipment per branch (etiqueta, marca, modelo, serie, tipo)
 - [ ] **EQUP-02**: Technician can add new equipment from the field (flagged for admin review)
 
 ### Folio / Work Order Management
 
-- [ ] **FOLI-01**: Admin can create folios assigned to branch, client, and description of problem
-- [ ] **FOLI-02**: Admin can assign multiple users (cuadrilla) to a folio
+- [x] **FOLI-01**: Admin can create folios assigned to branch, client, and description of problem
+- [x] **FOLI-02**: Admin can assign multiple users (cuadrilla) to a folio
 
 ### Technician Reporting
 
