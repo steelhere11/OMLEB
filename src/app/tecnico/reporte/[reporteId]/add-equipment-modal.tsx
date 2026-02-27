@@ -53,6 +53,7 @@ export function AddEquipmentModal({
           (formRef.current?.querySelector(
             '[name="tipo_equipo"]'
           ) as HTMLInputElement)?.value || null,
+        tipo_equipo_id: null,
         agregado_por: null,
         revisado: false,
         created_at: new Date().toISOString(),

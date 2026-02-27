@@ -36,6 +36,7 @@ export interface Equipo {
   modelo: string | null;
   numero_serie: string | null;
   tipo_equipo: string | null;
+  tipo_equipo_id: string | null;
   agregado_por: string | null;
   revisado: boolean;
   created_at: string;
@@ -89,7 +90,7 @@ export interface ReporteEquipo {
   observaciones: string | null;
 }
 
-export type FotoEtiqueta = "antes" | "despues" | "dano" | "placa" | "progreso";
+export type FotoEtiqueta = "antes" | "durante" | "despues" | "dano" | "placa" | "progreso";
 
 export interface ReporteFoto {
   id: string;
@@ -109,3 +110,16 @@ export interface ReporteMaterial {
   unidad: string;
   descripcion: string;
 }
+
+// Re-export workflow types from workflows.ts
+export type {
+  TipoEquipo,
+  TipoEquipoSlug,
+  TipoMantenimiento,
+  PlantillaPaso,
+  FallaCorrectiva,
+  ReportePaso,
+  ValorReferencia,
+  EvidenciaRequerida,
+  LecturaRequerida,
+} from "./workflows";

@@ -62,3 +62,21 @@ export const reporteStatusSchema = z.object({
 });
 
 export type ReporteStatusInput = z.infer<typeof reporteStatusSchema>;
+
+// ── Step Progress Schema ─────────────────────────────────────────────────
+// Validates step completion data for workflow steps
+
+export const reportePasoSchema = z.object({
+  reporte_equipo_id: z.string().uuid(),
+  plantilla_paso_id: z.string().uuid().optional(),
+  falla_correctiva_id: z.string().uuid().optional(),
+  completado: z.boolean(),
+  notas: z
+    .string()
+    .max(2000, { message: "Las notas no pueden exceder 2000 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  lecturas: z.record(z.string(), z.union([z.number(), z.string()])).optional(),
+});
+
+export type ReportePasoInput = z.infer<typeof reportePasoSchema>;
