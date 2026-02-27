@@ -65,12 +65,12 @@ Plans:
   5. Technician can set report status (En Progreso / En Espera / Completado) and submit
   6. Multiple cuadrilla members see and contribute to the same shared daily report for a given folio
   7. When returning to a multi-day folio, equipment list pre-populates from the previous day's report
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 03-01: Technician folio list, daily report creation, and report data model
-- [ ] 03-02: Equipment entry form (select existing + add new from field) and materials log
-- [ ] 03-03: Report status workflow, submission, shared cuadrilla access, and auto-draft
+- [ ] 03-01-PLAN.md — DB migration (unique constraint, RLS fix, Realtime), Zod validation schemas, all report server actions
+- [ ] 03-02-PLAN.md — Folio list, folio detail, report page, report form shell with Realtime, equipment section with add-from-field
+- [ ] 03-03-PLAN.md — Materials log section, status/submit section, report form integration
 
 ### Phase 4: Photo Capture & Signatures
 **Goal**: Technicians can capture GPS/time-stamped photos and collect client signatures directly in the report -- replacing the external stamping app entirely
