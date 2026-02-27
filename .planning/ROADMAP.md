@@ -15,6 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Foundation** - Auth, database schema, PWA shell, role-based routing
 - [x] **Phase 2: Admin Data Management** - CRUD for clients, branches, equipment, folios
 - [x] **Phase 3: Technician Reporting** - Daily report form with equipment entries, materials, status, shared cuadrilla reports
+- [x] **Phase 3.5: Guided Maintenance Workflows** - INSERTED - Structured step-by-step preventive workflows and corrective issue picker replacing free-text reporting
 - [ ] **Phase 4: Photo Capture & Signatures** - Camera with GPS overlay, gallery upload, photo labels, digital signature
 - [ ] **Phase 5: Admin Review & PDF Export** - Report list, edit/approve workflow, branded PDF generation
 
@@ -72,6 +73,21 @@ Plans:
 - [x] 03-02-PLAN.md — Folio list, folio detail, report page, report form shell with Realtime, equipment section with add-from-field
 - [x] 03-03-PLAN.md — Materials log section, status/submit section, report form integration
 
+### Phase 3.5: Guided Maintenance Workflows (INSERTED)
+**Goal**: Replace free-text diagnostico/trabajo_realizado with structured workflow steps that guide technicians through preventive and corrective maintenance
+**Depends on**: Phase 3
+**Success Criteria** (what must be TRUE):
+  1. Preventive workflow loads step templates from plantillas_pasos matching equipment type and displays expandable step cards with procedure, photo placeholders, reading inputs, and completion toggle
+  2. Corrective workflow loads issues from fallas_correctivas matching equipment type and displays multi-select picker with detail cards
+  3. Reading inputs handle text, Sí/No toggle, and numeric modes with real-time yellow range validation (non-blocking)
+  4. Equipment with tipo "otro" or no matching templates falls back to free-text textareas
+  5. Add-equipment modal uses tipos_equipo dropdown instead of free-text tipo_equipo input
+  6. Step progress auto-saves on completion toggle
+**Plans:** 1 plan
+
+Plans:
+- [x] 03.5-01-PLAN.md — Types, validations, server actions, reading input, step card, preventive/corrective workflows, integration
+
 ### Phase 4: Photo Capture & Signatures
 **Goal**: Technicians can capture GPS/time-stamped photos and collect client signatures directly in the report -- replacing the external stamping app entirely
 **Depends on**: Phase 3
@@ -116,6 +132,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 1. Foundation | 2/3 | In progress | - |
 | 2. Admin Data Management | 2/2 | Complete | 2026-02-27 |
 | 3. Technician Reporting | 3/3 | Complete | 2026-02-27 |
+| 3.5. Guided Maintenance Workflows | 1/1 | Complete | 2026-02-27 |
 | 4. Photo Capture & Signatures | 0/3 | Not started | - |
 | 5. Admin Review & PDF Export | 0/3 | Not started | - |
 

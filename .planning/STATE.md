@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Field technicians can quickly submit complete daily reports (with photos, equipment details, materials, and diagnostics) from their phone on-site -- no WhatsApp, no paper, no back-and-forth.
-**Current focus:** Phase 3: Technician Reporting (Complete)
+**Current focus:** Phase 3.5: Guided Maintenance Workflows (Complete)
 
 ## Current Position
 
-Phase: 3 of 5 (Technician Reporting)
-Plan: 3 of 3 in current phase
+Phase: 3.5 of 5 (Guided Maintenance Workflows)
+Plan: 1 of 1 in current phase
 Status: Phase complete
-Last activity: 2026-02-27 -- Completed 03-03-PLAN.md
+Last activity: 2026-02-27 -- Completed 03.5-01-PLAN.md
 
-Progress: [#######...] 54% (7/13 plans)
+Progress: [########..] 57% (8/14 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 6 min
-- Total execution time: 0.7 hours
+- Total plans completed: 8
+- Average duration: 7 min
+- Total execution time: 0.9 hours
 
 **By Phase:**
 
@@ -30,9 +30,10 @@ Progress: [#######...] 54% (7/13 plans)
 | 01-foundation | 2/3 | 16 min | 8 min |
 | 02-admin-data-management | 2/2 | 13 min | 7 min |
 | 03-technician-reporting | 3/3 | 15 min | 5 min |
+| 03.5-guided-workflows | 1/1 | 8 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 7 min, 6 min, 4 min, 7 min, 4 min
+- Last 5 plans: 6 min, 4 min, 7 min, 4 min, 8 min
 - Trend: stable/fast
 
 *Updated after each plan completion*
@@ -78,6 +79,13 @@ Recent decisions affecting current work:
 - [03-03]: onEntriesChange callback pattern for cross-section reactive validation (equipment count -> completado block)
 - [03-03]: Tappable card UI for status selection instead of dropdown (critical mobile UX for important actions)
 - [03-03]: Dynamic form rows with crypto.randomUUID() client-side IDs and datalist for common units
+- [03.5-01]: Replace free-text diagnostico/trabajo_realizado with structured workflow steps from plantillas_pasos
+- [03.5-01]: Auto-save step progress on completion toggle (no explicit save button per step)
+- [03.5-01]: Yellow warning for out-of-range readings (non-blocking -- techs know their equipment)
+- [03.5-01]: Fallback to free-text textareas for equipment with tipo "otro" or no matching templates
+- [03.5-01]: Photo evidence buttons as visual placeholders (Phase 4 wires camera)
+- [03.5-01]: Sí/No readings as tappable toggle buttons, not text fields
+- [03.5-01]: tipos_equipo dropdown replaces free-text tipo_equipo in add-equipment modal
 
 ### Pending Todos
 
@@ -86,6 +94,8 @@ Recent decisions affecting current work:
 - User must create first admin account in Supabase Dashboard
 - User must run supabase/storage.sql in Supabase SQL Editor to create client logos bucket
 - User must run supabase/migration-03-reporting.sql in Supabase SQL Editor after schema.sql and rls.sql
+- User must run supabase/migration-workflows.sql in Supabase SQL Editor after schema.sql and rls.sql
+- User must run supabase/seed-workflows.sql in Supabase SQL Editor after migration-workflows.sql
 
 ### Blockers/Concerns
 
@@ -93,9 +103,10 @@ Recent decisions affecting current work:
 - [Phase 5]: PDF with 20+ embedded photos needs validation at scale. Run a spike during Phase 5 planning.
 - [Phase 3]: Cuadrilla concurrent-edit conflict resolution: DECIDED -- last-write-wins with Realtime refresh banner (implemented in 03-02).
 - [Phase 3]: COMPLETE -- full technician reporting flow functional end-to-end (folio list -> report -> equipment -> materials -> status -> submit).
+- [Phase 3.5]: COMPLETE -- structured workflow steps replace free-text reporting for preventive/corrective work.
 
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 03-03-PLAN.md (materials section, status section, Phase 3 complete)
+Stopped at: Completed 03.5-01-PLAN.md (guided maintenance workflows, Phase 3.5 complete)
 Resume file: None
