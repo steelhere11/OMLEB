@@ -186,7 +186,7 @@ export function Sidebar({ userName, userEmail }: SidebarProps) {
         {popoverOpen && (
           <div
             ref={popoverRef}
-            className="absolute bottom-full left-2 right-2 mb-1.5 animate-popover-in rounded-lg border border-admin-border bg-admin-surface p-1 shadow-lg"
+            className="absolute bottom-full left-2 right-2 mb-1.5 animate-popover-in rounded-[6px] border border-admin-border bg-admin-surface p-1 shadow-lg"
           >
             {/* User info */}
             <div className="px-2.5 py-2">
