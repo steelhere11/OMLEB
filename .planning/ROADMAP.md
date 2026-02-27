@@ -47,11 +47,11 @@ Plans:
   3. Admin can create, edit, and delete equipment per branch (etiqueta, marca, modelo, serie, tipo)
   4. Admin can create folios assigned to a branch and client, and assign multiple users (cuadrilla) to that folio
   5. All admin forms validate input with Spanish error messages
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 02-01: Client and branch CRUD pages with Server Components + Server Actions
-- [ ] 02-02: Equipment CRUD (per-branch) and folio management with cuadrilla assignment
+- [ ] 02-01-PLAN.md — Shared infrastructure (Zod, UI components, storage SQL), client CRUD with logo upload, branch CRUD with delete
+- [ ] 02-02-PLAN.md — Equipment CRUD (per-branch with global view) and folio management with cuadrilla assignment
 
 ### Phase 3: Technician Reporting
 **Goal**: Technicians can create and submit complete daily reports from their phone (text content, equipment entries, materials -- no photos or signatures yet)
@@ -121,4 +121,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 
 ---
 *Roadmap created: 2026-02-23*
-*Last updated: 2026-02-23*
+*Last updated: 2026-02-27*
