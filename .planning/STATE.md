@@ -5,33 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Field technicians can quickly submit complete daily reports (with photos, equipment details, materials, and diagnostics) from their phone on-site -- no WhatsApp, no paper, no back-and-forth.
-**Current focus:** Phase 1: Foundation
+**Current focus:** Phase 2: Admin Data Management
 
 ## Current Position
 
-Phase: 1 of 5 (Foundation)
-Plan: 2 of 3 in current phase
+Phase: 2 of 5 (Admin Data Management)
+Plan: 1 of 2 in current phase
 Status: In progress
-Last activity: 2026-02-24 -- Completed 01-02-PLAN.md
+Last activity: 2026-02-27 -- Completed 02-01-PLAN.md
 
-Progress: [##........] 14% (2/14 plans)
+Progress: [###.......] 21% (3/14 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
+- Total plans completed: 3
 - Average duration: 8 min
-- Total execution time: 0.3 hours
+- Total execution time: 0.4 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 2/3 | 16 min | 8 min |
+| 02-admin-data-management | 1/2 | 7 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 12 min, 4 min
-- Trend: accelerating
+- Last 5 plans: 12 min, 4 min, 7 min
+- Trend: stable/fast
 
 *Updated after each plan completion*
 
@@ -55,12 +56,18 @@ Recent decisions affecting current work:
 - [01-02]: Dual insert on user creation (Supabase Auth + public.users table)
 - [01-02]: Minimal layouts for login routes to prevent parent nav wrapping
 - [01-02]: UI components: Button (variant/size/loading/fullWidth), Input (error/password toggle), Label (required)
+- [02-01]: Admin client (service role) for Storage uploads -- bypasses RLS for simplicity
+- [02-01]: Delete old logo before replacement in updateCliente to avoid orphaned files
+- [02-01]: Return success state (not redirect) after delete for inline FK error display
+- [02-01]: Reusable DeleteButton component for any entity with FK protection
+- [02-01]: next/image remotePatterns with **.supabase.co wildcard for dynamic Supabase URLs
 
 ### Pending Todos
 
 - User must create Supabase project and run SQL files before auth can be tested with real credentials
 - User must set env vars in .env.local with real Supabase credentials
 - User must create first admin account in Supabase Dashboard
+- User must run supabase/storage.sql in Supabase SQL Editor to create client logos bucket
 
 ### Blockers/Concerns
 
@@ -70,6 +77,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-24
-Stopped at: Completed 01-02-PLAN.md (authentication system)
+Last session: 2026-02-27
+Stopped at: Completed 02-01-PLAN.md (clients and branches CRUD)
 Resume file: None
