@@ -18,8 +18,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       <Sidebar userName={nombre} userEmail={email} />
 
       {/* Main content: offset by sidebar on desktop, by top bar on mobile */}
-      <main className="min-h-dvh pt-14 md:pl-64 md:pt-0">
-        <div className="p-4 md:p-8">{children}</div>
+      <main className="min-h-dvh pt-11 md:pl-[228px] md:pt-0">
+        <div className="p-4 md:p-6">{children}</div>
       </main>
     </div>
   );
