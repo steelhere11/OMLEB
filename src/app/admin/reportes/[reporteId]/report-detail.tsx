@@ -3,11 +3,22 @@
 import { useState, useActionState, useTransition, useEffect } from "react";
 import Image from "next/image";
 import type { ReporteEstatus, TipoTrabajo, FotoEtiqueta } from "@/types";
+import dynamic from "next/dynamic";
 import {
   adminUpdateEquipmentEntry,
   adminSaveMaterials,
   approveReport,
 } from "@/app/actions/reportes";
+
+const ReportPdfButton = dynamic(
+  () => import("@/components/admin/report-pdf-button"),
+  {
+    ssr: false,
+    loading: () => (
+      <span className="text-[13px] text-text-3">Cargando...</span>
+    ),
+  }
+);
 
 // ---------- Types ----------
 
@@ -335,18 +346,81 @@ export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
         </div>
       </div>
 
-      {/* Footer: Approve + Back */}
-      <div id="admin-actions" className="flex items-center justify-between pt-2">
+      {/* Footer: Back, PDF Export, Approve */}
+      <div id="admin-actions" className="flex flex-wrap items-center justify-between gap-3 pt-2">
         <a
           href="/admin/reportes"
           className="text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
         >
           &larr; Volver a la lista
         </a>
-        <ApproveButton
-          reporteId={reporte.id}
-          isApproved={reporte.finalizado_por_admin}
-        />
+        <div className="flex items-center gap-3">
+          <ReportPdfButton
+            reporte={{
+              fecha: reporte.fecha,
+              estatus: reporte.estatus,
+              firma_encargado: reporte.firma_encargado,
+              nombre_encargado: reporte.nombre_encargado,
+            }}
+            folio={{
+              numero_folio: folio?.numero_folio ?? "",
+              descripcion_problema: folio?.descripcion_problema ?? "",
+            }}
+            sucursal={{
+              nombre: sucursal?.nombre ?? "",
+              numero: sucursal?.numero ?? "",
+              direccion: sucursal?.direccion ?? "",
+            }}
+            cliente={{
+              nombre: folio?.clientes?.nombre ?? "",
+              logo_url: folio?.clientes?.logo_url ?? null,
+            }}
+            teamMembers={teamMembers
+              .filter((m) => m.users)
+              .map((m) => ({
+                nombre: m.users!.nombre,
+                rol: m.users!.rol,
+              }))}
+            equipmentEntries={reporte.reporte_equipos.map((entry) => ({
+              equipo: {
+                numero_etiqueta:
+                  entry.equipos?.numero_etiqueta ?? "Equipo desconocido",
+                marca: entry.equipos?.marca ?? null,
+                modelo: entry.equipos?.modelo ?? null,
+              },
+              tipo_trabajo: entry.tipo_trabajo,
+              diagnostico: entry.diagnostico,
+              trabajo_realizado: entry.trabajo_realizado,
+              observaciones: entry.observaciones,
+              steps: entry.reporte_pasos.map((paso) => ({
+                nombre:
+                  paso.plantillas_pasos?.nombre ??
+                  paso.fallas_correctivas?.nombre ??
+                  "Paso",
+                completado: paso.completado,
+                notas: paso.notas,
+                lecturas: paso.lecturas ?? null,
+              })),
+              photos: (photosByEquipo.get(entry.equipo_id) ?? []).map(
+                (foto) => ({
+                  url: foto.url,
+                  etiqueta: foto.etiqueta,
+                  metadata_gps: foto.metadata_gps,
+                  metadata_fecha: foto.metadata_fecha,
+                })
+              ),
+            }))}
+            materials={reporte.reporte_materiales.map((m) => ({
+              cantidad: m.cantidad,
+              unidad: m.unidad,
+              descripcion: m.descripcion,
+            }))}
+          />
+          <ApproveButton
+            reporteId={reporte.id}
+            isApproved={reporte.finalizado_por_admin}
+          />
+        </div>
       </div>
     </div>
   );
