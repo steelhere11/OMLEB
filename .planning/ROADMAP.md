@@ -79,7 +79,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Preventive workflow loads step templates from plantillas_pasos matching equipment type and displays expandable step cards with procedure, photo placeholders, reading inputs, and completion toggle
   2. Corrective workflow loads issues from fallas_correctivas matching equipment type and displays multi-select picker with detail cards
-  3. Reading inputs handle text, Sí/No toggle, and numeric modes with real-time yellow range validation (non-blocking)
+  3. Reading inputs handle text, Si/No toggle, and numeric modes with real-time yellow range validation (non-blocking)
   4. Equipment with tipo "otro" or no matching templates falls back to free-text textareas
   5. Add-equipment modal uses tipos_equipo dropdown instead of free-text tipo_equipo input
   6. Step progress auto-saves on completion toggle
@@ -115,12 +115,12 @@ Plans:
   3. Admin can finalize and approve a report, changing its status to a terminal approved state
   4. Admin can export a report as a professional PDF containing company logo, client logo/name, all equipment entries, embedded photos with metadata, materials table, and signature
   5. PDF renders correctly with Spanish characters (accents, tildes) and looks professional when printed
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 05-01: Admin report list with filters and report detail view
-- [ ] 05-02: Admin edit/overwrite and approve workflow
-- [ ] 05-03: Client-side PDF generation with @react-pdf/renderer (branded, photos, signature)
+- [ ] 05-01-PLAN.md — Report list with URL-based filters, report detail page with complete read-only view (equipment, photos, materials, signature)
+- [ ] 05-02-PLAN.md — Admin inline edit for equipment entries and materials, report approval action with finalizado_por_admin
+- [ ] 05-03-PLAN.md — @react-pdf/renderer PDF generation: Inter fonts, photo pre-fetch as base64, professional document layout, export button
 
 ## Progress
 
