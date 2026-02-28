@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Field technicians can quickly submit complete daily reports (with photos, equipment details, materials, and diagnostics) from their phone on-site -- no WhatsApp, no paper, no back-and-forth.
-**Current focus:** Phase 4: Photo Capture & Signatures (In Progress)
+**Current focus:** Phase 4: Photo Capture & Signatures (COMPLETE)
 
 ## Current Position
 
 Phase: 4 of 5 (Photo Capture & Signatures)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-28 -- Completed 04-02-PLAN.md
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-02-28 -- Completed 04-03-PLAN.md
 
-Progress: [##########.] 71% (10/14 plans)
+Progress: [###########] 79% (11/14 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 11
 - Average duration: 7 min
-- Total execution time: 1.1 hours
+- Total execution time: 1.2 hours
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [##########.] 71% (10/14 plans)
 | 02-admin-data-management | 2/2 | 13 min | 7 min |
 | 03-technician-reporting | 3/3 | 15 min | 5 min |
 | 03.5-guided-workflows | 1/1 | 8 min | 8 min |
-| 04-photo-capture-signatures | 2/3 | 13 min | 7 min |
+| 04-photo-capture-signatures | 3/3 | 19 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 7 min, 4 min, 8 min, 6 min, 7 min
+- Last 5 plans: 4 min, 8 min, 6 min, 7 min, 6 min
 - Trend: stable/fast
 
 *Updated after each plan completion*
@@ -95,6 +95,9 @@ Recent decisions affecting current work:
 - [04-02]: Sequential gallery upload (not parallel) to avoid bandwidth saturation on mobile
 - [04-02]: Photos per corrective issue keyed by falla_correctiva_id in local state map
 - [04-02]: 5 general photo labels for equipment (ANTES, DESPUES, DANO, PLACA, PROGRESO)
+- [04-03]: Base64 data URL stored directly in firma_encargado text column (no separate Storage upload)
+- [04-03]: Signature gate is client-side intercept before form action, not server-side redirect
+- [04-03]: screen.orientation.lock() cast to any for TypeScript compat (experimental API)
 
 ### Pending Todos
 
@@ -109,13 +112,14 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- [Phase 4]: Photo capture (04-01) and gallery wiring (04-02) COMPLETE. Remaining: signature pad (04-03).
+- [Phase 4]: COMPLETE -- camera capture, gallery wiring, photo workflow integration, and digital signature all done.
 - [Phase 5]: PDF with 20+ embedded photos needs validation at scale. Run a spike during Phase 5 planning.
+- [Phase 5]: firma_encargado is base64 PNG data URL -- PDF renderer needs to handle inline base64 images.
 - [Phase 3]: COMPLETE -- full technician reporting flow functional end-to-end.
 - [Phase 3.5]: COMPLETE -- structured workflow steps replace free-text reporting.
 
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 04-02-PLAN.md (photo gallery wiring)
+Stopped at: Completed 04-03-PLAN.md (digital signature capture). Phase 4 fully complete.
 Resume file: None
