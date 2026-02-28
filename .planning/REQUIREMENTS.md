@@ -44,15 +44,15 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Photos
 
-- [ ] **FOTO-01**: In-app camera capture with visible metadata overlay (GPS, time, date)
-- [ ] **FOTO-02**: Upload photos from gallery
-- [ ] **FOTO-03**: Photo labels (antes, despues, dano, placa, progreso)
-- [ ] **FOTO-04**: Before/after photo pairing per equipment
+- [x] **FOTO-01**: In-app camera capture with visible metadata overlay (GPS, time, date)
+- [x] **FOTO-02**: Upload photos from gallery
+- [x] **FOTO-03**: Photo labels (antes, despues, dano, placa, progreso)
+- [x] **FOTO-04**: Before/after photo pairing per equipment
 
 ### Signature
 
-- [ ] **FIRM-01**: Digital signature capture from client's on-site branch manager
-- [ ] **FIRM-02**: Signature required only when report status is Completado
+- [x] **FIRM-01**: Digital signature capture from client's on-site branch manager
+- [x] **FIRM-02**: Signature required only when report status is Completado
 
 ### Admin Review
 
@@ -149,12 +149,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REPT-05 | Phase 3 | Complete |
 | REPT-06 | Phase 3 | Complete |
 | REPT-07 | Phase 3 | Complete |
-| FOTO-01 | Phase 4 | Pending |
-| FOTO-02 | Phase 4 | Pending |
-| FOTO-03 | Phase 4 | Pending |
-| FOTO-04 | Phase 4 | Pending |
-| FIRM-01 | Phase 4 | Pending |
-| FIRM-02 | Phase 4 | Pending |
+| FOTO-01 | Phase 4 | Complete |
+| FOTO-02 | Phase 4 | Complete |
+| FOTO-03 | Phase 4 | Complete |
+| FOTO-04 | Phase 4 | Complete |
+| FIRM-01 | Phase 4 | Complete |
+| FIRM-02 | Phase 4 | Complete |
 | ADMN-01 | Phase 5 | Pending |
 | ADMN-02 | Phase 5 | Pending |
 | ADMN-03 | Phase 5 | Pending |
@@ -171,4 +171,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-23*
-*Last updated: 2026-02-27 after Phase 3 completion*
+*Last updated: 2026-02-28 after Phase 4 completion*

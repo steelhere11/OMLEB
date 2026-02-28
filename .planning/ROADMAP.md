@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Admin Data Management** - CRUD for clients, branches, equipment, folios
 - [x] **Phase 3: Technician Reporting** - Daily report form with equipment entries, materials, status, shared cuadrilla reports
 - [x] **Phase 3.5: Guided Maintenance Workflows** - INSERTED - Structured step-by-step preventive workflows and corrective issue picker replacing free-text reporting
-- [ ] **Phase 4: Photo Capture & Signatures** - Camera with GPS overlay, gallery upload, photo labels, digital signature
+- [x] **Phase 4: Photo Capture & Signatures** - Camera with GPS overlay, gallery upload, photo labels, digital signature
 - [ ] **Phase 5: Admin Review & PDF Export** - Report list, edit/approve workflow, branded PDF generation
 
 ## Phase Details
@@ -101,9 +101,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Camera capture infrastructure: npm deps, Storage migration, GPS/stamper/uploader libs, fullscreen camera component, source picker
-- [ ] 04-02-PLAN.md — Photo integration: wire label buttons in workflow steps and corrective issues, gallery upload, thumbnails, photo management
-- [ ] 04-03-PLAN.md — Digital signature capture (signature_pad) with landscape lock and Completado enforcement gate
+- [x] 04-01-PLAN.md — Camera capture infrastructure: npm deps, Storage migration, GPS/stamper/uploader libs, fullscreen camera component, source picker
+- [x] 04-02-PLAN.md — Photo integration: wire label buttons in workflow steps and corrective issues, gallery upload, thumbnails, photo management
+- [x] 04-03-PLAN.md — Digital signature capture (signature_pad) with landscape lock and Completado enforcement gate
 
 ### Phase 5: Admin Review & PDF Export
 **Goal**: Admin can review, edit, approve reports and export professional branded PDFs -- completing the documentation chain
@@ -133,9 +133,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 2. Admin Data Management | 2/2 | Complete | 2026-02-27 |
 | 3. Technician Reporting | 3/3 | Complete | 2026-02-27 |
 | 3.5. Guided Maintenance Workflows | 1/1 | Complete | 2026-02-27 |
-| 4. Photo Capture & Signatures | 0/3 | Not started | - |
+| 4. Photo Capture & Signatures | 3/3 | Complete | 2026-02-28 |
 | 5. Admin Review & PDF Export | 0/3 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-23*
-*Last updated: 2026-02-27*
+*Last updated: 2026-02-28*
