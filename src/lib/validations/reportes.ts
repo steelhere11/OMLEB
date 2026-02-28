@@ -54,12 +54,43 @@ export type ReporteMaterialInput = z.infer<typeof reporteMaterialSchema>;
 
 // ── Report Status Schema ────────────────────────────────────────────────
 // Validates report status transitions
+// When estatus is "completado", firma_encargado and nombre_encargado are required
 
-export const reporteStatusSchema = z.object({
-  estatus: z.enum(["en_progreso", "en_espera", "completado"], {
-    error: "El estatus debe ser en_progreso, en_espera o completado",
-  }),
-});
+export const reporteStatusSchema = z
+  .object({
+    estatus: z.enum(["en_progreso", "en_espera", "completado"], {
+      error: "El estatus debe ser en_progreso, en_espera o completado",
+    }),
+    firma_encargado: z.string().optional().or(z.literal("")),
+    nombre_encargado: z.string().optional().or(z.literal("")),
+  })
+  .refine(
+    (data) => {
+      if (data.estatus === "completado") {
+        return !!data.firma_encargado && data.firma_encargado.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message: "La firma del encargado es requerida para completar el reporte",
+      path: ["firma_encargado"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.estatus === "completado") {
+        return (
+          !!data.nombre_encargado && data.nombre_encargado.trim().length > 0
+        );
+      }
+      return true;
+    },
+    {
+      message:
+        "El nombre del encargado es requerido para completar el reporte",
+      path: ["nombre_encargado"],
+    }
+  );
 
 export type ReporteStatusInput = z.infer<typeof reporteStatusSchema>;
 

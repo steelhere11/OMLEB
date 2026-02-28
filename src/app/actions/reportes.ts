@@ -307,9 +307,11 @@ export async function updateReportStatus(
     return { error: "No autorizado" };
   }
 
-  // Validate status
+  // Validate status (includes firma/nombre cross-field validation for completado)
   const rawData = {
     estatus: formData.get("estatus"),
+    firma_encargado: formData.get("firma_encargado") || "",
+    nombre_encargado: formData.get("nombre_encargado") || "",
   };
 
   const result = reporteStatusSchema.safeParse(rawData);
@@ -319,6 +321,8 @@ export async function updateReportStatus(
   }
 
   const newStatus = result.data.estatus;
+  const firmaEncargado = result.data.firma_encargado || null;
+  const nombreEncargado = result.data.nombre_encargado || null;
 
   // If completing, verify at least one equipment entry exists
   if (newStatus === "completado") {
@@ -339,10 +343,20 @@ export async function updateReportStatus(
     }
   }
 
-  // Update report status
+  // Build update payload -- include firma + nombre only for completado
+  const updatePayload: Record<string, string | null> = {
+    estatus: newStatus,
+  };
+
+  if (newStatus === "completado") {
+    updatePayload.firma_encargado = firmaEncargado;
+    updatePayload.nombre_encargado = nombreEncargado;
+  }
+
+  // Update report status (and firma/nombre if completado)
   const { data: report, error: updateError } = await supabase
     .from("reportes")
-    .update({ estatus: newStatus })
+    .update(updatePayload)
     .eq("id", reporteId)
     .select("folio_id")
     .single();

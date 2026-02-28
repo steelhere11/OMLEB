@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState, useActionState, useRef } from "react";
 import { updateReportStatus } from "@/app/actions/reportes";
 import { Button } from "@/components/ui/button";
+import { SignaturePad } from "@/components/shared/signature-pad";
 import type { ReporteEstatus } from "@/types";
 
 interface StatusSectionProps {
@@ -119,6 +120,13 @@ export function StatusSection({
 }: StatusSectionProps) {
   const [selectedStatus, setSelectedStatus] =
     useState<ReporteEstatus>(currentStatus);
+  const [showSignaturePad, setShowSignaturePad] = useState(false);
+  const [signatureData, setSignatureData] = useState<{
+    nombre: string;
+    firma: string;
+  } | null>(null);
+
+  const formRef = useRef<HTMLFormElement>(null);
 
   const boundAction = updateReportStatus.bind(null, reporteId);
   const [state, formAction, isPending] = useActionState(boundAction, null);
@@ -129,6 +137,50 @@ export function StatusSection({
   // After successful completado, show locked state
   const justCompleted =
     state?.success && selectedStatus === "completado";
+
+  // Clear signature data when switching away from completado
+  const handleStatusChange = (value: ReporteEstatus) => {
+    setSelectedStatus(value);
+    if (value !== "completado") {
+      setSignatureData(null);
+    }
+  };
+
+  // Intercept form submission for completado -- require signature first
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (
+      selectedStatus === "completado" &&
+      !signatureData
+    ) {
+      e.preventDefault();
+      setShowSignaturePad(true);
+      return;
+    }
+    // For non-completado or when signature is already collected, let form action proceed
+  };
+
+  const handleSignatureSave = (data: { nombre: string; firma: string }) => {
+    setSignatureData(data);
+    setShowSignaturePad(false);
+  };
+
+  const handleSignatureCancel = () => {
+    setShowSignaturePad(false);
+    setSignatureData(null);
+  };
+
+  const handleChangeSignature = () => {
+    setSignatureData(null);
+    setShowSignaturePad(true);
+  };
+
+  // Determine submit button text
+  const getSubmitButtonText = () => {
+    if (selectedStatus === "completado" && signatureData) {
+      return "Enviar Reporte Completado";
+    }
+    return "Guardar y Enviar Reporte";
+  };
 
   if (isCompleted || justCompleted) {
     const displayStatus = STATUS_OPTIONS.find(
@@ -173,7 +225,7 @@ export function StatusSection({
             <button
               key={option.value}
               type="button"
-              onClick={() => setSelectedStatus(option.value)}
+              onClick={() => handleStatusChange(option.value)}
               className={[
                 "flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
                 isSelected
@@ -238,6 +290,33 @@ export function StatusSection({
         </div>
       )}
 
+      {/* Signature confirmation (shown after branch manager signs) */}
+      {selectedStatus === "completado" && signatureData && (
+        <div className="rounded-lg border border-green-200 bg-green-50 p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-green-800">
+              Firma recibida de: {signatureData.nombre}
+            </p>
+            <button
+              type="button"
+              onClick={handleChangeSignature}
+              className="text-xs text-green-700 underline hover:text-green-900"
+            >
+              Cambiar firma
+            </button>
+          </div>
+          {/* Signature preview */}
+          <div className="bg-white rounded border border-green-100 p-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={signatureData.firma}
+              alt="Firma del encargado"
+              className="h-12 w-auto mx-auto object-contain"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Server error */}
       {state?.error && (
         <p className="text-sm text-red-600" role="alert">
@@ -253,8 +332,18 @@ export function StatusSection({
       )}
 
       {/* Submit button */}
-      <form action={formAction}>
+      <form ref={formRef} action={formAction} onSubmit={handleSubmit}>
         <input type="hidden" name="estatus" value={selectedStatus} />
+        <input
+          type="hidden"
+          name="firma_encargado"
+          value={signatureData?.firma || ""}
+        />
+        <input
+          type="hidden"
+          name="nombre_encargado"
+          value={signatureData?.nombre || ""}
+        />
         <Button
           type="submit"
           variant="primary"
@@ -263,9 +352,17 @@ export function StatusSection({
           loading={isPending}
           disabled={completadoBlocked}
         >
-          Guardar y Enviar Reporte
+          {getSubmitButtonText()}
         </Button>
       </form>
+
+      {/* Signature pad overlay */}
+      {showSignaturePad && (
+        <SignaturePad
+          onSave={handleSignatureSave}
+          onCancel={handleSignatureCancel}
+        />
+      )}
     </div>
   );
 }
