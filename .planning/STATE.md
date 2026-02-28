@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Field technicians can quickly submit complete daily reports (with photos, equipment details, materials, and diagnostics) from their phone on-site -- no WhatsApp, no paper, no back-and-forth.
-**Current focus:** Phase 3.5: Guided Maintenance Workflows (Complete)
+**Current focus:** Phase 4: Photo Capture & Signatures (In Progress)
 
 ## Current Position
 
-Phase: 3.5 of 5 (Guided Maintenance Workflows)
-Plan: 1 of 1 in current phase
-Status: Phase complete
-Last activity: 2026-02-27 -- Completed 03.5-01-PLAN.md
+Phase: 4 of 5 (Photo Capture & Signatures)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-28 -- Completed 04-01-PLAN.md
 
-Progress: [########..] 57% (8/14 plans)
+Progress: [#########.] 64% (9/14 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 7 min
-- Total execution time: 0.9 hours
+- Total execution time: 1.0 hours
 
 **By Phase:**
 
@@ -31,9 +31,10 @@ Progress: [########..] 57% (8/14 plans)
 | 02-admin-data-management | 2/2 | 13 min | 7 min |
 | 03-technician-reporting | 3/3 | 15 min | 5 min |
 | 03.5-guided-workflows | 1/1 | 8 min | 8 min |
+| 04-photo-capture-signatures | 1/3 | 6 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 6 min, 4 min, 7 min, 4 min, 8 min
+- Last 5 plans: 4 min, 7 min, 4 min, 8 min, 6 min
 - Trend: stable/fast
 
 *Updated after each plan completion*
@@ -84,8 +85,12 @@ Recent decisions affecting current work:
 - [03.5-01]: Yellow warning for out-of-range readings (non-blocking -- techs know their equipment)
 - [03.5-01]: Fallback to free-text textareas for equipment with tipo "otro" or no matching templates
 - [03.5-01]: Photo evidence buttons as visual placeholders (Phase 4 wires camera)
-- [03.5-01]: Sí/No readings as tappable toggle buttons, not text fields
+- [03.5-01]: Si/No readings as tappable toggle buttons, not text fields
 - [03.5-01]: tipos_equipo dropdown replaces free-text tipo_equipo in add-equipment modal
+- [04-01]: Photo uploads use browser Supabase client (authenticated session + RLS), not admin/service role
+- [04-01]: Auto-accept capture flow -- no preview screen, immediate compress+upload
+- [04-01]: Canvas drawing buffer = video resolution; CSS handles display scaling
+- [04-01]: animate-slide-up CSS utility added for bottom sheet transitions
 
 ### Pending Todos
 
@@ -96,17 +101,17 @@ Recent decisions affecting current work:
 - User must run supabase/migration-03-reporting.sql in Supabase SQL Editor after schema.sql and rls.sql
 - User must run supabase/migration-workflows.sql in Supabase SQL Editor after schema.sql and rls.sql
 - User must run supabase/seed-workflows.sql in Supabase SQL Editor after migration-workflows.sql
+- User must run supabase/migration-04-photos.sql in Supabase SQL Editor after migration-workflows.sql
 
 ### Blockers/Concerns
 
-- [Phase 4]: Photo capture is highest-risk component -- getUserMedia + canvas + GPS overlay + compression on budget Android phones. Prototype early.
+- [Phase 4]: Photo capture infrastructure now built (04-01). Remaining: gallery wiring + workflow integration (04-02), signature pad (04-03).
 - [Phase 5]: PDF with 20+ embedded photos needs validation at scale. Run a spike during Phase 5 planning.
-- [Phase 3]: Cuadrilla concurrent-edit conflict resolution: DECIDED -- last-write-wins with Realtime refresh banner (implemented in 03-02).
-- [Phase 3]: COMPLETE -- full technician reporting flow functional end-to-end (folio list -> report -> equipment -> materials -> status -> submit).
-- [Phase 3.5]: COMPLETE -- structured workflow steps replace free-text reporting for preventive/corrective work.
+- [Phase 3]: COMPLETE -- full technician reporting flow functional end-to-end.
+- [Phase 3.5]: COMPLETE -- structured workflow steps replace free-text reporting.
 
 ## Session Continuity
 
-Last session: 2026-02-27
-Stopped at: Completed 03.5-01-PLAN.md (guided maintenance workflows, Phase 3.5 complete)
+Last session: 2026-02-28
+Stopped at: Completed 04-01-PLAN.md (photo capture infrastructure)
 Resume file: None
