@@ -15,12 +15,16 @@ interface WorkflowPreventiveProps {
   reporteEquipoId: string;
   tipoEquipoSlug: string;
   isCompleted: boolean;
+  reporteId: string;
+  equipoId: string;
 }
 
 export function WorkflowPreventive({
   reporteEquipoId,
   tipoEquipoSlug,
   isCompleted,
+  reporteId,
+  equipoId,
 }: WorkflowPreventiveProps) {
   const [steps, setSteps] = useState<PlantillaPaso[]>([]);
   const [progress, setProgress] = useState<Map<string, ReportePaso>>(new Map());
@@ -174,6 +178,8 @@ export function WorkflowPreventive({
             onProgressChange={handleProgressChange}
             isCompleted={isCompleted}
             autoExpand={index === firstIncompleteIndex}
+            reporteId={reporteId}
+            equipoId={equipoId}
           />
         ))}
       </div>

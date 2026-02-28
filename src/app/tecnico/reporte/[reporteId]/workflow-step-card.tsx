@@ -1,9 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { ReadingInput } from "./reading-input";
-import type { PlantillaPaso, ReportePaso } from "@/types";
+import { PhotoSourcePicker } from "@/components/shared/photo-source-picker";
+import { CameraCapture } from "@/components/shared/camera-capture";
+import { PhotoGalleryRow } from "@/components/shared/photo-gallery-row";
+import { getPhotosForStep } from "@/app/actions/fotos";
+import { deletePhotoAction } from "@/app/actions/fotos";
+import { compressAndUpload } from "@/lib/photo-uploader";
+import type { PlantillaPaso, ReportePaso, ReporteFoto } from "@/types";
 
 interface WorkflowStepCardProps {
   paso: PlantillaPaso;
@@ -20,13 +26,15 @@ interface WorkflowStepCardProps {
   ) => void;
   isCompleted: boolean;
   autoExpand: boolean;
+  reporteId: string;
+  equipoId: string;
 }
 
 const etapaColors: Record<string, { bg: string; text: string; label: string }> =
   {
     antes: { bg: "bg-blue-50", text: "text-blue-600", label: "ANTES" },
     durante: { bg: "bg-amber-50", text: "text-amber-600", label: "DURANTE" },
-    despues: { bg: "bg-green-50", text: "text-green-600", label: "DESPUÉS" },
+    despues: { bg: "bg-green-50", text: "text-green-600", label: "DESPUES" },
   };
 
 export function WorkflowStepCard({
@@ -37,6 +45,8 @@ export function WorkflowStepCard({
   onProgressChange,
   isCompleted,
   autoExpand,
+  reporteId,
+  equipoId,
 }: WorkflowStepCardProps) {
   const [expanded, setExpanded] = useState(autoExpand);
   const [completado, setCompletado] = useState(
@@ -47,6 +57,28 @@ export function WorkflowStepCard({
     savedProgress?.lecturas ?? {}
   );
   const [saving, setSaving] = useState(false);
+
+  // Photo state
+  const [photos, setPhotos] = useState<ReporteFoto[]>([]);
+  const [activeLabel, setActiveLabel] = useState<string | null>(null);
+  const [showSourcePicker, setShowSourcePicker] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load existing photos for this step
+  useEffect(() => {
+    if (!savedProgress?.id) return;
+    let cancelled = false;
+
+    getPhotosForStep(savedProgress.id).then((fetched) => {
+      if (!cancelled) setPhotos(fetched);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [savedProgress?.id]);
 
   // Auto-save when completado changes
   useEffect(() => {
@@ -82,6 +114,99 @@ export function WorkflowStepCard({
   const updateLectura = (nombre: string, value: string | number) => {
     setLecturas((prev) => ({ ...prev, [nombre]: value }));
   };
+
+  // Photo handlers
+  const handleLabelClick = (etapa: string) => {
+    if (isCompleted) return;
+    setActiveLabel(etapa);
+    setShowSourcePicker(true);
+  };
+
+  const handleSelectCamera = () => {
+    setShowSourcePicker(false);
+    setShowCamera(true);
+  };
+
+  const handleSelectGallery = () => {
+    setShowSourcePicker(false);
+    fileInputRef.current?.click();
+  };
+
+  const handleCameraCapture = useCallback(
+    (result: { url: string; fotoId: string }) => {
+      setPhotos((prev) => [
+        ...prev,
+        {
+          id: result.fotoId,
+          reporte_id: reporteId,
+          equipo_id: equipoId,
+          reporte_paso_id: savedProgress?.id ?? null,
+          url: result.url,
+          etiqueta: (activeLabel?.toLowerCase() ?? "antes") as ReporteFoto["etiqueta"],
+          metadata_gps: null,
+          metadata_fecha: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        },
+      ]);
+      setShowCamera(false);
+    },
+    [reporteId, equipoId, savedProgress?.id, activeLabel]
+  );
+
+  const handleGalleryFiles = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+
+      setIsUploading(true);
+      const label = activeLabel?.toLowerCase() ?? "antes";
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const result = await compressAndUpload(
+          file,
+          {
+            reporteId,
+            equipoId,
+            reportePasoId: savedProgress?.id ?? null,
+            etiqueta: label,
+            gps: null,
+            fecha: new Date(),
+          }
+        );
+
+        if (result.success) {
+          setPhotos((prev) => [
+            ...prev,
+            {
+              id: result.fotoId,
+              reporte_id: reporteId,
+              equipo_id: equipoId,
+              reporte_paso_id: savedProgress?.id ?? null,
+              url: result.url,
+              etiqueta: label as ReporteFoto["etiqueta"],
+              metadata_gps: null,
+              metadata_fecha: new Date().toISOString(),
+              created_at: new Date().toISOString(),
+            },
+          ]);
+        }
+      }
+
+      setIsUploading(false);
+      // Reset the input so the same file(s) can be selected again
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    },
+    [reporteId, equipoId, savedProgress?.id, activeLabel]
+  );
+
+  const handleDeletePhoto = useCallback(async (fotoId: string) => {
+    setPhotos((prev) => prev.filter((p) => p.id !== fotoId));
+    await deletePhotoAction(fotoId);
+  }, []);
+
+  const getPhotoCount = (etapa: string) =>
+    photos.filter((p) => p.etiqueta === etapa.toLowerCase()).length;
 
   const evidencia = paso.evidencia_requerida ?? [];
   const lecturasRequeridas = paso.lecturas_requeridas ?? [];
@@ -123,9 +248,16 @@ export function WorkflowStepCard({
           </p>
           <p className="text-xs text-gray-400">
             Paso {stepNumber} de {totalSteps}
-            {!paso.es_obligatorio && " — Opcional"}
+            {!paso.es_obligatorio && " -- Opcional"}
           </p>
         </div>
+
+        {/* Photo count indicator */}
+        {photos.length > 0 && (
+          <span className="flex-shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-600">
+            {photos.length} foto{photos.length !== 1 ? "s" : ""}
+          </span>
+        )}
 
         {/* Chevron */}
         <svg
@@ -152,21 +284,23 @@ export function WorkflowStepCard({
             </p>
           </div>
 
-          {/* Evidence photo placeholders */}
+          {/* Evidence photo buttons */}
           {evidencia.length > 0 && (
             <div className="space-y-2">
               <p className="text-xs font-medium text-gray-500">
-                Evidencia fotográfica
+                Evidencia fotografica
               </p>
               <div className="flex flex-wrap gap-2">
                 {evidencia.map((ev, i) => {
                   const colors = etapaColors[ev.etapa] ?? etapaColors.antes;
+                  const count = getPhotoCount(ev.etapa);
                   return (
                     <button
                       key={i}
                       type="button"
-                      disabled
-                      className={`flex items-center gap-1.5 rounded-lg border border-dashed px-3 py-2 text-xs font-medium ${colors.bg} ${colors.text} border-current opacity-70`}
+                      onClick={() => handleLabelClick(ev.etapa)}
+                      disabled={isCompleted}
+                      className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium ${colors.bg} ${colors.text} border-current transition-colors active:opacity-80 disabled:opacity-50`}
                       title={ev.descripcion}
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -174,13 +308,22 @@ export function WorkflowStepCard({
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                       {colors.label}
+                      {count > 0 && ` (${count})`}
                     </button>
                   );
                 })}
               </div>
-              <p className="text-xs text-gray-400 italic">
-                Fotos se habilitaran en la siguiente fase
-              </p>
+              {isUploading && (
+                <p className="text-xs text-brand-600 font-medium">
+                  Subiendo fotos...
+                </p>
+              )}
+              {/* Photo gallery row */}
+              <PhotoGalleryRow
+                photos={photos}
+                onDelete={!isCompleted ? handleDeletePhoto : undefined}
+                disabled={isCompleted}
+              />
             </div>
           )}
 
@@ -251,6 +394,44 @@ export function WorkflowStepCard({
             </div>
           )}
         </div>
+      )}
+
+      {/* Hidden file input for gallery uploads */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleGalleryFiles}
+      />
+
+      {/* Photo source picker bottom sheet */}
+      {showSourcePicker && activeLabel && (
+        <PhotoSourcePicker
+          label={activeLabel}
+          onSelectCamera={handleSelectCamera}
+          onSelectGallery={handleSelectGallery}
+          onClose={() => {
+            setShowSourcePicker(false);
+            setActiveLabel(null);
+          }}
+        />
+      )}
+
+      {/* Camera capture fullscreen */}
+      {showCamera && activeLabel && (
+        <CameraCapture
+          label={activeLabel}
+          reporteId={reporteId}
+          equipoId={equipoId}
+          reportePasoId={savedProgress?.id ?? null}
+          onCapture={handleCameraCapture}
+          onClose={() => {
+            setShowCamera(false);
+            setActiveLabel(null);
+          }}
+        />
       )}
     </div>
   );
