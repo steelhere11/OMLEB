@@ -98,12 +98,12 @@ Plans:
   3. Technician can label photos (antes, despues, dano, placa, progreso) and pair before/after photos per equipment
   4. Client's on-site branch manager can draw a signature on the phone screen, and it saves to the report
   5. Signature is required only when setting report status to Completado; other statuses allow submission without signature
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 04-01: Camera capture module (getUserMedia + canvas overlay + compression + Supabase Storage upload)
-- [ ] 04-02: Gallery upload, photo labels, before/after pairing per equipment
-- [ ] 04-03: Digital signature capture (react-signature-canvas) with Completado enforcement
+- [ ] 04-01-PLAN.md — Camera capture infrastructure: npm deps, Storage migration, GPS/stamper/uploader libs, fullscreen camera component, source picker
+- [ ] 04-02-PLAN.md — Photo integration: wire label buttons in workflow steps and corrective issues, gallery upload, thumbnails, photo management
+- [ ] 04-03-PLAN.md — Digital signature capture (signature_pad) with landscape lock and Completado enforcement gate
 
 ### Phase 5: Admin Review & PDF Export
 **Goal**: Admin can review, edit, approve reports and export professional branded PDFs -- completing the documentation chain
