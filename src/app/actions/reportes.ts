@@ -379,3 +379,145 @@ export async function updateReportStatus(
   revalidatePath("/admin/folios");
   return { success: true, message: "Estatus actualizado" };
 }
+
+// ── Admin: Update Equipment Entry ───────────────────────────────────────
+
+export async function adminUpdateEquipmentEntry(
+  entryId: string,
+  _prevState: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  // Validate with Zod
+  const rawData = {
+    equipo_id: formData.get("equipo_id"),
+    tipo_trabajo: formData.get("tipo_trabajo"),
+    diagnostico: formData.get("diagnostico"),
+    trabajo_realizado: formData.get("trabajo_realizado"),
+    observaciones: formData.get("observaciones"),
+  };
+
+  const result = reporteEquipoSchema.safeParse(rawData);
+  if (!result.success) {
+    const flattened = z.flattenError(result.error);
+    return { fieldErrors: flattened.fieldErrors };
+  }
+
+  // Prepare data — empty strings become null
+  const data = {
+    tipo_trabajo: result.data.tipo_trabajo,
+    diagnostico: result.data.diagnostico || null,
+    trabajo_realizado: result.data.trabajo_realizado || null,
+    observaciones: result.data.observaciones || null,
+  };
+
+  const { error } = await supabase
+    .from("reporte_equipos")
+    .update(data)
+    .eq("id", entryId);
+
+  if (error) {
+    return { error: "Error al actualizar entrada: " + error.message };
+  }
+
+  revalidatePath("/admin/reportes");
+  return { success: true, message: "Guardado" };
+}
+
+// ── Admin: Save Materials ───────────────────────────────────────────────
+
+export async function adminSaveMaterials(
+  reporteId: string,
+  materials: { cantidad: number; unidad: string; descripcion: string }[]
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  // Validate each material
+  for (let i = 0; i < materials.length; i++) {
+    const result = reporteMaterialSchema.safeParse(materials[i]);
+    if (!result.success) {
+      const flattened = z.flattenError(result.error);
+      const fieldErrors = flattened.fieldErrors as Record<string, string[] | undefined>;
+      const firstField = Object.keys(fieldErrors)[0];
+      const firstError = firstField
+        ? fieldErrors[firstField]?.[0]
+        : "Datos invalidos";
+      return {
+        error: `Material ${i + 1}: ${firstError}`,
+      };
+    }
+  }
+
+  // Delete all existing materials for this report
+  const { error: deleteError } = await supabase
+    .from("reporte_materiales")
+    .delete()
+    .eq("reporte_id", reporteId);
+
+  if (deleteError) {
+    return { error: "Error al actualizar materiales: " + deleteError.message };
+  }
+
+  // Insert all materials (if any)
+  if (materials.length > 0) {
+    const rows = materials.map((m) => ({
+      reporte_id: reporteId,
+      cantidad: m.cantidad,
+      unidad: m.unidad,
+      descripcion: m.descripcion,
+    }));
+
+    const { error: insertError } = await supabase
+      .from("reporte_materiales")
+      .insert(rows);
+
+    if (insertError) {
+      return { error: "Error al guardar materiales: " + insertError.message };
+    }
+  }
+
+  revalidatePath("/admin/reportes");
+  return { success: true, message: "Materiales guardados" };
+}
+
+// ── Admin: Approve Report ───────────────────────────────────────────────
+
+export async function approveReport(
+  reporteId: string
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  const { error } = await supabase
+    .from("reportes")
+    .update({ finalizado_por_admin: true })
+    .eq("id", reporteId);
+
+  if (error) {
+    return { error: "Error al aprobar reporte: " + error.message };
+  }
+
+  revalidatePath("/admin/reportes");
+  return { success: true, message: "Reporte aprobado" };
+}
