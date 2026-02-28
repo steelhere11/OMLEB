@@ -111,6 +111,7 @@ Recent decisions affecting current work:
 - [05-03]: Base64 data URLs for all PDF images -- avoids CORS during rendering
 - [05-03]: LETTER page size for US printing compatibility
 - [05-03]: No placeholder logo -- "OMLEB" text fallback when /logo.png not found
+- [05-verify]: Added adminUpdateReportStatus action + status dropdown on detail page (verifier gap closure)
 
 ### Pending Todos
 

@@ -56,14 +56,14 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Admin Review
 
-- [ ] **ADMN-01**: Admin can view all submitted reports (list with status, date, folio, branch)
-- [ ] **ADMN-02**: Admin can edit/overwrite any field in any report
-- [ ] **ADMN-03**: Admin can finalize and approve reports
+- [x] **ADMN-01**: Admin can view all submitted reports (list with status, date, folio, branch)
+- [x] **ADMN-02**: Admin can edit/overwrite any field in any report
+- [x] **ADMN-03**: Admin can finalize and approve reports
 
 ### PDF Export
 
-- [ ] **PDF-01**: Generate professional PDF with company logo + client logo/name
-- [ ] **PDF-02**: PDF includes all report data, embedded photos with metadata, materials, signature
+- [x] **PDF-01**: Generate professional PDF with company logo + client logo/name
+- [x] **PDF-02**: PDF includes all report data, embedded photos with metadata, materials, signature
 
 ### PWA & Mobile
 
@@ -155,11 +155,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOTO-04 | Phase 4 | Complete |
 | FIRM-01 | Phase 4 | Complete |
 | FIRM-02 | Phase 4 | Complete |
-| ADMN-01 | Phase 5 | Pending |
-| ADMN-02 | Phase 5 | Pending |
-| ADMN-03 | Phase 5 | Pending |
-| PDF-01 | Phase 5 | Pending |
-| PDF-02 | Phase 5 | Pending |
+| ADMN-01 | Phase 5 | Complete |
+| ADMN-02 | Phase 5 | Complete |
+| ADMN-03 | Phase 5 | Complete |
+| PDF-01 | Phase 5 | Complete |
+| PDF-02 | Phase 5 | Complete |
 | PWA-01 | Phase 1 | Pending |
 | PWA-02 | Phase 1 | Pending |
 | PWA-03 | Phase 1 | Pending |
@@ -171,4 +171,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-23*
-*Last updated: 2026-02-28 after Phase 4 completion*
+*Last updated: 2026-02-28 after Phase 5 completion*

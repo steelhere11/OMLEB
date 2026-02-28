@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Technician Reporting** - Daily report form with equipment entries, materials, status, shared cuadrilla reports
 - [x] **Phase 3.5: Guided Maintenance Workflows** - INSERTED - Structured step-by-step preventive workflows and corrective issue picker replacing free-text reporting
 - [x] **Phase 4: Photo Capture & Signatures** - Camera with GPS overlay, gallery upload, photo labels, digital signature
-- [ ] **Phase 5: Admin Review & PDF Export** - Report list, edit/approve workflow, branded PDF generation
+- [x] **Phase 5: Admin Review & PDF Export** - Report list, edit/approve workflow, branded PDF generation
 
 ## Phase Details
 
@@ -118,9 +118,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Report list with URL-based filters, report detail page with complete read-only view (equipment, photos, materials, signature)
-- [ ] 05-02-PLAN.md — Admin inline edit for equipment entries and materials, report approval action with finalizado_por_admin
-- [ ] 05-03-PLAN.md — @react-pdf/renderer PDF generation: Inter fonts, photo pre-fetch as base64, professional document layout, export button
+- [x] 05-01-PLAN.md — Report list with URL-based filters, report detail page with complete read-only view (equipment, photos, materials, signature)
+- [x] 05-02-PLAN.md — Admin inline edit for equipment entries and materials, report approval action with finalizado_por_admin
+- [x] 05-03-PLAN.md — @react-pdf/renderer PDF generation: Inter fonts, photo pre-fetch as base64, professional document layout, export button
 
 ## Progress
 
@@ -134,7 +134,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 3. Technician Reporting | 3/3 | Complete | 2026-02-27 |
 | 3.5. Guided Maintenance Workflows | 1/1 | Complete | 2026-02-27 |
 | 4. Photo Capture & Signatures | 3/3 | Complete | 2026-02-28 |
-| 5. Admin Review & PDF Export | 0/3 | Not started | - |
+| 5. Admin Review & PDF Export | 3/3 | Complete | 2026-02-28 |
 
 ---
 *Roadmap created: 2026-02-23*
