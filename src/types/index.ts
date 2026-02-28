@@ -73,6 +73,7 @@ export interface Reporte {
   fecha: string;
   estatus: ReporteEstatus;
   firma_encargado: string | null;
+  nombre_encargado: string | null;
   finalizado_por_admin: boolean;
   created_at: string;
   updated_at: string;
@@ -96,6 +97,7 @@ export interface ReporteFoto {
   id: string;
   reporte_id: string;
   equipo_id: string | null;
+  reporte_paso_id: string | null;
   url: string;
   etiqueta: FotoEtiqueta | null;
   metadata_gps: string | null;
