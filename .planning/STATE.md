@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 4 of 5 (Photo Capture & Signatures)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-28 -- Completed 04-01-PLAN.md
+Last activity: 2026-02-28 -- Completed 04-02-PLAN.md
 
-Progress: [#########.] 64% (9/14 plans)
+Progress: [##########.] 71% (10/14 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: 7 min
-- Total execution time: 1.0 hours
+- Total execution time: 1.1 hours
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [#########.] 64% (9/14 plans)
 | 02-admin-data-management | 2/2 | 13 min | 7 min |
 | 03-technician-reporting | 3/3 | 15 min | 5 min |
 | 03.5-guided-workflows | 1/1 | 8 min | 8 min |
-| 04-photo-capture-signatures | 1/3 | 6 min | 6 min |
+| 04-photo-capture-signatures | 2/3 | 13 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 4 min, 7 min, 4 min, 8 min, 6 min
+- Last 5 plans: 7 min, 4 min, 8 min, 6 min, 7 min
 - Trend: stable/fast
 
 *Updated after each plan completion*
@@ -91,6 +91,10 @@ Recent decisions affecting current work:
 - [04-01]: Auto-accept capture flow -- no preview screen, immediate compress+upload
 - [04-01]: Canvas drawing buffer = video resolution; CSS handles display scaling
 - [04-01]: animate-slide-up CSS utility added for bottom sheet transitions
+- [04-02]: Gallery uploads skip GPS overlay (no location data for pre-existing photos)
+- [04-02]: Sequential gallery upload (not parallel) to avoid bandwidth saturation on mobile
+- [04-02]: Photos per corrective issue keyed by falla_correctiva_id in local state map
+- [04-02]: 5 general photo labels for equipment (ANTES, DESPUES, DANO, PLACA, PROGRESO)
 
 ### Pending Todos
 
@@ -105,7 +109,7 @@ Recent decisions affecting current work:
 
 ### Blockers/Concerns
 
-- [Phase 4]: Photo capture infrastructure now built (04-01). Remaining: gallery wiring + workflow integration (04-02), signature pad (04-03).
+- [Phase 4]: Photo capture (04-01) and gallery wiring (04-02) COMPLETE. Remaining: signature pad (04-03).
 - [Phase 5]: PDF with 20+ embedded photos needs validation at scale. Run a spike during Phase 5 planning.
 - [Phase 3]: COMPLETE -- full technician reporting flow functional end-to-end.
 - [Phase 3.5]: COMPLETE -- structured workflow steps replace free-text reporting.
@@ -113,5 +117,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 04-01-PLAN.md (photo capture infrastructure)
+Stopped at: Completed 04-02-PLAN.md (photo gallery wiring)
 Resume file: None
