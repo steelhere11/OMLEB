@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Field technicians can quickly submit complete daily reports (with photos, equipment details, materials, and diagnostics) from their phone on-site -- no WhatsApp, no paper, no back-and-forth.
-**Current focus:** Phase 5: Admin Review & PDF Export (In Progress)
+**Current focus:** V1 COMPLETE -- All 5 phases delivered.
 
 ## Current Position
 
 Phase: 5 of 5 (Admin Review & PDF Export)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-28 -- Completed 05-02-PLAN.md
+Plan: 3 of 3 in current phase
+Status: COMPLETE
+Last activity: 2026-02-28 -- Completed 05-03-PLAN.md
 
-Progress: [#############] 93% (13/14 plans)
+Progress: [##############] 100% (14/14 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
+- Total plans completed: 14
 - Average duration: 6 min
-- Total execution time: 1.4 hours
+- Total execution time: 1.5 hours
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Progress: [#############] 93% (13/14 plans)
 | 03-technician-reporting | 3/3 | 15 min | 5 min |
 | 03.5-guided-workflows | 1/1 | 8 min | 8 min |
 | 04-photo-capture-signatures | 3/3 | 19 min | 6 min |
-| 05-admin-review-pdf-export | 2/3 | 10 min | 5 min |
+| 05-admin-review-pdf-export | 3/3 | 17 min | 6 min |
 
 **Recent Trend:**
-- Last 5 plans: 6 min, 7 min, 6 min, 5 min, 5 min
+- Last 5 plans: 7 min, 6 min, 5 min, 5 min, 7 min
 - Trend: stable/fast
 
 *Updated after each plan completion*
@@ -106,6 +106,11 @@ Recent decisions affecting current work:
 - [05-02]: Equipment edit uses useActionState with bound entryId; materials edit uses useTransition (array payload)
 - [05-02]: window.confirm for approve confirmation (lightweight, no custom modal needed)
 - [05-02]: Equipment edit does not change equipo_id -- admin edits content fields only
+- [05-03]: Dynamic import with ssr: false for @react-pdf/renderer (browser-only APIs)
+- [05-03]: Promise.allSettled for photo pre-fetch -- individual failures silently skipped
+- [05-03]: Base64 data URLs for all PDF images -- avoids CORS during rendering
+- [05-03]: LETTER page size for US printing compatibility
+- [05-03]: No placeholder logo -- "OMLEB" text fallback when /logo.png not found
 
 ### Pending Todos
 
@@ -117,17 +122,18 @@ Recent decisions affecting current work:
 - User must run supabase/migration-workflows.sql in Supabase SQL Editor after schema.sql and rls.sql
 - User must run supabase/seed-workflows.sql in Supabase SQL Editor after migration-workflows.sql
 - User must run supabase/migration-04-photos.sql in Supabase SQL Editor after migration-workflows.sql
+- User must add company logo to public/logo.png for PDF branding
 
 ### Blockers/Concerns
 
 - [Phase 4]: COMPLETE -- camera capture, gallery wiring, photo workflow integration, and digital signature all done.
-- [Phase 5]: PDF with 20+ embedded photos needs validation at scale. Run a spike during Phase 5 planning.
-- [Phase 5]: firma_encargado is base64 PNG data URL -- PDF renderer needs to handle inline base64 images.
+- [Phase 5]: COMPLETE -- report list, detail view, inline edit, approval, and PDF export all done.
 - [Phase 3]: COMPLETE -- full technician reporting flow functional end-to-end.
 - [Phase 3.5]: COMPLETE -- structured workflow steps replace free-text reporting.
+- [V1]: ALL PHASES COMPLETE. Ready for Supabase setup, data seeding, and deployment testing.
 
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 05-02-PLAN.md (admin inline edit & approval). Phase 5 in progress -- 1 plan remaining (05-03 PDF export).
+Stopped at: Completed 05-03-PLAN.md (PDF export). ALL V1 PLANS COMPLETE.
 Resume file: None
