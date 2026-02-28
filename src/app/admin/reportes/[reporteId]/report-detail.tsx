@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import {
   adminUpdateEquipmentEntry,
   adminSaveMaterials,
+  adminUpdateReportStatus,
   approveReport,
 } from "@/app/actions/reportes";
 
@@ -168,6 +169,9 @@ export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
   // Edit state
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [editingMaterials, setEditingMaterials] = useState(false);
+  const [currentEstatus, setCurrentEstatus] = useState<ReporteEstatus>(reporte.estatus);
+  const [statusPending, startStatusTransition] = useTransition();
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
   // Group photos by equipo_id
   const photosByEquipo = new Map<string, ReporteFotoData[]>();
@@ -199,11 +203,35 @@ export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${status.className}`}
+          <select
+            value={currentEstatus}
+            disabled={statusPending}
+            onChange={(e) => {
+              const newStatus = e.target.value as ReporteEstatus;
+              setCurrentEstatus(newStatus);
+              setStatusMsg(null);
+              startStatusTransition(async () => {
+                const result = await adminUpdateReportStatus(reporte.id, newStatus);
+                if (result.error) {
+                  setCurrentEstatus(reporte.estatus);
+                  setStatusMsg(result.error);
+                } else {
+                  setStatusMsg("Guardado");
+                  setTimeout(() => setStatusMsg(null), 2000);
+                }
+              });
+            }}
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border-0 cursor-pointer ${statusConfig[currentEstatus]?.className ?? status.className}`}
           >
-            {status.label}
-          </span>
+            <option value="en_progreso">En Progreso</option>
+            <option value="en_espera">En Espera</option>
+            <option value="completado">Completado</option>
+          </select>
+          {statusMsg && (
+            <span className={`text-[11px] ${statusMsg === "Guardado" ? "text-status-success" : "text-red-600"}`}>
+              {statusMsg}
+            </span>
+          )}
           {reporte.finalizado_por_admin && (
             <span className="inline-flex items-center gap-1 rounded-full bg-status-success/10 px-2.5 py-0.5 text-xs font-medium text-status-success">
               <svg

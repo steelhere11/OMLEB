@@ -497,6 +497,51 @@ export async function adminSaveMaterials(
 
 // ── Admin: Approve Report ───────────────────────────────────────────────
 
+export async function adminUpdateReportStatus(
+  reporteId: string,
+  estatus: string
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  const validStatuses = ["en_progreso", "en_espera", "completado"];
+  if (!validStatuses.includes(estatus)) {
+    return { error: "Estatus invalido" };
+  }
+
+  const { error } = await supabase
+    .from("reportes")
+    .update({ estatus })
+    .eq("id", reporteId);
+
+  if (error) {
+    return { error: "Error al actualizar estatus: " + error.message };
+  }
+
+  // Sync folio status
+  const { data: reporte } = await supabase
+    .from("reportes")
+    .select("folio_id")
+    .eq("id", reporteId)
+    .single();
+
+  if (reporte?.folio_id) {
+    await supabase
+      .from("folios")
+      .update({ estatus })
+      .eq("id", reporte.folio_id);
+  }
+
+  revalidatePath("/admin/reportes");
+  return { success: true, message: "Estatus actualizado" };
+}
+
 export async function approveReport(
   reporteId: string
 ): Promise<ActionState> {
