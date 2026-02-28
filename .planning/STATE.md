@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 Phase: 5 of 5 (Admin Review & PDF Export)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-28 -- Completed 05-01-PLAN.md
+Last activity: 2026-02-28 -- Completed 05-02-PLAN.md
 
-Progress: [############] 86% (12/14 plans)
+Progress: [#############] 93% (13/14 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 12
+- Total plans completed: 13
 - Average duration: 6 min
-- Total execution time: 1.3 hours
+- Total execution time: 1.4 hours
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Progress: [############] 86% (12/14 plans)
 | 03-technician-reporting | 3/3 | 15 min | 5 min |
 | 03.5-guided-workflows | 1/1 | 8 min | 8 min |
 | 04-photo-capture-signatures | 3/3 | 19 min | 6 min |
-| 05-admin-review-pdf-export | 1/3 | 5 min | 5 min |
+| 05-admin-review-pdf-export | 2/3 | 10 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 8 min, 6 min, 7 min, 6 min, 5 min
+- Last 5 plans: 6 min, 7 min, 6 min, 5 min, 5 min
 - Trend: stable/fast
 
 *Updated after each plan completion*
@@ -103,6 +103,9 @@ Recent decisions affecting current work:
 - [05-01]: Photos grouped by equipo_id for equipment card display; general photos in separate section
 - [05-01]: Signature rendered as inline <img> with base64 data URL (not next/image)
 - [05-01]: Placeholder #admin-actions div for Plan 02 edit/approve and Plan 03 PDF export
+- [05-02]: Equipment edit uses useActionState with bound entryId; materials edit uses useTransition (array payload)
+- [05-02]: window.confirm for approve confirmation (lightweight, no custom modal needed)
+- [05-02]: Equipment edit does not change equipo_id -- admin edits content fields only
 
 ### Pending Todos
 
@@ -126,5 +129,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 05-01-PLAN.md (admin report list & detail read-only view). Phase 5 in progress.
+Stopped at: Completed 05-02-PLAN.md (admin inline edit & approval). Phase 5 in progress -- 1 plan remaining (05-03 PDF export).
 Resume file: None
