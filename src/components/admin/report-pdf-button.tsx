@@ -88,16 +88,28 @@ export default function ReportPdfButton({
 
     try {
       // 1. Pre-fetch company logo from public/
-      const companyLogoBase64 = await fetchImageAsBase64("/logo.png");
+      let companyLogoBase64: string | null = null;
+      try {
+        companyLogoBase64 = await fetchImageAsBase64("/logo.png");
+      } catch {
+        console.warn("Company logo fetch failed");
+      }
 
       // 2. Pre-fetch client logo if it exists
-      const clientLogoBase64 = cliente.logo_url
-        ? await fetchImageAsBase64(cliente.logo_url)
-        : null;
+      let clientLogoBase64: string | null = null;
+      if (cliente.logo_url) {
+        try {
+          clientLogoBase64 = await fetchImageAsBase64(cliente.logo_url);
+        } catch {
+          console.warn("Client logo fetch failed");
+        }
+      }
 
       // 3. Pre-fetch ALL equipment photos in parallel
       const photosPerEntry = await Promise.all(
-        equipmentEntries.map((entry) => fetchAllPhotosAsBase64(entry.photos))
+        equipmentEntries.map((entry) =>
+          fetchAllPhotosAsBase64(entry.photos ?? [])
+        )
       );
 
       // 4. Transform data into PdfReportData shape — distribute photos into steps
@@ -135,7 +147,7 @@ export default function ReportPdfButton({
             diagnostico: entry.diagnostico,
             trabajo_realizado: entry.trabajo_realizado,
             observaciones: entry.observaciones,
-            steps: entry.steps.map((step) => ({
+            steps: (entry.steps ?? []).map((step) => ({
               ...step,
               photosBase64: stepPhotosMap.get(step.id) ?? [],
             })),
@@ -158,7 +170,8 @@ export default function ReportPdfButton({
       );
     } catch (err) {
       console.error("PDF generation error:", err);
-      setError("Error al generar PDF");
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`Error PDF: ${msg.slice(0, 150)}`);
     } finally {
       setGenerating(false);
     }

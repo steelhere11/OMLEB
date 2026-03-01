@@ -293,7 +293,6 @@ const s = StyleSheet.create({
     color: GRAY_700,
     marginLeft: 16,
     marginTop: 2,
-    fontStyle: "italic" as const,
   },
   // Readings table
   readingsTable: {
@@ -392,7 +391,6 @@ const s = StyleSheet.create({
   emptyText: {
     fontSize: 8,
     color: GRAY_500,
-    fontStyle: "italic" as const,
     padding: 8,
   },
   // Materials table
