@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { saveEquipmentEntry, removeEquipmentEntry } from "@/app/actions/reportes";
 import { EquipmentEntryForm } from "./equipment-entry-form";
 import { AddEquipmentModal } from "./add-equipment-modal";
@@ -38,6 +38,24 @@ export function EquipmentSection({
   const [isRemoving, startRemoveTransition] = useTransition();
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedEquipoId, setSelectedEquipoId] = useState("");
+
+  // Sync entries when server data changes (e.g. after revalidatePath)
+  const prevInitialRef = useRef(initialEntries);
+  useEffect(() => {
+    if (prevInitialRef.current !== initialEntries) {
+      setEntries(initialEntries);
+      prevInitialRef.current = initialEntries;
+    }
+  }, [initialEntries]);
+
+  // Sync available equipment when server data changes
+  const prevEquipRef = useRef(availableEquipment);
+  useEffect(() => {
+    if (prevEquipRef.current !== availableEquipment) {
+      setAllEquipment(availableEquipment);
+      prevEquipRef.current = availableEquipment;
+    }
+  }, [availableEquipment]);
 
   // Notify parent of entry count changes for reactive validation
   useEffect(() => {
@@ -102,37 +120,10 @@ export function EquipmentSection({
     });
   };
 
-  const handleEquipmentCreated = (equipo: Equipo) => {
-    // Add to the available equipment list
-    setAllEquipment((prev) => [...prev, equipo]);
-
-    // Optimistically add to report entries immediately
-    const optimisticEntry: ReporteEquipo & { equipos: Equipo & { tipos_equipo?: { slug: string; nombre: string } | null } } = {
-      id: crypto.randomUUID(),
-      reporte_id: reporteId,
-      equipo_id: equipo.id,
-      tipo_trabajo: "preventivo",
-      diagnostico: null,
-      trabajo_realizado: null,
-      observaciones: null,
-      equipos: { ...equipo, tipos_equipo: undefined },
-    };
-    setEntries((prev) => [...prev, optimisticEntry]);
-
-    // Persist to database in the background
-    const formData = new FormData();
-    formData.set("equipo_id", equipo.id);
-    formData.set("tipo_trabajo", "preventivo");
-    formData.set("diagnostico", "");
-    formData.set("trabajo_realizado", "");
-    formData.set("observaciones", "");
-
-    saveEquipmentEntry(reporteId, null, null, formData).then((result) => {
-      if (!result.success) {
-        // Revert optimistic entry on failure
-        setEntries((prev) => prev.filter((e) => e.id !== optimisticEntry.id));
-      }
-    });
+  const handleEquipmentCreated = () => {
+    // Server action already inserted reporte_equipos and called revalidatePath.
+    // The sync effects above will pick up the fresh initialEntries/availableEquipment
+    // from the server re-render. Nothing else to do here.
   };
 
   return (
@@ -240,6 +231,7 @@ export function EquipmentSection({
       {/* Add equipment modal */}
       <AddEquipmentModal
         folioId={folioId}
+        reporteId={reporteId}
         tiposEquipo={tiposEquipo}
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}

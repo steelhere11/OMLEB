@@ -6,25 +6,27 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import type { Equipo, TipoEquipo } from "@/types";
+import type { TipoEquipo } from "@/types";
 import type { ActionState } from "@/types/actions";
 
 interface AddEquipmentModalProps {
   folioId: string;
+  reporteId: string;
   tiposEquipo: TipoEquipo[];
   isOpen: boolean;
   onClose: () => void;
-  onEquipmentCreated: (equipo: Equipo) => void;
+  onEquipmentCreated: () => void;
 }
 
 export function AddEquipmentModal({
   folioId,
+  reporteId,
   tiposEquipo,
   isOpen,
   onClose,
   onEquipmentCreated,
 }: AddEquipmentModalProps) {
-  const boundAction = createEquipoForFolio.bind(null, folioId);
+  const boundAction = createEquipoForFolio.bind(null, folioId, reporteId);
   const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
     boundAction,
     null
@@ -43,44 +45,13 @@ export function AddEquipmentModal({
     if (state?.success && state.data && !prevSuccessRef.current) {
       prevSuccessRef.current = true;
 
-      // Determine tipo_equipo text for the optimistic Equipo
-      const selectedTipo = tiposEquipo.find((t) => t.id === selectedTipoId);
-      const tipoText = isOtroSelected && customTipoText
-        ? customTipoText
-        : selectedTipo?.nombre ?? null;
-
-      const newEquipo: Equipo = {
-        id: (state.data as { id: string }).id,
-        sucursal_id: "", // Derived from folio, not needed client-side
-        numero_etiqueta:
-          (formRef.current?.querySelector(
-            '[name="numero_etiqueta"]'
-          ) as HTMLInputElement)?.value ?? "",
-        marca:
-          (formRef.current?.querySelector('[name="marca"]') as HTMLInputElement)
-            ?.value || null,
-        modelo:
-          (formRef.current?.querySelector('[name="modelo"]') as HTMLInputElement)
-            ?.value || null,
-        numero_serie:
-          (formRef.current?.querySelector(
-            '[name="numero_serie"]'
-          ) as HTMLInputElement)?.value || null,
-        tipo_equipo: tipoText,
-        tipo_equipo_id: selectedTipoId || null,
-        agregado_por: null,
-        revisado: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      onEquipmentCreated(newEquipo);
+      onEquipmentCreated();
       onClose();
       formRef.current?.reset();
       setSelectedTipoId("");
       setCustomTipoText("");
     }
-  }, [state, onEquipmentCreated, onClose, tiposEquipo, selectedTipoId, isOtroSelected, customTipoText]);
+  }, [state, onEquipmentCreated, onClose]);
 
   // Reset prevSuccessRef when modal re-opens
   useEffect(() => {

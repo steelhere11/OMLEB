@@ -195,6 +195,7 @@ export async function deleteEquipo(
 
 export async function createEquipoForFolio(
   folioId: string,
+  reporteId: string | null,
   _prevState: ActionState | null,
   formData: FormData
 ): Promise<ActionState> {
@@ -290,6 +291,15 @@ export async function createEquipoForFolio(
         "El equipo fue creado pero no se pudo vincular al folio: " +
         linkError.message,
     };
+  }
+
+  // 5b. Auto-add to report if reporteId provided
+  if (reporteId) {
+    await supabase.from("reporte_equipos").insert({
+      reporte_id: reporteId,
+      equipo_id: equipo.id,
+      tipo_trabajo: "preventivo",
+    });
   }
 
   // 6. Revalidate and return
