@@ -18,6 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3.5: Guided Maintenance Workflows** - INSERTED - Structured step-by-step preventive workflows and corrective issue picker replacing free-text reporting
 - [x] **Phase 4: Photo Capture & Signatures** - Camera with GPS overlay, gallery upload, photo labels, digital signature
 - [x] **Phase 5: Admin Review & PDF Export** - Report list, edit/approve workflow, branded PDF generation
+- [ ] **Phase 5.5: Step-Centric Evidence Redesign** - INSERTED - Technician evidence UI deduplication + PDF restructure with step-organized layout
 - [ ] **Phase 6: Foundation Completion & PWA** - Middleware fix, PWA manifest, service worker, offline fallback, install prompt, tech debt cleanup
 - [ ] **Phase 7: Deployment Guide & Seed Data** - Step-by-step deployment playbook and realistic seed data for QA testing
 
@@ -124,6 +125,23 @@ Plans:
 - [x] 05-02-PLAN.md — Admin inline edit for equipment entries and materials, report approval action with finalizado_por_admin
 - [x] 05-03-PLAN.md — @react-pdf/renderer PDF generation: Inter fonts, photo pre-fetch as base64, professional document layout, export button
 
+### Phase 5.5: Step-Centric Evidence Redesign (INSERTED)
+**Goal**: Redesign technician evidence capture UI and PDF report to be step-centric — each maintenance step becomes a self-contained card with inline evidence, structured readings tables, and guidance text
+**Depends on**: Phase 5
+**Requirements**: UIEV-01, UIEV-02, UIEV-03, PDFD-01, PDFD-02, PDFD-03, PDFD-04, PDFD-05, PDFD-06, PIPE-01, PIPE-02, PIPE-03, ADVW-01
+**Success Criteria** (what must be TRUE):
+  1. Each preventive workflow step shows deduplicated stage sections with guidance text and single photo button per stage (no more duplicate buttons)
+  2. Corrective issues use the same stage-section evidence pattern
+  3. PDF shows each step as a distinct block with inline readings table, notes, and photos grouped by stage
+  4. Readings table displays parameter/value/range/status with out-of-range indicators
+  5. Summary bar on page 1 shows at-a-glance overview counts
+  6. Photos carry reporte_paso_id through data pipeline to PDF; orphan photos have fallback section
+  7. Admin report detail shows photos inline with steps for consistency
+**Plans:** 1 plan
+
+Plans:
+- [ ] 05.5-01-PLAN.md — Shared EvidenceStageSection component, workflow card redesign, PDF data pipeline restructure, full PDF rewrite, admin detail update
+
 ### Phase 6: Foundation Completion & PWA
 **Goal**: Close all remaining v1 gaps — fix middleware auth guard, add PWA installability, service worker caching, and offline fallback
 **Depends on**: Phase 5 (all feature code exists; this phase adds infrastructure)
@@ -160,7 +178,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 3.5 -> 4 -> 5 -> 6 -> 7
+Phases execute in numeric order: 1 -> 2 -> 3 -> 3.5 -> 4 -> 5 -> 5.5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -170,9 +188,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 3.5 -> 4 -> 5 -> 6 -> 7
 | 3.5. Guided Maintenance Workflows | 1/1 | Complete | 2026-02-27 |
 | 4. Photo Capture & Signatures | 3/3 | Complete | 2026-02-28 |
 | 5. Admin Review & PDF Export | 3/3 | Complete | 2026-02-28 |
+| 5.5. Step-Centric Evidence Redesign | 0/1 | Pending | - |
 | 6. Foundation Completion & PWA | 0/1 | Pending | - |
 | 7. Deployment Guide & Seed Data | 0/2 | Pending | - |
 
 ---
 *Roadmap created: 2026-02-23*
-*Last updated: 2026-03-01*
+*Last updated: 2026-03-01 after Phase 5.5 insertion*

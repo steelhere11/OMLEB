@@ -35,6 +35,10 @@ Field technicians can quickly submit complete daily reports (with photos, equipm
 
 ### Active
 
+- [ ] Technician evidence UI: deduplicated stage sections with guidance text and single photo button per stage
+- [ ] PDF report: step-organized layout with inline readings tables, photos grouped by stage, summary bar, page numbers
+- [ ] Data pipeline: photos carry reporte_paso_id through to PDF, orphan photo fallback
+- [ ] Admin report detail: photos inline with steps for consistency with PDF
 - [ ] Middleware auth guard working correctly (next build produces working middleware)
 - [ ] PWA installable on mobile devices (manifest + icons)
 - [ ] Service worker caching for fast load on weak signal
@@ -104,4 +108,4 @@ Field technicians can quickly submit complete daily reports (with photos, equipm
 | SECURITY DEFINER for RLS role checks | Prevents infinite recursion in cross-table policies | ✓ Good |
 
 ---
-*Last updated: 2026-03-01 after v1.0 Launch Prep milestone start*
+*Last updated: 2026-03-01 after Phase 5.5 insertion*
