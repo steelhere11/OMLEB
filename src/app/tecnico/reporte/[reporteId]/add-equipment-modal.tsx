@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { createEquipoFromField } from "@/app/actions/equipos";
+import { createEquipoForFolio } from "@/app/actions/equipos";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,7 @@ import type { Equipo, TipoEquipo } from "@/types";
 import type { ActionState } from "@/types/actions";
 
 interface AddEquipmentModalProps {
-  sucursalId: string;
+  folioId: string;
   tiposEquipo: TipoEquipo[];
   isOpen: boolean;
   onClose: () => void;
@@ -18,14 +18,15 @@ interface AddEquipmentModalProps {
 }
 
 export function AddEquipmentModal({
-  sucursalId,
+  folioId,
   tiposEquipo,
   isOpen,
   onClose,
   onEquipmentCreated,
 }: AddEquipmentModalProps) {
+  const boundAction = createEquipoForFolio.bind(null, folioId);
   const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
-    createEquipoFromField,
+    boundAction,
     null
   );
   const formRef = useRef<HTMLFormElement>(null);
@@ -50,7 +51,7 @@ export function AddEquipmentModal({
 
       const newEquipo: Equipo = {
         id: (state.data as { id: string }).id,
-        sucursal_id: sucursalId,
+        sucursal_id: "", // Derived from folio, not needed client-side
         numero_etiqueta:
           (formRef.current?.querySelector(
             '[name="numero_etiqueta"]'
@@ -79,7 +80,7 @@ export function AddEquipmentModal({
       setSelectedTipoId("");
       setCustomTipoText("");
     }
-  }, [state, sucursalId, onEquipmentCreated, onClose, tiposEquipo, selectedTipoId, isOtroSelected, customTipoText]);
+  }, [state, onEquipmentCreated, onClose, tiposEquipo, selectedTipoId, isOtroSelected, customTipoText]);
 
   // Reset prevSuccessRef when modal re-opens
   useEffect(() => {
@@ -134,7 +135,8 @@ export function AddEquipmentModal({
         {/* Info notice */}
         <div className="mb-4 rounded-lg bg-blue-50 p-3">
           <p className="text-xs text-blue-700">
-            Este equipo sera revisado por un administrador.
+            Este equipo sera revisado por un administrador y se vinculara a este
+            folio.
           </p>
         </div>
 
@@ -147,7 +149,6 @@ export function AddEquipmentModal({
 
         {/* Form */}
         <form ref={formRef} action={formAction} className="space-y-4">
-          <input type="hidden" name="sucursal_id" value={sucursalId} />
           {/* Hidden field for tipo_equipo_id */}
           <input type="hidden" name="tipo_equipo_id" value={selectedTipoId} />
           {/* Hidden field for tipo_equipo text (for backward compat) */}

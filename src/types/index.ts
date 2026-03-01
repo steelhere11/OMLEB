@@ -63,6 +63,14 @@ export interface FolioAsignado {
   created_at: string;
 }
 
+export interface FolioEquipo {
+  id: string;
+  folio_id: string;
+  equipo_id: string;
+  added_by: string | null;
+  created_at: string;
+}
+
 export type ReporteEstatus = "en_progreso" | "en_espera" | "completado";
 
 export interface Reporte {

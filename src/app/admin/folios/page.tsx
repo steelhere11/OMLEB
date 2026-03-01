@@ -126,10 +126,10 @@ export default async function FoliosPage() {
                   </div>
                   <div className="w-[90px] text-right">
                     <Link
-                      href={`/admin/folios/${folio.id}/editar`}
+                      href={`/admin/folios/${folio.id}`}
                       className="text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
                     >
-                      Editar →
+                      Ver →
                     </Link>
                   </div>
                 </div>

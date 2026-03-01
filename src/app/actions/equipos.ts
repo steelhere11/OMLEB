@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { equipoSchema } from "@/lib/validations/equipos";
+import { equipoSchema, equipoForFolioSchema } from "@/lib/validations/equipos";
 import { z } from "zod";
 import type { ActionState } from "@/types/actions";
 
@@ -187,6 +187,119 @@ export async function deleteEquipo(
   }
   revalidatePath("/admin/equipos");
   return { success: true, message: "Equipo eliminado exitosamente" };
+}
+
+// ── Create Equipment for Folio ──────────────────────────────────────────
+// Creates equipment and links it to a folio in one step.
+// Derives sucursal_id from the folio. Used by both admin and technician.
+
+export async function createEquipoForFolio(
+  folioId: string,
+  _prevState: ActionState | null,
+  formData: FormData
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "No autorizado" };
+  }
+
+  const rol = user.app_metadata?.rol;
+  if (rol !== "tecnico" && rol !== "ayudante" && rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  // 1. Get sucursal_id from the folio
+  const { data: folio } = await supabase
+    .from("folios")
+    .select("sucursal_id")
+    .eq("id", folioId)
+    .single();
+
+  if (!folio) {
+    return { error: "Folio no encontrado" };
+  }
+
+  // 2. Validate with Zod (no sucursal_id in form)
+  const rawData = {
+    numero_etiqueta: formData.get("numero_etiqueta"),
+    marca: formData.get("marca"),
+    modelo: formData.get("modelo"),
+    numero_serie: formData.get("numero_serie"),
+    tipo_equipo: formData.get("tipo_equipo"),
+  };
+
+  const result = equipoForFolioSchema.safeParse(rawData);
+  if (!result.success) {
+    const flattened = z.flattenError(result.error);
+    return { fieldErrors: flattened.fieldErrors };
+  }
+
+  // 3. Prepare insert data
+  const insertData: Record<string, unknown> = {
+    sucursal_id: folio.sucursal_id,
+    numero_etiqueta: result.data.numero_etiqueta,
+    agregado_por: user.id,
+    revisado: rol === "admin",
+  };
+
+  if (result.data.marca && result.data.marca !== "") {
+    insertData.marca = result.data.marca;
+  }
+  if (result.data.modelo && result.data.modelo !== "") {
+    insertData.modelo = result.data.modelo;
+  }
+  if (result.data.numero_serie && result.data.numero_serie !== "") {
+    insertData.numero_serie = result.data.numero_serie;
+  }
+  if (result.data.tipo_equipo && result.data.tipo_equipo !== "") {
+    insertData.tipo_equipo = result.data.tipo_equipo;
+  }
+
+  const tipoEquipoId = formData.get("tipo_equipo_id") as string;
+  if (tipoEquipoId && tipoEquipoId !== "") {
+    insertData.tipo_equipo_id = tipoEquipoId;
+  }
+
+  // 4. Insert equipment
+  const { data: equipo, error: dbError } = await supabase
+    .from("equipos")
+    .insert(insertData)
+    .select("id")
+    .single();
+
+  if (dbError) {
+    return { error: "Error al agregar el equipo: " + dbError.message };
+  }
+
+  // 5. Link equipment to folio
+  const { error: linkError } = await supabase
+    .from("folio_equipos")
+    .insert({
+      folio_id: folioId,
+      equipo_id: equipo.id,
+      added_by: user.id,
+    });
+
+  if (linkError) {
+    return {
+      error:
+        "El equipo fue creado pero no se pudo vincular al folio: " +
+        linkError.message,
+    };
+  }
+
+  // 6. Revalidate and return
+  revalidatePath("/tecnico");
+  revalidatePath(`/admin/folios/${folioId}`);
+  return {
+    success: true,
+    message: "Equipo agregado",
+    data: { id: equipo.id },
+  };
 }
 
 // ── Create Equipment from Field (Technician) ────────────────────────────

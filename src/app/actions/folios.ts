@@ -68,7 +68,6 @@ export async function createFolio(
     .insert(assignments);
 
   if (assignError) {
-    // Folio was created but assignment failed — partial success
     return {
       error:
         "El folio fue creado pero hubo un error al asignar usuarios: " +
@@ -76,7 +75,29 @@ export async function createFolio(
     };
   }
 
-  // 6. Revalidate and redirect
+  // 6. Insert equipment assignments
+  const equipoIds = formData.getAll("equipos") as string[];
+  if (equipoIds.length > 0) {
+    const equipoAssignments = equipoIds.map((eid) => ({
+      folio_id: folio.id,
+      equipo_id: eid,
+      added_by: user.id,
+    }));
+
+    const { error: equipoError } = await supabase
+      .from("folio_equipos")
+      .insert(equipoAssignments);
+
+    if (equipoError) {
+      return {
+        error:
+          "El folio fue creado pero hubo un error al asignar equipos: " +
+          equipoError.message,
+      };
+    }
+  }
+
+  // 7. Revalidate and redirect
   revalidatePath("/admin/folios");
   redirect("/admin/folios");
 }
@@ -117,7 +138,7 @@ export async function updateFolio(
     return { error: "Debe asignar al menos un tecnico al folio" };
   }
 
-  // 4. Update folio table (do NOT update estatus in Phase 2)
+  // 4. Update folio table
   const { error: updateError } = await supabase
     .from("folios")
     .update({
@@ -163,7 +184,115 @@ export async function updateFolio(
     };
   }
 
-  // 6. Revalidate and redirect
+  // 6. Reassign equipment: delete existing, insert new
+  const { error: deleteEquipoError } = await supabase
+    .from("folio_equipos")
+    .delete()
+    .eq("folio_id", id);
+
+  if (deleteEquipoError) {
+    return {
+      error:
+        "Error al actualizar equipos: " + deleteEquipoError.message,
+    };
+  }
+
+  const equipoIds = formData.getAll("equipos") as string[];
+  if (equipoIds.length > 0) {
+    const equipoAssignments = equipoIds.map((eid) => ({
+      folio_id: id,
+      equipo_id: eid,
+      added_by: user.id,
+    }));
+
+    const { error: equipoError } = await supabase
+      .from("folio_equipos")
+      .insert(equipoAssignments);
+
+    if (equipoError) {
+      return {
+        error:
+          "El folio fue actualizado pero hubo un error al reasignar equipos: " +
+          equipoError.message,
+      };
+    }
+  }
+
+  // 7. Revalidate and redirect
   revalidatePath("/admin/folios");
   redirect("/admin/folios");
+}
+
+// ── Add Equipment to Folio ──────────────────────────────────────
+
+export async function addEquipmentToFolio(
+  folioId: string,
+  equipoId: string
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  const { error } = await supabase
+    .from("folio_equipos")
+    .upsert(
+      { folio_id: folioId, equipo_id: equipoId, added_by: user.id },
+      { onConflict: "folio_id,equipo_id" }
+    );
+
+  if (error) {
+    return { error: "Error al agregar equipo al folio: " + error.message };
+  }
+
+  revalidatePath(`/admin/folios/${folioId}`);
+  return { success: true, message: "Equipo agregado al folio" };
+}
+
+// ── Remove Equipment from Folio ─────────────────────────────────
+
+export async function removeEquipmentFromFolio(
+  folioId: string,
+  equipoId: string
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  // Check if equipment has report entries under this folio
+  const { data: reportEntries } = await supabase
+    .from("reporte_equipos")
+    .select("id, reportes!inner(folio_id)")
+    .eq("equipo_id", equipoId)
+    .eq("reportes.folio_id", folioId)
+    .limit(1);
+
+  if (reportEntries && reportEntries.length > 0) {
+    return {
+      error:
+        "No se puede quitar este equipo porque tiene reportes asociados en este folio.",
+    };
+  }
+
+  const { error } = await supabase
+    .from("folio_equipos")
+    .delete()
+    .eq("folio_id", folioId)
+    .eq("equipo_id", equipoId);
+
+  if (error) {
+    return { error: "Error al quitar equipo del folio: " + error.message };
+  }
+
+  revalidatePath(`/admin/folios/${folioId}`);
+  return { success: true, message: "Equipo quitado del folio" };
 }

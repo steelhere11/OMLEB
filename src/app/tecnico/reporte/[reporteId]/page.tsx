@@ -60,13 +60,18 @@ export default async function ReportePage({
     .select("id, reporte_id, cantidad, unidad, descripcion")
     .eq("reporte_id", reporteId);
 
-  // Fetch available equipment for the branch
   const sucursalId = typedReport.sucursal_id;
-  const { data: availableEquipment } = await supabase
-    .from("equipos")
-    .select("*")
-    .eq("sucursal_id", sucursalId)
-    .order("numero_etiqueta");
+
+  // Fetch folio-scoped equipment via join table
+  const folioId = typedReport.folio_id;
+  const { data: folioEquipos } = await supabase
+    .from("folio_equipos")
+    .select("equipo_id, equipos(*)")
+    .eq("folio_id", folioId);
+
+  const availableEquipment = (folioEquipos ?? [])
+    .map((fe) => (fe as unknown as { equipo_id: string; equipos: Equipo | null }).equipos)
+    .filter(Boolean) as Equipo[];
 
   // Fetch tipos_equipo for the add-equipment modal
   const { data: tiposEquipo } = await supabase
@@ -76,7 +81,6 @@ export default async function ReportePage({
     .order("nombre", { ascending: true });
 
   // Fetch team members
-  const folioId = typedReport.folio_id;
   const { data: asignados } = await supabase
     .from("folio_asignados")
     .select("usuario_id, users(nombre, rol)")
@@ -96,6 +100,7 @@ export default async function ReportePage({
   return (
     <ReportForm
       reporteId={reporteId}
+      folioId={folioId}
       folioNumero={folio?.numero_folio ?? ""}
       folioDescripcion={folio?.descripcion_problema ?? ""}
       sucursalNombre={

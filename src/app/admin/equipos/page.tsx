@@ -2,8 +2,12 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Equipo, Sucursal } from "@/types";
 
-type EquipoWithSucursal = Equipo & {
+type EquipoWithRelations = Equipo & {
   sucursales: Pick<Sucursal, "nombre" | "numero"> | null;
+  folio_equipos: {
+    folio_id: string;
+    folios: { numero_folio: string; estatus: string } | null;
+  }[];
 };
 
 export default async function EquiposPage() {
@@ -11,15 +15,20 @@ export default async function EquiposPage() {
 
   const { data: equipos } = await supabase
     .from("equipos")
-    .select("*, sucursales(nombre, numero)")
+    .select(
+      "*, sucursales(nombre, numero), folio_equipos(folio_id, folios(numero_folio, estatus))"
+    )
     .order("created_at", { ascending: false });
 
-  const list = (equipos as EquipoWithSucursal[] | null) ?? [];
+  const list = (equipos as EquipoWithRelations[] | null) ?? [];
 
   // Group equipment by sucursal_id
   const grouped = new Map<
     string,
-    { sucursal: Pick<Sucursal, "nombre" | "numero">; items: EquipoWithSucursal[] }
+    {
+      sucursal: Pick<Sucursal, "nombre" | "numero">;
+      items: EquipoWithRelations[];
+    }
   >();
 
   for (const equipo of list) {
@@ -36,10 +45,18 @@ export default async function EquiposPage() {
   return (
     <div className="mx-auto max-w-4xl">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between">
         <h1 className="text-[22px] font-bold tracking-[-0.025em] text-text-0">
           Equipos
         </h1>
+      </div>
+
+      {/* Info banner */}
+      <div className="mb-6 rounded-[8px] border border-accent/20 bg-accent/5 px-4 py-3">
+        <p className="text-[13px] text-text-1">
+          Los equipos se agregan desde los folios. Aqui puedes consultar el
+          historial y editar detalles.
+        </p>
       </div>
 
       {/* Equipment List Grouped by Branch */}
@@ -47,10 +64,10 @@ export default async function EquiposPage() {
         <div className="rounded-[10px] border border-admin-border bg-admin-surface py-28 text-center">
           <p className="text-[13px] text-text-3">No hay equipos registrados</p>
           <Link
-            href="/admin/sucursales"
+            href="/admin/folios/nuevo"
             className="mt-3 inline-block text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
           >
-            Ir a sucursales →
+            Crear un folio para agregar equipos →
           </Link>
         </div>
       ) : (
@@ -73,54 +90,62 @@ export default async function EquiposPage() {
                       </span>
                     )}
                   </div>
-                  <Link
-                    href={`/admin/equipos/${sucursalId}`}
-                    className="text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
-                  >
-                    Ver todos ({items.length}) →
-                  </Link>
+                  <span className="text-[12px] text-text-3">
+                    {items.length}{" "}
+                    {items.length === 1 ? "equipo" : "equipos"}
+                  </span>
                 </div>
 
                 {/* Column headers */}
                 <div className="flex items-center border-b border-admin-border-subtle px-[14px] py-[8px] text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
-                  <div className="w-[160px]">Etiqueta</div>
-                  <div className="w-[120px]">Marca</div>
-                  <div className="flex-1">Modelo</div>
-                  <div className="w-[120px]">Tipo</div>
-                  <div className="w-[120px] text-right">Estado</div>
+                  <div className="w-[140px]">Etiqueta</div>
+                  <div className="w-[100px]">Marca</div>
+                  <div className="w-[100px]">Modelo</div>
+                  <div className="w-[100px]">Tipo</div>
+                  <div className="flex-1">Folios</div>
+                  <div className="w-[100px] text-right">Estado</div>
                 </div>
 
                 {/* Equipment rows */}
-                {items.map((equipo, i) => (
-                  <div
-                    key={equipo.id}
-                    className={`flex items-center px-[14px] py-[9px] transition-colors duration-[80ms] hover:bg-admin-surface-hover${i > 0 ? " row-inset-divider" : ""}`}
-                  >
-                    <div className="w-[160px] font-mono text-[13px] font-medium text-text-0">
-                      {equipo.numero_etiqueta}
-                    </div>
-                    <div className="w-[120px] text-[13px] text-text-1">
-                      {equipo.marca ?? "—"}
-                    </div>
-                    <div className="flex-1 text-[13px] text-text-1">
-                      {equipo.modelo ?? "—"}
-                    </div>
-                    <div className="w-[120px] text-[13px] text-text-1">
-                      {equipo.tipo_equipo ?? "—"}
-                    </div>
-                    <div className="w-[120px] text-right">
-                      {equipo.revisado ? (
-                        <span className="inline-flex items-center rounded-full bg-status-success/10 px-2.5 py-0.5 text-xs font-medium text-status-success">
-                          Revisado
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full bg-status-warning/10 px-2.5 py-0.5 text-xs font-medium text-status-warning">
-                          Pendiente
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                {items.map((equipo, i) => {
+                  const folioCount = equipo.folio_equipos?.length ?? 0;
+                  return (
+                    <Link
+                      key={equipo.id}
+                      href={`/admin/equipos/${sucursalId}/${equipo.id}/editar`}
+                      className={`flex items-center px-[14px] py-[9px] transition-colors duration-[80ms] hover:bg-admin-surface-hover${i > 0 ? " row-inset-divider" : ""}`}
+                    >
+                      <div className="w-[140px] font-mono text-[13px] font-medium text-text-0">
+                        {equipo.numero_etiqueta}
+                      </div>
+                      <div className="w-[100px] text-[13px] text-text-1">
+                        {equipo.marca ?? "—"}
+                      </div>
+                      <div className="w-[100px] text-[13px] text-text-1">
+                        {equipo.modelo ?? "—"}
+                      </div>
+                      <div className="w-[100px] text-[13px] text-text-1">
+                        {equipo.tipo_equipo ?? "—"}
+                      </div>
+                      <div className="flex-1 text-[13px] text-text-2">
+                        {folioCount === 0
+                          ? "—"
+                          : `${folioCount} ${folioCount === 1 ? "folio" : "folios"}`}
+                      </div>
+                      <div className="w-[100px] text-right">
+                        {equipo.revisado ? (
+                          <span className="inline-flex items-center rounded-full bg-status-success/10 px-2.5 py-0.5 text-xs font-medium text-status-success">
+                            Revisado
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full bg-status-warning/10 px-2.5 py-0.5 text-xs font-medium text-status-warning">
+                            Pendiente
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             )
           )}

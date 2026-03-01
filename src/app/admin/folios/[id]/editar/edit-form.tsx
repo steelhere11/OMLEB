@@ -1,14 +1,17 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState, useCallback } from "react";
 import Link from "next/link";
 import { updateFolio } from "@/app/actions/folios";
+import { createEquipo } from "@/app/actions/equipos";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { createClient } from "@/lib/supabase/client";
 import type { ActionState } from "@/types/actions";
-import type { Folio, Sucursal, Cliente, User, FolioEstatus } from "@/types";
+import type { Folio, Sucursal, Cliente, User, Equipo, FolioEstatus, TipoEquipo } from "@/types";
 
 interface EditFolioFormProps {
   folio: Folio;
@@ -16,6 +19,9 @@ interface EditFolioFormProps {
   clientes: Cliente[];
   users: User[];
   currentAssignmentIds: string[];
+  branchEquipment: Equipo[];
+  currentEquipoIds: string[];
+  tiposEquipo: TipoEquipo[];
 }
 
 const statusConfig: Record<
@@ -46,6 +52,9 @@ export function EditFolioForm({
   clientes,
   users,
   currentAssignmentIds,
+  branchEquipment: initialBranchEquipment,
+  currentEquipoIds,
+  tiposEquipo,
 }: EditFolioFormProps) {
   const updateWithId = updateFolio.bind(null, folio.id);
   const [state, formAction, isPending] = useActionState<
@@ -55,11 +64,90 @@ export function EditFolioForm({
 
   const status = statusConfig[folio.estatus] ?? statusConfig.abierto;
 
+  const [selectedSucursalId, setSelectedSucursalId] = useState(
+    folio.sucursal_id
+  );
+  const [branchEquipment, setBranchEquipment] =
+    useState<Equipo[]>(initialBranchEquipment);
+  const [selectedEquipoIds, setSelectedEquipoIds] = useState<Set<string>>(
+    new Set(currentEquipoIds)
+  );
+  const [loadingEquipment, setLoadingEquipment] = useState(false);
+  const [showNewEquipoForm, setShowNewEquipoForm] = useState(false);
+  const [creatingEquipo, setCreatingEquipo] = useState(false);
+  const [newEquipoError, setNewEquipoError] = useState<string | null>(null);
+
+  const handleBranchChange = useCallback(async (sucursalId: string) => {
+    setSelectedSucursalId(sucursalId);
+    setSelectedEquipoIds(new Set());
+    setBranchEquipment([]);
+
+    if (!sucursalId) return;
+
+    setLoadingEquipment(true);
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("equipos")
+      .select("*")
+      .eq("sucursal_id", sucursalId)
+      .order("numero_etiqueta");
+    setBranchEquipment((data as Equipo[] | null) ?? []);
+    setLoadingEquipment(false);
+  }, []);
+
+  const toggleEquipo = (id: string) => {
+    setSelectedEquipoIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleCreateEquipo = async (formData: FormData) => {
+    setCreatingEquipo(true);
+    setNewEquipoError(null);
+
+    const result = await createEquipo(null, formData);
+
+    if (result.error) {
+      setNewEquipoError(result.error);
+      setCreatingEquipo(false);
+      return;
+    }
+
+    if (selectedSucursalId) {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("equipos")
+        .select("*")
+        .eq("sucursal_id", selectedSucursalId)
+        .order("numero_etiqueta");
+      const refreshed = (data as Equipo[] | null) ?? [];
+
+      const newIds = refreshed
+        .filter((eq) => !branchEquipment.some((old) => old.id === eq.id))
+        .map((eq) => eq.id);
+      if (newIds.length > 0) {
+        setSelectedEquipoIds((prev) => {
+          const next = new Set(prev);
+          newIds.forEach((id) => next.add(id));
+          return next;
+        });
+      }
+
+      setBranchEquipment(refreshed);
+    }
+
+    setShowNewEquipoForm(false);
+    setCreatingEquipo(false);
+  };
+
   return (
     <div className="mx-auto max-w-[480px]">
       {/* Back link */}
       <Link
-        href="/admin/folios"
+        href={`/admin/folios/${folio.id}`}
         className="mb-6 inline-flex items-center gap-1 text-[13px] text-text-2 transition-colors duration-[80ms] hover:text-text-1"
       >
         <svg
@@ -76,7 +164,7 @@ export function EditFolioForm({
             d="M15 19l-7-7 7-7"
           />
         </svg>
-        Volver a folios
+        Volver al folio
       </Link>
 
       <h1 className="mb-6 text-[22px] font-bold tracking-[-0.025em] text-text-0">
@@ -120,7 +208,8 @@ export function EditFolioForm({
               id="sucursal_id"
               name="sucursal_id"
               required
-              defaultValue={folio.sucursal_id}
+              value={selectedSucursalId}
+              onChange={(e) => handleBranchChange(e.target.value)}
               error={state?.fieldErrors?.sucursal_id?.[0]}
               className="mt-1.5 admin-select"
             >
@@ -231,6 +320,188 @@ export function EditFolioForm({
                   </label>
                 ))}
               </div>
+            )}
+          </div>
+
+          {/* Equipment Assignment */}
+          <div>
+            <Label className="text-[13px] text-text-1">
+              Equipos del Folio
+            </Label>
+            <p className="mt-0.5 text-[12px] text-text-3">
+              Seleccione los equipos que se trabajaran en este folio
+            </p>
+
+            {loadingEquipment ? (
+              <div className="mt-2 rounded-[6px] border border-admin-border bg-admin-surface-elevated px-4 py-3">
+                <p className="text-[13px] text-text-3">Cargando equipos...</p>
+              </div>
+            ) : branchEquipment.length === 0 ? (
+              <div className="mt-2 rounded-[6px] border border-admin-border bg-admin-surface-elevated px-4 py-3">
+                <p className="text-[13px] text-text-2">
+                  No hay equipos en esta sucursal.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="mt-2 max-h-60 space-y-1 overflow-y-auto rounded-[6px] border border-admin-border bg-admin-surface-elevated p-2">
+                  {branchEquipment.map((equipo) => (
+                    <label
+                      key={equipo.id}
+                      className="flex cursor-pointer items-center gap-3 rounded-[6px] px-3 py-2 transition-colors duration-[80ms] hover:bg-admin-surface-hover"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedEquipoIds.has(equipo.id)}
+                        onChange={() => toggleEquipo(equipo.id)}
+                        className="h-4 w-4 rounded border-admin-border bg-admin-surface-elevated text-accent focus:ring-accent"
+                      />
+                      <span className="flex-1 text-[13px] text-text-0">
+                        {equipo.numero_etiqueta}
+                        {equipo.marca && (
+                          <span className="text-text-2"> — {equipo.marca}</span>
+                        )}
+                        {equipo.modelo && (
+                          <span className="text-text-3"> {equipo.modelo}</span>
+                        )}
+                      </span>
+                      {!equipo.revisado && (
+                        <span className="inline-flex items-center rounded-full bg-status-warning/10 px-2 py-0.5 text-xs font-medium text-status-warning">
+                          Pendiente
+                        </span>
+                      )}
+                    </label>
+                  ))}
+                </div>
+
+                {/* Hidden inputs for selected equipment */}
+                {Array.from(selectedEquipoIds).map((id) => (
+                  <input key={id} type="hidden" name="equipos" value={id} />
+                ))}
+
+                {/* Add new equipment inline */}
+                {!showNewEquipoForm ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowNewEquipoForm(true)}
+                    className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-[6px] border border-dashed border-admin-border px-3 py-2 text-[13px] font-medium text-text-2 transition-colors duration-[80ms] hover:bg-admin-surface-hover"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Agregar equipo nuevo
+                  </button>
+                ) : (
+                  <div className="mt-2 rounded-[6px] border border-admin-border bg-admin-surface-elevated p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[13px] font-medium text-text-0">
+                        Nuevo equipo
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowNewEquipoForm(false);
+                          setNewEquipoError(null);
+                        }}
+                        className="text-[12px] text-text-3 hover:text-text-1"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+
+                    {newEquipoError && (
+                      <p className="text-[12px] text-status-error">
+                        {newEquipoError}
+                      </p>
+                    )}
+
+                    <div className="space-y-2">
+                      <Input
+                        id="edit-new-equipo-etiqueta"
+                        placeholder="Etiqueta / Numero *"
+                        required
+                      />
+                      <Select id="edit-new-equipo-tipo" className="admin-select">
+                        <option value="">Tipo de equipo...</option>
+                        {tiposEquipo.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.nombre}
+                          </option>
+                        ))}
+                      </Select>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input id="edit-new-equipo-marca" placeholder="Marca" />
+                        <Input
+                          id="edit-new-equipo-modelo"
+                          placeholder="Modelo"
+                        />
+                      </div>
+                      <Input
+                        id="edit-new-equipo-serie"
+                        placeholder="Numero de serie"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        fullWidth
+                        loading={creatingEquipo}
+                        onClick={() => {
+                          const etiqueta = (
+                            document.getElementById(
+                              "edit-new-equipo-etiqueta"
+                            ) as HTMLInputElement
+                          )?.value;
+                          if (!etiqueta) {
+                            setNewEquipoError(
+                              "La etiqueta del equipo es requerida"
+                            );
+                            return;
+                          }
+                          const tipoSelect = document.getElementById(
+                            "edit-new-equipo-tipo"
+                          ) as HTMLSelectElement;
+                          const selectedTipo = tiposEquipo.find(
+                            (t) => t.id === tipoSelect?.value
+                          );
+
+                          const fd = new FormData();
+                          fd.set("sucursal_id", selectedSucursalId);
+                          fd.set("numero_etiqueta", etiqueta);
+                          fd.set(
+                            "marca",
+                            (
+                              document.getElementById(
+                                "edit-new-equipo-marca"
+                              ) as HTMLInputElement
+                            )?.value ?? ""
+                          );
+                          fd.set(
+                            "modelo",
+                            (
+                              document.getElementById(
+                                "edit-new-equipo-modelo"
+                              ) as HTMLInputElement
+                            )?.value ?? ""
+                          );
+                          fd.set(
+                            "numero_serie",
+                            (
+                              document.getElementById(
+                                "edit-new-equipo-serie"
+                              ) as HTMLInputElement
+                            )?.value ?? ""
+                          );
+                          fd.set("tipo_equipo", selectedTipo?.nombre ?? "");
+                          handleCreateEquipo(fd);
+                        }}
+                      >
+                        Crear Equipo
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
 

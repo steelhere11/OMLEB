@@ -17,6 +17,7 @@ import type {
 
 interface ReportFormProps {
   reporteId: string;
+  folioId: string;
   folioNumero: string;
   folioDescripcion: string;
   sucursalNombre: string;
@@ -39,6 +40,7 @@ const rolLabels: Record<string, string> = {
 
 export function ReportForm({
   reporteId,
+  folioId,
   folioNumero,
   folioDescripcion,
   sucursalNombre,
@@ -238,6 +240,7 @@ export function ReportForm({
       {/* Equipment Section */}
       <EquipmentSection
         reporteId={reporteId}
+        folioId={folioId}
         initialEntries={initialEntries}
         availableEquipment={availableEquipment}
         tiposEquipo={tiposEquipo}

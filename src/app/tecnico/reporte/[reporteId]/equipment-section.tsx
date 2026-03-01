@@ -10,6 +10,7 @@ import type { ReporteEquipo, Equipo, TipoEquipo } from "@/types";
 
 interface EquipmentSectionProps {
   reporteId: string;
+  folioId: string;
   initialEntries: (ReporteEquipo & { equipos: Equipo & { tipos_equipo?: { slug: string; nombre: string } | null } })[];
   availableEquipment: Equipo[];
   tiposEquipo: TipoEquipo[];
@@ -21,6 +22,7 @@ interface EquipmentSectionProps {
 
 export function EquipmentSection({
   reporteId,
+  folioId,
   initialEntries,
   availableEquipment,
   tiposEquipo,
@@ -211,7 +213,7 @@ export function EquipmentSection({
 
       {/* Add equipment modal */}
       <AddEquipmentModal
-        sucursalId={sucursalId}
+        folioId={folioId}
         tiposEquipo={tiposEquipo}
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
