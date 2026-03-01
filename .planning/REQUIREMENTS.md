@@ -9,9 +9,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Authentication & Users
 
-- [ ] **AUTH-01**: Admin can log in with email and password
-- [ ] **AUTH-02**: Technician can log in with email and password from mobile
-- [ ] **AUTH-03**: Admin can create technician/helper accounts (no self-signup)
+- [x] **AUTH-01**: Admin can log in with email and password
+- [x] **AUTH-02**: Technician can log in with email and password from mobile
+- [x] **AUTH-03**: Admin can create technician/helper accounts (no self-signup)
 - [ ] **AUTH-04**: Role-based access controls (admin sees admin UI, tecnico sees tech UI)
 
 ### Client Management
@@ -70,6 +70,24 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **PWA-01**: Installable PWA (manifest + icons, Add to Home Screen)
 - [ ] **PWA-02**: Mobile-first responsive design (large buttons, clear flows, works on cheap Android)
 - [ ] **PWA-03**: App shell caching (loads fast on weak signal)
+
+## v1.0 Launch Prep Requirements
+
+Requirements for getting V1 deployed and testable on real infrastructure.
+
+### Deployment
+
+- [ ] **DEPL-01**: Step-by-step deployment guide covering: create Supabase project, run all SQL migrations in correct order, configure env vars, deploy to Vercel, create first admin account
+- [ ] **DEPL-02**: All SQL migration files documented with execution order and dependencies
+
+### QA Support
+
+- [ ] **SEED-01**: Seed data SQL script with realistic test data (clients with logos, branches, equipment, folios with crew assignments, users across all roles)
+- [ ] **SEED-02**: Seed data includes complete report examples (equipment entries, materials, photo references, signatures) covering all statuses
+
+### Cleanup
+
+- [ ] **CLEN-01**: Remove unused `exifr` dependency from package.json
 
 ## v2 Requirements
 
@@ -132,16 +150,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
-| CLNT-01 | Phase 2 | Pending |
-| SUCR-01 | Phase 2 | Pending |
-| EQUP-01 | Phase 2 | Pending |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Complete |
+| AUTH-04 | Phase 6 | Pending |
+| CLNT-01 | Phase 2 | Complete |
+| SUCR-01 | Phase 2 | Complete |
+| EQUP-01 | Phase 2 | Complete |
 | EQUP-02 | Phase 3 | Complete |
-| FOLI-01 | Phase 2 | Pending |
-| FOLI-02 | Phase 2 | Pending |
+| FOLI-01 | Phase 2 | Complete |
+| FOLI-02 | Phase 2 | Complete |
 | REPT-01 | Phase 3 | Complete |
 | REPT-02 | Phase 3 | Complete |
 | REPT-03 | Phase 3 | Complete |
@@ -160,15 +178,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ADMN-03 | Phase 5 | Complete |
 | PDF-01 | Phase 5 | Complete |
 | PDF-02 | Phase 5 | Complete |
-| PWA-01 | Phase 1 | Pending |
-| PWA-02 | Phase 1 | Pending |
-| PWA-03 | Phase 1 | Pending |
+| PWA-01 | Phase 6 | Pending |
+| PWA-02 | Phase 6 | Pending |
+| PWA-03 | Phase 6 | Pending |
+| DEPL-01 | Phase 7 | Pending |
+| DEPL-02 | Phase 7 | Pending |
+| SEED-01 | Phase 7 | Pending |
+| SEED-02 | Phase 7 | Pending |
+| CLEN-01 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 31 total
-- Mapped to phases: 31
+- v1 requirements: 31 total (28 complete, 3 pending)
+- v1.0 Launch Prep requirements: 5 total
+- Total mapped to phases: 36
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-23*
-*Last updated: 2026-02-28 after Phase 5 completion*
+*Last updated: 2026-03-01 after v1.0 Launch Prep milestone start*
