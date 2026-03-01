@@ -10,13 +10,17 @@ export interface GpsPosition {
 // Module-level cache for last known position
 let lastKnownPosition: GpsPosition | null = null;
 
+export interface GpsOptions {
+  timeout?: number;
+}
+
 /**
- * Get current GPS position with a 5-second timeout.
+ * Get current GPS position with a configurable timeout (default 10s).
  * Returns last-known position (marked approximate) on error.
  * Returns null if no position has ever been obtained.
  * Never throws.
  */
-export async function getGpsPosition(): Promise<GpsPosition | null> {
+export async function getGpsPosition(options?: GpsOptions): Promise<GpsPosition | null> {
   // Check if geolocation is available
   if (typeof navigator === "undefined" || !navigator.geolocation) {
     if (lastKnownPosition) {
@@ -29,8 +33,8 @@ export async function getGpsPosition(): Promise<GpsPosition | null> {
     const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject, {
         enableHighAccuracy: true,
-        timeout: 5000,
-        maximumAge: 30000,
+        timeout: options?.timeout ?? 10000,
+        maximumAge: 60000,
       });
     });
 

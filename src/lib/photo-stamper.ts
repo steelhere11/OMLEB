@@ -19,9 +19,9 @@ export function drawOverlayBadge(
   canvasWidth: number,
   canvasHeight: number
 ) {
-  const padding = 12;
-  const lineHeight = 18;
-  const fontSize = 14;
+  const fontSize = Math.max(24, Math.round(canvasWidth * 0.022));
+  const lineHeight = Math.round(fontSize * 1.3);
+  const padding = Math.round(fontSize * 0.85);
 
   // Format timestamp in es-MX locale
   const dateStr = data.timestamp.toLocaleDateString("es-MX", {
@@ -50,15 +50,16 @@ export function drawOverlayBadge(
   const badgeWidth = maxWidth + padding * 2;
   const badgeHeight = lines.length * lineHeight + padding * 2;
 
-  // Position: bottom-right corner with 10px offset
-  const x = canvasWidth - badgeWidth - 10;
-  const y = canvasHeight - badgeHeight - 10;
+  // Position: bottom-right corner with proportional offset
+  const offset = Math.round(fontSize * 0.7);
+  const x = canvasWidth - badgeWidth - offset;
+  const y = canvasHeight - badgeHeight - offset;
 
   // Semi-transparent black background with rounded corners
   ctx.save();
   ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
   ctx.beginPath();
-  ctx.roundRect(x, y, badgeWidth, badgeHeight, 6);
+  ctx.roundRect(x, y, badgeWidth, badgeHeight, Math.round(fontSize * 0.4));
   ctx.fill();
 
   // White monospace text

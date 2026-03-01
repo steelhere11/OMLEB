@@ -61,6 +61,14 @@ export async function compressAndUpload(
       });
 
     if (uploadError) {
+      const msg = uploadError.message.toLowerCase();
+      if (msg.includes("bucket") && msg.includes("not found")) {
+        return {
+          success: false,
+          error:
+            "Bucket de fotos no encontrado. Ejecute migration-04-photos.sql en Supabase.",
+        };
+      }
       return { success: false, error: uploadError.message };
     }
 

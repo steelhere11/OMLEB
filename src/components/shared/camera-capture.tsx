@@ -34,6 +34,7 @@ export function CameraCapture({
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const [gpsStatus, setGpsStatus] = useState<"pending" | "acquired" | "failed">("pending");
 
   // Clean up stream + animation frame
   const cleanup = useCallback(() => {
@@ -56,23 +57,28 @@ export function CameraCapture({
     let mounted = true;
 
     async function init() {
-      // Start GPS fetch immediately (non-blocking)
-      getGpsPosition().then((pos) => {
-        if (mounted && pos) {
-          gpsRef.current = pos;
-        }
-      });
+      // Request GPS FIRST so iOS Safari shows location prompt before camera prompt.
+      // Concurrent prompts cause the GPS timeout to fire before the user can respond.
+      const gpsResult = await getGpsPosition({ timeout: 15000 });
+      if (!mounted) return;
+      if (gpsResult) {
+        gpsRef.current = gpsResult;
+        setGpsStatus("acquired");
+      } else {
+        setGpsStatus("failed");
+      }
 
       // Refresh GPS every 10 seconds
       gpsIntervalRef.current = setInterval(() => {
         getGpsPosition().then((pos) => {
           if (mounted && pos) {
             gpsRef.current = pos;
+            setGpsStatus("acquired");
           }
         });
       }, 10000);
 
-      // Open camera
+      // Open camera (after GPS prompt is resolved)
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
@@ -336,6 +342,26 @@ export function CameraCapture({
           />
         </svg>
       </button>
+
+      {/* GPS status indicator - top center */}
+      <div
+        className={`absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium ${
+          gpsStatus === "acquired"
+            ? "bg-green-600/80 text-white"
+            : gpsStatus === "failed"
+              ? "bg-yellow-600/80 text-white"
+              : "bg-white/20 text-white/70"
+        }`}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+        </svg>
+        {gpsStatus === "acquired"
+          ? "GPS activo"
+          : gpsStatus === "failed"
+            ? "GPS no disponible"
+            : "Obteniendo GPS..."}
+      </div>
 
       {/* Label badge - top right */}
       <div className="absolute right-4 top-4 z-10 rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white">
