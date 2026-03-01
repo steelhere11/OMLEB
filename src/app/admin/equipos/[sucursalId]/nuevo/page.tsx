@@ -1,7 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
-import { useParams } from "next/navigation";
+import { useActionState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { createEquipo } from "@/app/actions/equipos";
 import { Button } from "@/components/ui/button";
@@ -11,10 +11,17 @@ import type { ActionState } from "@/types/actions";
 
 export default function NuevoEquipoPage() {
   const { sucursalId } = useParams<{ sucursalId: string }>();
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState<
     ActionState | null,
     FormData
   >(createEquipo, null);
+
+  useEffect(() => {
+    if (state?.success) {
+      router.push(`/admin/equipos/${sucursalId}`);
+    }
+  }, [state?.success, sucursalId, router]);
 
   return (
     <div className="mx-auto max-w-[480px]">

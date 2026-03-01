@@ -60,18 +60,20 @@ export async function createEquipo(
   }
 
   // 4. Insert into database
-  const { error: dbError } = await supabase
+  const { data: equipo, error: dbError } = await supabase
     .from("equipos")
-    .insert(insertData);
+    .insert(insertData)
+    .select("id")
+    .single();
 
   if (dbError) {
     return { error: "Error al crear el equipo: " + dbError.message };
   }
 
-  // 5. Revalidate and redirect
+  // 5. Revalidate and return
   revalidatePath(`/admin/equipos/${result.data.sucursal_id}`);
   revalidatePath("/admin/equipos");
-  redirect(`/admin/equipos/${result.data.sucursal_id}`);
+  return { success: true, data: { id: equipo.id } };
 }
 
 // ── Update Equipment ──────────────────────────────────────────────
