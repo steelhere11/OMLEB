@@ -1,16 +1,14 @@
 // Canvas overlay rendering for GPS/date/time stamp
-// Renders bold yellow right-aligned text in the bottom-right corner with dark outline
+// Renders bold white right-aligned text in the bottom-right corner with dark outline
 
 export interface OverlayData {
-  lat: number | null;
-  lng: number | null;
-  approximate: boolean;
+  addressLines: string[];
   timestamp: Date;
 }
 
 /**
- * Draw a visible date/time + GPS overlay directly on a canvas.
- * Style: bold yellow text, right-aligned, bottom-right corner, dark outline for contrast.
+ * Draw a visible date/time + address overlay directly on a canvas.
+ * Style: bold white text, right-aligned, bottom-right corner, dark outline for contrast.
  * Matches the style of GPS-stamping apps (e.g., GPS Map Camera).
  */
 export function drawOverlayBadge(
@@ -39,14 +37,8 @@ export function drawOverlayBadge(
     second: "2-digit",
   });
 
-  // Format GPS coordinates
-  const lines: string[] = [`${dateStr} ${timeStr}`];
-
-  if (data.lat !== null && data.lng !== null) {
-    let gpsStr = `${data.lat.toFixed(6)}, ${data.lng.toFixed(6)}`;
-    if (data.approximate) gpsStr += " ~";
-    lines.push(gpsStr);
-  }
+  // Date/time line first, then address lines
+  const lines: string[] = [`${dateStr} ${timeStr}`, ...data.addressLines];
 
   // Configure text style
   ctx.save();
@@ -66,8 +58,8 @@ export function drawOverlayBadge(
     ctx.lineJoin = "round";
     ctx.strokeText(lines[i], x, y);
 
-    // Yellow fill
-    ctx.fillStyle = "#FFD600";
+    // White fill
+    ctx.fillStyle = "#FFFFFF";
     ctx.fillText(lines[i], x, y);
 
     y -= lineHeight;

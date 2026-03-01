@@ -1,4 +1,4 @@
-// GPS utility with last-known fallback
+// GPS utility with last-known fallback and reverse geocoding
 // Never throws -- always returns gracefully
 
 export interface GpsPosition {
@@ -16,6 +16,67 @@ export interface GpsResult {
 
 // Module-level cache for last known position
 let lastKnownPosition: GpsPosition | null = null;
+
+// Reverse geocoding cache (avoids re-fetching for same location)
+let cachedGeocode: { lat: number; lng: number; lines: string[] } | null = null;
+
+/**
+ * Reverse-geocode lat/lng into address lines using OpenStreetMap Nominatim.
+ * Returns lines like: ["257 Avenida 4a. Avenida", "Rey Neza", "Ciudad Nezahualcóyotl", "Estado de México"]
+ * Falls back to raw coordinates on error.
+ */
+export async function reverseGeocode(lat: number, lng: number): Promise<string[]> {
+  // Return cached if within ~100m of previous lookup
+  if (
+    cachedGeocode &&
+    Math.abs(cachedGeocode.lat - lat) < 0.001 &&
+    Math.abs(cachedGeocode.lng - lng) < 0.001
+  ) {
+    return cachedGeocode.lines;
+  }
+
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+      {
+        headers: {
+          "Accept-Language": "es",
+          "User-Agent": "OMLEB-HVAC-App/1.0",
+        },
+      }
+    );
+    const data = await res.json();
+    const addr = data.address || {};
+
+    const lines: string[] = [];
+
+    // Street line: house_number + road
+    const street = [addr.house_number, addr.road].filter(Boolean).join(" ");
+    if (street) lines.push(street);
+
+    // Neighbourhood / suburb
+    if (addr.suburb || addr.neighbourhood) {
+      lines.push(addr.suburb || addr.neighbourhood);
+    }
+
+    // City / town / municipality
+    const city = addr.city || addr.town || addr.municipality;
+    if (city) lines.push(city);
+
+    // State
+    if (addr.state) lines.push(addr.state);
+
+    // Fallback to coordinates if Nominatim returned nothing useful
+    if (lines.length === 0) {
+      lines.push(`${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+    }
+
+    cachedGeocode = { lat, lng, lines };
+    return lines;
+  } catch {
+    return [`${lat.toFixed(6)}, ${lng.toFixed(6)}`];
+  }
+}
 
 export interface GpsOptions {
   timeout?: number;

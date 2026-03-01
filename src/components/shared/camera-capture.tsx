@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState, useCallback } from "react";
-import { getGpsPosition, type GpsPosition, type GpsErrorReason } from "@/lib/gps";
+import { getGpsPosition, reverseGeocode, type GpsPosition, type GpsErrorReason } from "@/lib/gps";
 import { drawOverlayBadge } from "@/lib/photo-stamper";
 import { compressAndUpload } from "@/lib/photo-uploader";
 
@@ -27,6 +27,7 @@ export function CameraCapture({
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number>(0);
   const gpsRef = useRef<GpsPosition | null>(null);
+  const addressRef = useRef<string[]>([]);
   const gpsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -66,6 +67,10 @@ export function CameraCapture({
         gpsRef.current = gpsResult.position;
         setGpsStatus("acquired");
         setGpsError(null);
+        // Reverse-geocode in background (non-blocking)
+        reverseGeocode(gpsResult.position.lat, gpsResult.position.lng).then((lines) => {
+          if (mounted) addressRef.current = lines;
+        });
       } else {
         setGpsStatus("failed");
         setGpsError(gpsResult.error ?? null);
@@ -79,6 +84,10 @@ export function CameraCapture({
               gpsRef.current = result.position;
               setGpsStatus("acquired");
               setGpsError(null);
+              // Re-geocode if position changed significantly
+              reverseGeocode(result.position.lat, result.position.lng).then((lines) => {
+                if (mounted) addressRef.current = lines;
+              });
             }
           });
         }, 10000);
@@ -164,14 +173,11 @@ export function CameraCapture({
           // Draw video frame
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          // Draw overlay badge
-          const gps = gpsRef.current;
+          // Draw overlay badge with address lines
           drawOverlayBadge(
             ctx,
             {
-              lat: gps?.lat ?? null,
-              lng: gps?.lng ?? null,
-              approximate: gps?.approximate ?? false,
+              addressLines: addressRef.current,
               timestamp: new Date(),
             },
             canvas.width,
@@ -207,13 +213,10 @@ export function CameraCapture({
     const ctx = canvas.getContext("2d");
     if (ctx) {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const gps = gpsRef.current;
       drawOverlayBadge(
         ctx,
         {
-          lat: gps?.lat ?? null,
-          lng: gps?.lng ?? null,
-          approximate: gps?.approximate ?? false,
+          addressLines: addressRef.current,
           timestamp: new Date(),
         },
         canvas.width,
@@ -273,6 +276,10 @@ export function CameraCapture({
       gpsRef.current = result.position;
       setGpsStatus("acquired");
       setGpsError(null);
+      // Reverse-geocode the new position
+      reverseGeocode(result.position.lat, result.position.lng).then((lines) => {
+        addressRef.current = lines;
+      });
       // Start interval refresh if not already running
       if (!gpsIntervalRef.current) {
         gpsIntervalRef.current = setInterval(() => {
@@ -280,6 +287,9 @@ export function CameraCapture({
             if (r.position) {
               gpsRef.current = r.position;
               setGpsStatus("acquired");
+              reverseGeocode(r.position.lat, r.position.lng).then((lines) => {
+                addressRef.current = lines;
+              });
             }
           });
         }, 10000);
