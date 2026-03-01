@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState, useCallback } from "react";
-import { getGpsPosition, type GpsPosition } from "@/lib/gps";
+import { getGpsPosition, type GpsPosition, type GpsErrorReason } from "@/lib/gps";
 import { drawOverlayBadge } from "@/lib/photo-stamper";
 import { compressAndUpload } from "@/lib/photo-uploader";
 
@@ -35,6 +35,7 @@ export function CameraCapture({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [gpsStatus, setGpsStatus] = useState<"pending" | "acquired" | "failed">("pending");
+  const [gpsError, setGpsError] = useState<GpsErrorReason | null>(null);
 
   // Clean up stream + animation frame
   const cleanup = useCallback(() => {
@@ -61,22 +62,27 @@ export function CameraCapture({
       // Concurrent prompts cause the GPS timeout to fire before the user can respond.
       const gpsResult = await getGpsPosition({ timeout: 15000 });
       if (!mounted) return;
-      if (gpsResult) {
-        gpsRef.current = gpsResult;
+      if (gpsResult.position) {
+        gpsRef.current = gpsResult.position;
         setGpsStatus("acquired");
+        setGpsError(null);
       } else {
         setGpsStatus("failed");
+        setGpsError(gpsResult.error ?? null);
       }
 
-      // Refresh GPS every 10 seconds
-      gpsIntervalRef.current = setInterval(() => {
-        getGpsPosition().then((pos) => {
-          if (mounted && pos) {
-            gpsRef.current = pos;
-            setGpsStatus("acquired");
-          }
-        });
-      }, 10000);
+      // Refresh GPS every 10 seconds (only if not denied — retrying denied is pointless without user gesture)
+      if (gpsResult.error !== "denied") {
+        gpsIntervalRef.current = setInterval(() => {
+          getGpsPosition().then((result) => {
+            if (mounted && result.position) {
+              gpsRef.current = result.position;
+              setGpsStatus("acquired");
+              setGpsError(null);
+            }
+          });
+        }, 10000);
+      }
 
       // Open camera (after GPS prompt is resolved)
       try {
@@ -258,6 +264,32 @@ export function CameraCapture({
     );
   }, [isCapturing, reporteId, equipoId, reportePasoId, label, onCapture]);
 
+  // Retry GPS — called from user tap (user gesture context lets iOS Safari show the prompt)
+  const retryGps = useCallback(async () => {
+    setGpsStatus("pending");
+    setGpsError(null);
+    const result = await getGpsPosition({ timeout: 15000 });
+    if (result.position) {
+      gpsRef.current = result.position;
+      setGpsStatus("acquired");
+      setGpsError(null);
+      // Start interval refresh if not already running
+      if (!gpsIntervalRef.current) {
+        gpsIntervalRef.current = setInterval(() => {
+          getGpsPosition().then((r) => {
+            if (r.position) {
+              gpsRef.current = r.position;
+              setGpsStatus("acquired");
+            }
+          });
+        }, 10000);
+      }
+    } else {
+      setGpsStatus("failed");
+      setGpsError(result.error ?? null);
+    }
+  }, []);
+
   // Handle close
   const handleClose = useCallback(() => {
     cleanup();
@@ -343,13 +375,15 @@ export function CameraCapture({
         </svg>
       </button>
 
-      {/* GPS status indicator - top center */}
-      <div
+      {/* GPS status indicator - top center, tappable when failed */}
+      <button
+        type="button"
+        onClick={gpsStatus === "failed" ? retryGps : undefined}
         className={`absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium ${
           gpsStatus === "acquired"
             ? "bg-green-600/80 text-white"
             : gpsStatus === "failed"
-              ? "bg-yellow-600/80 text-white"
+              ? "bg-yellow-600/80 text-white active:bg-yellow-700/80"
               : "bg-white/20 text-white/70"
         }`}
       >
@@ -359,9 +393,11 @@ export function CameraCapture({
         {gpsStatus === "acquired"
           ? "GPS activo"
           : gpsStatus === "failed"
-            ? "GPS no disponible"
+            ? gpsError === "denied"
+              ? "Ubicacion denegada — toca para reintentar"
+              : "GPS no disponible — toca para reintentar"
             : "Obteniendo GPS..."}
-      </div>
+      </button>
 
       {/* Label badge - top right */}
       <div className="absolute right-4 top-4 z-10 rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white">

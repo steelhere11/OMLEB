@@ -7,6 +7,13 @@ export interface GpsPosition {
   approximate: boolean;
 }
 
+export type GpsErrorReason = "denied" | "unavailable" | "timeout" | "unsupported";
+
+export interface GpsResult {
+  position: GpsPosition | null;
+  error?: GpsErrorReason;
+}
+
 // Module-level cache for last known position
 let lastKnownPosition: GpsPosition | null = null;
 
@@ -16,17 +23,18 @@ export interface GpsOptions {
 
 /**
  * Get current GPS position with a configurable timeout (default 10s).
- * Returns last-known position (marked approximate) on error.
- * Returns null if no position has ever been obtained.
+ * Returns position (or last-known approximate) and an error reason if it failed.
  * Never throws.
  */
-export async function getGpsPosition(options?: GpsOptions): Promise<GpsPosition | null> {
+export async function getGpsPosition(options?: GpsOptions): Promise<GpsResult> {
   // Check if geolocation is available
   if (typeof navigator === "undefined" || !navigator.geolocation) {
-    if (lastKnownPosition) {
-      return { ...lastKnownPosition, approximate: true };
-    }
-    return null;
+    return {
+      position: lastKnownPosition
+        ? { ...lastKnownPosition, approximate: true }
+        : null,
+      error: "unsupported",
+    };
   }
 
   try {
@@ -44,13 +52,21 @@ export async function getGpsPosition(options?: GpsOptions): Promise<GpsPosition 
       approximate: false,
     };
 
-    return lastKnownPosition;
-  } catch {
-    // PermissionDeniedError, TimeoutError, PositionUnavailableError
-    // Return last known if available, marked as approximate
-    if (lastKnownPosition) {
-      return { ...lastKnownPosition, approximate: true };
+    return { position: lastKnownPosition };
+  } catch (err) {
+    // Map GeolocationPositionError codes to reason strings
+    let error: GpsErrorReason = "unavailable";
+    if (err instanceof GeolocationPositionError) {
+      if (err.code === err.PERMISSION_DENIED) error = "denied";
+      else if (err.code === err.POSITION_UNAVAILABLE) error = "unavailable";
+      else if (err.code === err.TIMEOUT) error = "timeout";
     }
-    return null;
+
+    return {
+      position: lastKnownPosition
+        ? { ...lastKnownPosition, approximate: true }
+        : null,
+      error,
+    };
   }
 }
