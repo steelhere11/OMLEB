@@ -106,29 +106,31 @@ export function EquipmentSection({
     // Add to the available equipment list
     setAllEquipment((prev) => [...prev, equipo]);
 
-    // Auto-add to report (skip the dropdown entirely)
-    startAddTransition(async () => {
-      const formData = new FormData();
-      formData.set("equipo_id", equipo.id);
-      formData.set("tipo_trabajo", "preventivo");
-      formData.set("diagnostico", "");
-      formData.set("trabajo_realizado", "");
-      formData.set("observaciones", "");
+    // Optimistically add to report entries immediately
+    const optimisticEntry: ReporteEquipo & { equipos: Equipo & { tipos_equipo?: { slug: string; nombre: string } | null } } = {
+      id: crypto.randomUUID(),
+      reporte_id: reporteId,
+      equipo_id: equipo.id,
+      tipo_trabajo: "preventivo",
+      diagnostico: null,
+      trabajo_realizado: null,
+      observaciones: null,
+      equipos: { ...equipo, tipos_equipo: undefined },
+    };
+    setEntries((prev) => [...prev, optimisticEntry]);
 
-      const result = await saveEquipmentEntry(reporteId, null, null, formData);
+    // Persist to database in the background
+    const formData = new FormData();
+    formData.set("equipo_id", equipo.id);
+    formData.set("tipo_trabajo", "preventivo");
+    formData.set("diagnostico", "");
+    formData.set("trabajo_realizado", "");
+    formData.set("observaciones", "");
 
-      if (result.success) {
-        const optimisticEntry: ReporteEquipo & { equipos: Equipo & { tipos_equipo?: { slug: string; nombre: string } | null } } = {
-          id: crypto.randomUUID(),
-          reporte_id: reporteId,
-          equipo_id: equipo.id,
-          tipo_trabajo: "preventivo",
-          diagnostico: null,
-          trabajo_realizado: null,
-          observaciones: null,
-          equipos: { ...equipo, tipos_equipo: undefined },
-        };
-        setEntries((prev) => [...prev, optimisticEntry]);
+    saveEquipmentEntry(reporteId, null, null, formData).then((result) => {
+      if (!result.success) {
+        // Revert optimistic entry on failure
+        setEntries((prev) => prev.filter((e) => e.id !== optimisticEntry.id));
       }
     });
   };
