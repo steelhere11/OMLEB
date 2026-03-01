@@ -9,21 +9,19 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-Phase: 5.5 of 7 (Step-Centric Evidence Redesign) -- next to execute
-Plan: 0 of 1 in current phase
-Status: Ready to execute
-Last activity: 2026-03-01 -- Phase 5.5 inserted (step-centric evidence redesign)
+Phase: 5.5 of 7 (Step-Centric Evidence Redesign) -- COMPLETE
+Plan: 1 of 1 in current phase
+Status: Phase complete
+Last activity: 2026-03-01 -- Completed 05.5-01-PLAN.md
 
-Progress: [=============░░░░░░░] 67% (14/21 plans complete)
+Progress: [==============░░░░░░] 71% (15/21 plans complete)
 
 ## Performance Metrics
 
-**Velocity (from V1 build):**
-- Total plans completed: 14
-- Average duration: 6 min
-- Total execution time: 1.5 hours
-
-*Metrics preserved from previous milestone for reference.*
+**Velocity (from V1 build + Phase 5.5):**
+- Total plans completed: 15
+- Average duration: ~6 min
+- Total execution time: ~1.7 hours
 
 ## Accumulated Context
 
@@ -31,6 +29,12 @@ Progress: [=============░░░░░░░] 67% (14/21 plans complete)
 
 Decisions are logged in PROJECT.md Key Decisions table.
 Decisions from V1 build carried forward -- see PROJECT.md for full list.
+
+| ID | Decision | Phase |
+|----|----------|-------|
+| stage-dedup-pattern | Deduplicate evidence items by stage; combine descriptions as guidance bullets | 5.5 |
+| orphan-photo-fallback | Photos without reporte_paso_id rendered in fallback section per equipment | 5.5 |
+| pdf-fixed-header | PDF header fixed on all pages for multi-page reports | 5.5 |
 
 ### Pending Todos
 
@@ -46,12 +50,12 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 
 ### Blockers/Concerns
 
-- [V1 Code]: ALL PHASES (2-5) COMPLETE. Phase 1 has 2/3 plans done, Phase 6 pending.
+- [V1 Code]: ALL PHASES (2-5.5) COMPLETE. Phase 1 has 2/3 plans done, Phase 6 pending.
 - [Infrastructure]: Supabase and Vercel projects not yet created.
 - [Phase 7]: Deployment guide will consolidate all pending todos above into a single playbook.
 
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Phase 5.5 inserted and plan saved — ready to execute
-Resume file: .planning/phases/05.5-step-centric-evidence/05.5-01-PLAN.md
+Stopped at: Completed 05.5-01-PLAN.md (Step-Centric Evidence Redesign)
+Resume file: None
