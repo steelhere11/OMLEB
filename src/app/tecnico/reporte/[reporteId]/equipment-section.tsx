@@ -105,8 +105,32 @@ export function EquipmentSection({
   const handleEquipmentCreated = (equipo: Equipo) => {
     // Add to the available equipment list
     setAllEquipment((prev) => [...prev, equipo]);
-    // Automatically select it so they can add it to the report
-    setSelectedEquipoId(equipo.id);
+
+    // Auto-add to report (skip the dropdown entirely)
+    startAddTransition(async () => {
+      const formData = new FormData();
+      formData.set("equipo_id", equipo.id);
+      formData.set("tipo_trabajo", "preventivo");
+      formData.set("diagnostico", "");
+      formData.set("trabajo_realizado", "");
+      formData.set("observaciones", "");
+
+      const result = await saveEquipmentEntry(reporteId, null, null, formData);
+
+      if (result.success) {
+        const optimisticEntry: ReporteEquipo & { equipos: Equipo & { tipos_equipo?: { slug: string; nombre: string } | null } } = {
+          id: crypto.randomUUID(),
+          reporte_id: reporteId,
+          equipo_id: equipo.id,
+          tipo_trabajo: "preventivo",
+          diagnostico: null,
+          trabajo_realizado: null,
+          observaciones: null,
+          equipos: { ...equipo, tipos_equipo: undefined },
+        };
+        setEntries((prev) => [...prev, optimisticEntry]);
+      }
+    });
   };
 
   return (
