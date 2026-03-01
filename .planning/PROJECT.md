@@ -12,30 +12,35 @@ Field technicians can quickly submit complete daily reports (with photos, equipm
 
 ### Validated
 
-(None yet — ship to validate)
+<!-- Code written and functional (Phases 2-5). Ship to production to fully validate. -->
+
+- [x] Admin can create and manage branches (nombre, numero, direccion)
+- [x] Admin can create and manage equipment per branch (etiqueta, marca, modelo, serie, tipo)
+- [x] Admin can create and manage clients (nombre, logo)
+- [x] Admin can create folios assigned to a branch, client, and team of users
+- [x] Admin can create technician/helper accounts
+- [x] Technician can log in from mobile and see assigned folios
+- [x] Technician can fill daily report: select equipment, work type, structured workflows
+- [x] Technician can add new equipment from the field (admin reviews later)
+- [x] Technician can attach photos via in-app camera with visible metadata overlay (location, time, date)
+- [x] Technician can upload photos from gallery
+- [x] Technician can log materials used (cantidad, unidad, descripcion)
+- [x] Technician can set report status: En Progreso / En Espera / Completado
+- [x] Digital signature capture from client's on-site branch manager (required only on Completado)
+- [x] Multiple team members (cuadrilla) contribute to one shared daily report per folio
+- [x] Admin can view all submitted reports
+- [x] Admin can edit/overwrite any field in any report
+- [x] Admin can finalize and approve reports
+- [x] PDF export with company logo + client logo/name, clean professional format
 
 ### Active
 
-- [ ] Admin can create and manage branches (nombre, numero, direccion)
-- [ ] Admin can create and manage equipment per branch (etiqueta, marca, modelo, serie, tipo)
-- [ ] Admin can create and manage clients (nombre, logo)
-- [ ] Admin can create folios assigned to a branch, client, and team of users
-- [ ] Admin can create technician/helper accounts
-- [ ] Technician can log in from mobile and see assigned folios
-- [ ] Technician can fill daily report: select equipment, work type, diagnostico, trabajo realizado, observaciones
-- [ ] Technician can add new equipment from the field (admin reviews later)
-- [ ] Technician can attach photos via in-app camera with visible metadata overlay (location, time, date)
-- [ ] Technician can upload photos from gallery
-- [ ] Technician can log materials used (cantidad, unidad, descripcion)
-- [ ] Technician can set report status: En Progreso / En Espera / Completado
-- [ ] Digital signature capture from client's on-site branch manager (required only on Completado)
-- [ ] Multiple team members (cuadrilla) contribute to one shared daily report per folio
-- [ ] Admin can view all submitted reports
-- [ ] Admin can edit/overwrite any field in any report
-- [ ] Admin can finalize and approve reports
-- [ ] Admin receives in-app + email notifications when reports are submitted
-- [ ] PDF export with company logo + client logo/name, clean professional format
-- [ ] PWA installable on mobile devices
+- [ ] Middleware auth guard working correctly (next build produces working middleware)
+- [ ] PWA installable on mobile devices (manifest + icons)
+- [ ] Service worker caching for fast load on weak signal
+- [ ] Offline fallback page in Spanish
+- [ ] Step-by-step deployment guide for Supabase + Vercel setup
+- [ ] Seed data script for QA testing
 
 ### Out of Scope
 
@@ -75,16 +80,28 @@ Field technicians can quickly submit complete daily reports (with photos, equipm
 - **Photo metadata**: Must burn visible overlay (location, time, date) into photos — replaces external stamping app
 - **Infrastructure**: Vercel and Supabase projects not yet created — must be set up first
 
+## Current Milestone: v1.0 Launch Prep
+
+**Goal:** Get V1 deployed to production and testable on real infrastructure — close remaining code gaps, write deployment playbook, generate seed data for QA.
+
+**Target deliverables:**
+- Phase 6 complete (middleware fix, PWA manifest, service worker, offline fallback, install prompt)
+- Deployment guide (Supabase project, SQL migrations, env vars, Vercel deploy, first admin account)
+- Seed data script (realistic test data for full QA flow)
+
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Multi-assign folios instead of cuadrilla entity | Simpler for V1 with small team; cuadrilla entity adds management overhead | -- Pending |
-| Techs can add equipment from field | Avoids bottleneck of waiting for admin; admin cleans up after | -- Pending |
-| In-app camera with metadata overlay | Replaces external stamping app + WhatsApp workflow entirely | -- Pending |
-| Build order: admin basics -> tech reporting -> admin review + PDF | Admin data needed first, but tech experience is the product | -- Pending |
-| One shared report per cuadrilla per folio per day | Team works together on same job; individual reports would duplicate info | -- Pending |
-| Client entity with name + logo | Supports flexible subcontractor/contractor relationships; shows on PDF | -- Pending |
+| Multi-assign folios instead of cuadrilla entity | Simpler for V1 with small team; cuadrilla entity adds management overhead | ✓ Good |
+| Techs can add equipment from field | Avoids bottleneck of waiting for admin; admin cleans up after | ✓ Good |
+| In-app camera with metadata overlay | Replaces external stamping app + WhatsApp workflow entirely | ✓ Good |
+| Build order: admin basics -> tech reporting -> admin review + PDF | Admin data needed first, but tech experience is the product | ✓ Good |
+| One shared report per cuadrilla per folio per day | Team works together on same job; individual reports would duplicate info | ✓ Good |
+| Client entity with name + logo | Supports flexible subcontractor/contractor relationships; shows on PDF | ✓ Good |
+| Client-side PDF with @react-pdf/renderer | Avoids Vercel serverless memory/timeout limits | ✓ Good |
+| getUserMedia for camera (not file input) | Android 14/15 broke file input capture | ✓ Good |
+| SECURITY DEFINER for RLS role checks | Prevents infinite recursion in cross-table policies | ✓ Good |
 
 ---
-*Last updated: 2026-02-23 after initialization*
+*Last updated: 2026-03-01 after v1.0 Launch Prep milestone start*
