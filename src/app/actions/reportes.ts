@@ -111,27 +111,40 @@ async function preFillFromPreviousReport(
     .limit(1)
     .maybeSingle();
 
-  if (!previousReport) {
-    return;
+  if (previousReport) {
+    // Copy equipment entries from previous report (equipo_id + tipo_trabajo only, text fields start fresh)
+    const { data: previousEntries } = await supabase
+      .from("reporte_equipos")
+      .select("equipo_id, tipo_trabajo")
+      .eq("reporte_id", previousReport.id);
+
+    if (previousEntries && previousEntries.length > 0) {
+      const newEntries = previousEntries.map((entry) => ({
+        reporte_id: newReporteId,
+        equipo_id: entry.equipo_id,
+        tipo_trabajo: entry.tipo_trabajo,
+      }));
+
+      await supabase.from("reporte_equipos").insert(newEntries);
+      return;
+    }
   }
 
-  // Copy equipment entries (equipo_id + tipo_trabajo only, text fields start fresh)
-  const { data: previousEntries } = await supabase
-    .from("reporte_equipos")
-    .select("equipo_id, tipo_trabajo")
-    .eq("reporte_id", previousReport.id);
+  // No previous report (or it had no equipment) — auto-populate from folio_equipos
+  const { data: folioEquipos } = await supabase
+    .from("folio_equipos")
+    .select("equipo_id")
+    .eq("folio_id", folioId);
 
-  if (!previousEntries || previousEntries.length === 0) {
-    return;
+  if (folioEquipos && folioEquipos.length > 0) {
+    const newEntries = folioEquipos.map((fe) => ({
+      reporte_id: newReporteId,
+      equipo_id: fe.equipo_id,
+      tipo_trabajo: "preventivo",
+    }));
+
+    await supabase.from("reporte_equipos").insert(newEntries);
   }
-
-  const newEntries = previousEntries.map((entry) => ({
-    reporte_id: newReporteId,
-    equipo_id: entry.equipo_id,
-    tipo_trabajo: entry.tipo_trabajo,
-  }));
-
-  await supabase.from("reporte_equipos").insert(newEntries);
 }
 
 // ── Save Equipment Entry ────────────────────────────────────────────────

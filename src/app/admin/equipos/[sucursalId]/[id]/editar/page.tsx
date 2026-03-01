@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Equipo } from "@/types";
+import type { Equipo, TipoEquipo } from "@/types";
 import { EditEquipoForm } from "./edit-form";
 
 export default async function EditarEquipoPage({
@@ -11,15 +11,22 @@ export default async function EditarEquipoPage({
   const { sucursalId, id } = await params;
   const supabase = await createClient();
 
-  const { data: equipo } = await supabase
-    .from("equipos")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const [equipoRes, tiposRes] = await Promise.all([
+    supabase.from("equipos").select("*").eq("id", id).single(),
+    supabase
+      .from("tipos_equipo")
+      .select("*")
+      .order("is_system", { ascending: false })
+      .order("nombre", { ascending: true }),
+  ]);
 
-  if (!equipo) notFound();
+  if (!equipoRes.data) notFound();
 
   return (
-    <EditEquipoForm equipo={equipo as Equipo} sucursalId={sucursalId} />
+    <EditEquipoForm
+      equipo={equipoRes.data as Equipo}
+      sucursalId={sucursalId}
+      tiposEquipo={(tiposRes.data as TipoEquipo[] | null) ?? []}
+    />
   );
 }

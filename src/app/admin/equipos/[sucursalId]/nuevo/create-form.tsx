@@ -1,36 +1,39 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { updateEquipo } from "@/app/actions/equipos";
+import { createEquipo } from "@/app/actions/equipos";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import type { TipoEquipo } from "@/types";
 import type { ActionState } from "@/types/actions";
-import type { Equipo, TipoEquipo } from "@/types";
 
-interface EditEquipoFormProps {
-  equipo: Equipo;
+interface CreateEquipoFormProps {
   sucursalId: string;
   tiposEquipo: TipoEquipo[];
 }
 
-export function EditEquipoForm({ equipo, sucursalId, tiposEquipo }: EditEquipoFormProps) {
-  const updateWithId = updateEquipo.bind(null, equipo.id);
+export function CreateEquipoForm({ sucursalId, tiposEquipo }: CreateEquipoFormProps) {
+  const router = useRouter();
   const [state, formAction, isPending] = useActionState<
     ActionState | null,
     FormData
-  >(updateWithId, null);
+  >(createEquipo, null);
 
-  const [selectedTipoId, setSelectedTipoId] = useState(equipo.tipo_equipo_id ?? "");
-  const [customTipoText, setCustomTipoText] = useState(
-    // If current tipo_equipo_id is "otro", pre-fill with the free-text value
-    equipo.tipo_equipo ?? ""
-  );
+  const [selectedTipoId, setSelectedTipoId] = useState("");
+  const [customTipoText, setCustomTipoText] = useState("");
 
   const otroTipo = tiposEquipo.find((t) => t.slug === "otro");
   const isOtroSelected = selectedTipoId === otroTipo?.id;
+
+  useEffect(() => {
+    if (state?.success) {
+      router.push(`/admin/equipos/${sucursalId}`);
+    }
+  }, [state?.success, sucursalId, router]);
 
   return (
     <div className="mx-auto max-w-[480px]">
@@ -57,12 +60,12 @@ export function EditEquipoForm({ equipo, sucursalId, tiposEquipo }: EditEquipoFo
       </Link>
 
       <h1 className="mb-6 text-[22px] font-bold tracking-[-0.025em] text-text-0">
-        Editar Equipo
+        Crear Equipo
       </h1>
 
       <div className="rounded-[10px] border border-admin-border bg-admin-surface p-6">
         <form action={formAction} className="space-y-5">
-          {/* Hidden sucursal_id (for validation, not updated) */}
+          {/* Hidden sucursal_id */}
           <input type="hidden" name="sucursal_id" value={sucursalId} />
           {/* Hidden tipo_equipo_id */}
           <input type="hidden" name="tipo_equipo_id" value={selectedTipoId} />
@@ -91,7 +94,6 @@ export function EditEquipoForm({ equipo, sucursalId, tiposEquipo }: EditEquipoFo
               type="text"
               placeholder='Ej: "Equipo 1", "AC-201"'
               required
-              defaultValue={equipo.numero_etiqueta}
               error={state?.fieldErrors?.numero_etiqueta?.[0]}
               className="mt-1.5 admin-input"
             />
@@ -140,7 +142,6 @@ export function EditEquipoForm({ equipo, sucursalId, tiposEquipo }: EditEquipoFo
               name="marca"
               type="text"
               placeholder="Ej: Carrier, Trane, York"
-              defaultValue={equipo.marca ?? ""}
               error={state?.fieldErrors?.marca?.[0]}
               className="mt-1.5 admin-input"
             />
@@ -155,7 +156,6 @@ export function EditEquipoForm({ equipo, sucursalId, tiposEquipo }: EditEquipoFo
               name="modelo"
               type="text"
               placeholder="Modelo del equipo"
-              defaultValue={equipo.modelo ?? ""}
               error={state?.fieldErrors?.modelo?.[0]}
               className="mt-1.5 admin-input"
             />
@@ -170,21 +170,10 @@ export function EditEquipoForm({ equipo, sucursalId, tiposEquipo }: EditEquipoFo
               name="numero_serie"
               type="text"
               placeholder="Numero de serie del equipo"
-              defaultValue={equipo.numero_serie ?? ""}
               error={state?.fieldErrors?.numero_serie?.[0]}
               className="mt-1.5 admin-input"
             />
           </div>
-
-          {/* Review status info */}
-          {!equipo.revisado && (
-            <div className="rounded-[6px] border border-status-warning/30 bg-admin-surface px-4 py-3">
-              <p className="text-[13px] text-status-warning">
-                Este equipo fue agregado por un tecnico y esta pendiente de
-                revision. Al guardar los cambios se marcara como revisado.
-              </p>
-            </div>
-          )}
 
           {/* Error message */}
           {state?.error && (
@@ -194,7 +183,7 @@ export function EditEquipoForm({ equipo, sucursalId, tiposEquipo }: EditEquipoFo
           )}
 
           <Button type="submit" variant="outline" fullWidth loading={isPending}>
-            Guardar Cambios
+            Crear Equipo
           </Button>
         </form>
       </div>

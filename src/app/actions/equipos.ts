@@ -59,6 +59,12 @@ export async function createEquipo(
     insertData.tipo_equipo = result.data.tipo_equipo;
   }
 
+  // Handle tipo_equipo_id from dropdown
+  const tipoEquipoId = formData.get("tipo_equipo_id") as string;
+  if (tipoEquipoId && tipoEquipoId !== "") {
+    insertData.tipo_equipo_id = tipoEquipoId;
+  }
+
   // 4. Insert into database
   const { data: equipo, error: dbError } = await supabase
     .from("equipos")
@@ -125,6 +131,10 @@ export async function updateEquipo(
         : (result.data.tipo_equipo ?? null),
     revisado: true, // Admin has reviewed it
   };
+
+  // Handle tipo_equipo_id from dropdown
+  const tipoEquipoId = formData.get("tipo_equipo_id") as string;
+  updateData.tipo_equipo_id = tipoEquipoId && tipoEquipoId !== "" ? tipoEquipoId : null;
 
   const { error: dbError } = await supabase
     .from("equipos")
