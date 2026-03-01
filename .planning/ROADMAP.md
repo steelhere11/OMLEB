@@ -18,6 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3.5: Guided Maintenance Workflows** - INSERTED - Structured step-by-step preventive workflows and corrective issue picker replacing free-text reporting
 - [x] **Phase 4: Photo Capture & Signatures** - Camera with GPS overlay, gallery upload, photo labels, digital signature
 - [x] **Phase 5: Admin Review & PDF Export** - Report list, edit/approve workflow, branded PDF generation
+- [ ] **Phase 6: Foundation Completion & PWA** - Middleware fix, PWA manifest, service worker, offline fallback, install prompt, tech debt cleanup
 
 ## Phase Details
 
@@ -122,10 +123,27 @@ Plans:
 - [x] 05-02-PLAN.md — Admin inline edit for equipment entries and materials, report approval action with finalizado_por_admin
 - [x] 05-03-PLAN.md — @react-pdf/renderer PDF generation: Inter fonts, photo pre-fetch as base64, professional document layout, export button
 
+### Phase 6: Foundation Completion & PWA
+**Goal**: Close all remaining v1 gaps — fix middleware auth guard, add PWA installability, service worker caching, and offline fallback
+**Depends on**: Phase 5 (all feature code exists; this phase adds infrastructure)
+**Requirements**: AUTH-04, PWA-01, PWA-02, PWA-03
+**Gap Closure**: Closes all gaps from v1-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. `src/middleware.ts` exists and re-exports proxy as default — `next build` produces working middleware with auth guards
+  2. The app can be installed to a phone's home screen via "Add to Home Screen" (manifest + icons)
+  3. The app shows a Spanish offline fallback page when network is unavailable
+  4. The app loads quickly on weak signal thanks to service worker precaching
+  5. An install prompt banner appears when the browser detects installability
+  6. The `exifr` unused dependency is removed from package.json
+**Plans:** 1 plan
+
+Plans:
+- [ ] 06-01-PLAN.md — Middleware fix, Serwist PWA setup (manifest, service worker, offline fallback, icons, install prompt), cleanup
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -135,6 +153,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5
 | 3.5. Guided Maintenance Workflows | 1/1 | Complete | 2026-02-27 |
 | 4. Photo Capture & Signatures | 3/3 | Complete | 2026-02-28 |
 | 5. Admin Review & PDF Export | 3/3 | Complete | 2026-02-28 |
+| 6. Foundation Completion & PWA | 0/1 | Pending | - |
 
 ---
 *Roadmap created: 2026-02-23*
