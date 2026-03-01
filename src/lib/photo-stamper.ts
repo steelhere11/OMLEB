@@ -1,5 +1,5 @@
-// Canvas overlay rendering for GPS/date/time badge
-// Renders a compact semi-transparent badge in the bottom-right corner of the canvas
+// Canvas overlay rendering for GPS/date/time stamp
+// Renders bold yellow right-aligned text in the bottom-right corner with dark outline
 
 export interface OverlayData {
   lat: number | null;
@@ -9,9 +9,9 @@ export interface OverlayData {
 }
 
 /**
- * Draw a compact overlay badge on a canvas context.
- * Two lines: date+time and GPS coordinates.
- * Positioned in the bottom-right corner with a semi-transparent background.
+ * Draw a visible date/time + GPS overlay directly on a canvas.
+ * Style: bold yellow text, right-aligned, bottom-right corner, dark outline for contrast.
+ * Matches the style of GPS-stamping apps (e.g., GPS Map Camera).
  */
 export function drawOverlayBadge(
   ctx: CanvasRenderingContext2D,
@@ -19,55 +19,59 @@ export function drawOverlayBadge(
   canvasWidth: number,
   canvasHeight: number
 ) {
-  const fontSize = Math.max(24, Math.round(canvasWidth * 0.022));
-  const lineHeight = Math.round(fontSize * 1.3);
-  const padding = Math.round(fontSize * 0.85);
+  // Scale font to ~3.5% of canvas width (large and readable)
+  const fontSize = Math.max(28, Math.round(canvasWidth * 0.035));
+  const lineHeight = Math.round(fontSize * 1.25);
+  const margin = Math.round(fontSize * 0.6);
+  const strokeWidth = Math.max(2, Math.round(fontSize * 0.12));
 
-  // Format timestamp in es-MX locale
+  // Format date: "26 feb 2026"
   const dateStr = data.timestamp.toLocaleDateString("es-MX", {
     day: "2-digit",
-    month: "2-digit",
+    month: "short",
     year: "numeric",
   });
+
+  // Format time: "1:25:12 p.m."
   const timeStr = data.timestamp.toLocaleTimeString("es-MX", {
-    hour: "2-digit",
+    hour: "numeric",
     minute: "2-digit",
     second: "2-digit",
   });
 
   // Format GPS coordinates
-  let gpsStr = "GPS no disponible";
+  const lines: string[] = [`${dateStr} ${timeStr}`];
+
   if (data.lat !== null && data.lng !== null) {
-    gpsStr = `${data.lat.toFixed(6)}, ${data.lng.toFixed(6)}`;
+    let gpsStr = `${data.lat.toFixed(6)}, ${data.lng.toFixed(6)}`;
     if (data.approximate) gpsStr += " ~";
+    lines.push(gpsStr);
   }
 
-  const lines = [`${dateStr} ${timeStr}`, gpsStr];
-
-  // Measure text for badge background
-  ctx.font = `bold ${fontSize}px monospace`;
-  const maxWidth = Math.max(...lines.map((l) => ctx.measureText(l).width));
-  const badgeWidth = maxWidth + padding * 2;
-  const badgeHeight = lines.length * lineHeight + padding * 2;
-
-  // Position: bottom-right corner with proportional offset
-  const offset = Math.round(fontSize * 0.7);
-  const x = canvasWidth - badgeWidth - offset;
-  const y = canvasHeight - badgeHeight - offset;
-
-  // Semi-transparent black background with rounded corners
+  // Configure text style
   ctx.save();
-  ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-  ctx.beginPath();
-  ctx.roundRect(x, y, badgeWidth, badgeHeight, Math.round(fontSize * 0.4));
-  ctx.fill();
+  ctx.font = `bold ${fontSize}px sans-serif`;
+  ctx.textAlign = "right";
+  ctx.textBaseline = "bottom";
 
-  // White monospace text
-  ctx.fillStyle = "#ffffff";
-  ctx.font = `bold ${fontSize}px monospace`;
-  ctx.textBaseline = "top";
-  lines.forEach((line, i) => {
-    ctx.fillText(line, x + padding, y + padding + i * lineHeight);
-  });
+  // Position: bottom-right
+  const x = canvasWidth - margin;
+  let y = canvasHeight - margin;
+
+  // Draw lines bottom-to-top (last line at the bottom)
+  for (let i = lines.length - 1; i >= 0; i--) {
+    // Dark outline for contrast against any background
+    ctx.strokeStyle = "rgba(0, 0, 0, 0.85)";
+    ctx.lineWidth = strokeWidth;
+    ctx.lineJoin = "round";
+    ctx.strokeText(lines[i], x, y);
+
+    // Yellow fill
+    ctx.fillStyle = "#FFD600";
+    ctx.fillText(lines[i], x, y);
+
+    y -= lineHeight;
+  }
+
   ctx.restore();
 }
