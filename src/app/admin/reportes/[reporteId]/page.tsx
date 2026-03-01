@@ -22,7 +22,7 @@ export default async function ReporteDetailPage({
       reporte_equipos(
         *,
         equipos(numero_etiqueta, marca, modelo, numero_serie, tipo_equipo),
-        reporte_pasos(*, plantillas_pasos(nombre, procedimiento), fallas_correctivas(nombre, diagnostico))
+        reporte_pasos(*, plantillas_pasos(nombre, procedimiento, lecturas_requeridas), fallas_correctivas(nombre, diagnostico))
       ),
       reporte_fotos(*),
       reporte_materiales(*)

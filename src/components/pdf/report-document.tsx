@@ -9,8 +9,24 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import "./pdf-fonts"; // Side-effect: registers Inter font family
+import type { PhotoBase64 } from "./pdf-utils";
 
 // ---------- Data types ----------
+
+export interface PdfStepData {
+  id: string;
+  nombre: string;
+  completado: boolean;
+  notas: string | null;
+  lecturas: Record<string, number | string> | null;
+  lecturas_meta: Array<{
+    nombre: string;
+    unidad: string;
+    rango_min: number | null;
+    rango_max: number | null;
+  }> | null;
+  photosBase64: PhotoBase64[];
+}
 
 export interface PdfReportData {
   folio: { numero_folio: string; descripcion_problema: string };
@@ -30,18 +46,10 @@ export interface PdfReportData {
     diagnostico: string | null;
     trabajo_realizado: string | null;
     observaciones: string | null;
-    steps: Array<{
-      nombre: string;
-      completado: boolean;
-      notas: string | null;
-      lecturas: Record<string, number | string> | null;
-    }>;
-    photosBase64: Array<{
-      data: string;
-      etiqueta: string;
-      gps: string | null;
-      fecha: string | null;
-    }>;
+    steps: PdfStepData[];
+    orphanPhotosBase64: PhotoBase64[];
+    /** @deprecated kept for backward compat — use step photos + orphan */
+    photosBase64: PhotoBase64[];
   }>;
   materials: Array<{ cantidad: number; unidad: string; descripcion: string }>;
   firmaBase64: string | null;

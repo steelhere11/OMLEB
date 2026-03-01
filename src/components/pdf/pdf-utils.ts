@@ -33,6 +33,7 @@ interface PhotoInput {
   etiqueta: string | null;
   metadata_gps: string | null;
   metadata_fecha: string | null;
+  reporte_paso_id?: string | null;
 }
 
 export interface PhotoBase64 {
@@ -40,6 +41,7 @@ export interface PhotoBase64 {
   etiqueta: string;
   gps: string | null;
   fecha: string | null;
+  reportePasoId: string | null;
 }
 
 /**
@@ -58,6 +60,7 @@ export async function fetchAllPhotosAsBase64(
         etiqueta: photo.etiqueta ?? "",
         gps: photo.metadata_gps,
         fecha: photo.metadata_fecha,
+        reportePasoId: photo.reporte_paso_id ?? null,
       };
     })
   );

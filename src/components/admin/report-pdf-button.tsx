@@ -9,6 +9,7 @@ import {
   fetchAllPhotosAsBase64,
   downloadBlob,
 } from "@/components/pdf/pdf-utils";
+import type { PhotoBase64 } from "@/components/pdf/pdf-utils";
 
 // ---------- Props ----------
 
@@ -44,16 +45,24 @@ interface ReportPdfButtonProps {
     trabajo_realizado: string | null;
     observaciones: string | null;
     steps: Array<{
+      id: string;
       nombre: string;
       completado: boolean;
       notas: string | null;
       lecturas: Record<string, number | string> | null;
+      lecturas_meta: Array<{
+        nombre: string;
+        unidad: string;
+        rango_min: number | null;
+        rango_max: number | null;
+      }> | null;
     }>;
     photos: Array<{
       url: string;
       etiqueta: string | null;
       metadata_gps: string | null;
       metadata_fecha: string | null;
+      reporte_paso_id?: string | null;
     }>;
   }>;
   materials: Array<{ cantidad: number; unidad: string; descripcion: string }>;
@@ -91,7 +100,7 @@ export default function ReportPdfButton({
         equipmentEntries.map((entry) => fetchAllPhotosAsBase64(entry.photos))
       );
 
-      // 4. Transform data into PdfReportData shape
+      // 4. Transform data into PdfReportData shape — distribute photos into steps
       const pdfData: PdfReportData = {
         folio,
         sucursal,
@@ -103,15 +112,37 @@ export default function ReportPdfButton({
         fecha: reporte.fecha,
         estatus: reporte.estatus,
         teamMembers,
-        equipmentEntries: equipmentEntries.map((entry, idx) => ({
-          equipo: entry.equipo,
-          tipo_trabajo: entry.tipo_trabajo,
-          diagnostico: entry.diagnostico,
-          trabajo_realizado: entry.trabajo_realizado,
-          observaciones: entry.observaciones,
-          steps: entry.steps,
-          photosBase64: photosPerEntry[idx],
-        })),
+        equipmentEntries: equipmentEntries.map((entry, idx) => {
+          const allPhotos = photosPerEntry[idx];
+
+          // Distribute photos into per-step maps
+          const stepPhotosMap = new Map<string, PhotoBase64[]>();
+          const orphanPhotos: PhotoBase64[] = [];
+
+          for (const photo of allPhotos) {
+            if (photo.reportePasoId) {
+              const arr = stepPhotosMap.get(photo.reportePasoId) ?? [];
+              arr.push(photo);
+              stepPhotosMap.set(photo.reportePasoId, arr);
+            } else {
+              orphanPhotos.push(photo);
+            }
+          }
+
+          return {
+            equipo: entry.equipo,
+            tipo_trabajo: entry.tipo_trabajo,
+            diagnostico: entry.diagnostico,
+            trabajo_realizado: entry.trabajo_realizado,
+            observaciones: entry.observaciones,
+            steps: entry.steps.map((step) => ({
+              ...step,
+              photosBase64: stepPhotosMap.get(step.id) ?? [],
+            })),
+            orphanPhotosBase64: orphanPhotos,
+            photosBase64: allPhotos, // backward compat
+          };
+        }),
         materials,
         firmaBase64: reporte.firma_encargado,
         nombreEncargado: reporte.nombre_encargado,

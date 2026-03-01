@@ -47,7 +47,16 @@ interface ReportePasoData {
   notas: string | null;
   lecturas: Record<string, number | string>;
   completed_at: string | null;
-  plantillas_pasos: { nombre: string; procedimiento: string } | null;
+  plantillas_pasos: {
+    nombre: string;
+    procedimiento: string;
+    lecturas_requeridas: Array<{
+      nombre: string;
+      unidad: string;
+      rango_min: number | null;
+      rango_max: number | null;
+    }> | null;
+  } | null;
   fallas_correctivas: { nombre: string; diagnostico: string } | null;
 }
 
@@ -421,6 +430,7 @@ export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
               trabajo_realizado: entry.trabajo_realizado,
               observaciones: entry.observaciones,
               steps: entry.reporte_pasos.map((paso) => ({
+                id: paso.id,
                 nombre:
                   paso.plantillas_pasos?.nombre ??
                   paso.fallas_correctivas?.nombre ??
@@ -428,6 +438,8 @@ export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
                 completado: paso.completado,
                 notas: paso.notas,
                 lecturas: paso.lecturas ?? null,
+                lecturas_meta:
+                  paso.plantillas_pasos?.lecturas_requeridas ?? null,
               })),
               photos: (photosByEquipo.get(entry.equipo_id) ?? []).map(
                 (foto) => ({
@@ -435,6 +447,7 @@ export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
                   etiqueta: foto.etiqueta,
                   metadata_gps: foto.metadata_gps,
                   metadata_fecha: foto.metadata_fecha,
+                  reporte_paso_id: foto.reporte_paso_id,
                 })
               ),
             }))}
