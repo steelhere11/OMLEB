@@ -12,7 +12,7 @@ import { compressAndUpload } from "@/lib/photo-uploader";
 import { CorrectiveIssuePicker } from "./corrective-issue-picker";
 import { PhotoSourcePicker } from "@/components/shared/photo-source-picker";
 import { CameraCapture } from "@/components/shared/camera-capture";
-import { PhotoGalleryRow } from "@/components/shared/photo-gallery-row";
+import { EvidenceStageSection } from "@/components/shared/evidence-stage-section";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -25,13 +25,6 @@ interface WorkflowCorrectiveProps {
   reporteId: string;
   equipoId: string;
 }
-
-const etapaColors: Record<string, { bg: string; text: string; label: string }> =
-  {
-    antes: { bg: "bg-blue-50", text: "text-blue-600", label: "ANTES" },
-    durante: { bg: "bg-amber-50", text: "text-amber-600", label: "DURANTE" },
-    despues: { bg: "bg-green-50", text: "text-green-600", label: "DESPUES" },
-  };
 
 export function WorkflowCorrective({
   reporteEquipoId,
@@ -237,11 +230,6 @@ export function WorkflowCorrective({
     []
   );
 
-  const getPhotoCountForIssue = (issueId: string, etapa: string) =>
-    (photosByIssue[issueId] ?? []).filter(
-      (p) => p.etiqueta === etapa.toLowerCase()
-    ).length;
-
   // Loading skeleton
   if (loading) {
     return (
@@ -332,71 +320,21 @@ export function WorkflowCorrective({
                   </p>
                 </div>
 
-                {/* Evidence photo buttons */}
+                {/* Evidence stage sections */}
                 {issue.evidencia_requerida.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-gray-500">
-                      Evidencia fotografica
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {issue.evidencia_requerida.map((ev, i) => {
-                        const colors =
-                          etapaColors[ev.etapa] ?? etapaColors.antes;
-                        const count = getPhotoCountForIssue(
-                          issue.id,
-                          ev.etapa
-                        );
-                        return (
-                          <button
-                            key={i}
-                            type="button"
-                            onClick={() =>
-                              handleLabelClick(issue.id, ev.etapa)
-                            }
-                            disabled={isCompleted}
-                            className={`flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium ${colors.bg} ${colors.text} border-current transition-colors active:opacity-80 disabled:opacity-50`}
-                            title={ev.descripcion}
-                          >
-                            <svg
-                              className="h-4 w-4"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={2}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-                              />
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-                              />
-                            </svg>
-                            {colors.label}
-                            {count > 0 && ` (${count})`}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    {isUploading && activeIssueId === issue.id && (
-                      <p className="text-xs text-brand-600 font-medium">
-                        Subiendo fotos...
-                      </p>
-                    )}
-                    {/* Photo gallery for this issue */}
-                    <PhotoGalleryRow
-                      photos={issuePhotos}
-                      onDelete={
-                        !isCompleted
-                          ? (fotoId) => handleDeletePhoto(issue.id, fotoId)
-                          : undefined
-                      }
-                      disabled={isCompleted}
-                    />
-                  </div>
+                  <EvidenceStageSection
+                    evidencia={issue.evidencia_requerida}
+                    photos={issuePhotos}
+                    onTakePhoto={(stage) => handleLabelClick(issue.id, stage)}
+                    onDeletePhoto={
+                      !isCompleted
+                        ? (fotoId) => handleDeletePhoto(issue.id, fotoId)
+                        : undefined
+                    }
+                    isUploading={isUploading && activeIssueId === issue.id}
+                    activeStage={activeIssueId === issue.id ? activeLabel : null}
+                    disabled={isCompleted}
+                  />
                 )}
 
                 {/* Typical materials */}
