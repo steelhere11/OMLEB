@@ -56,79 +56,91 @@ export interface PdfReportData {
   nombreEncargado: string | null;
 }
 
-// ---------- Styles ----------
+// ---------- Colors ----------
 
 const BLUE = "#2563eb";
+const GREEN = "#059669";
+const RED = "#dc2626";
+const AMBER = "#d97706";
+const GRAY_50 = "#f9fafb";
 const GRAY_100 = "#f3f4f6";
+const GRAY_200 = "#e5e7eb";
 const GRAY_300 = "#d1d5db";
 const GRAY_500 = "#6b7280";
 const GRAY_700 = "#374151";
 const GRAY_900 = "#111827";
 
-const styles = StyleSheet.create({
+// ---------- Styles ----------
+
+const s = StyleSheet.create({
   page: {
     fontFamily: "Inter",
-    fontSize: 10,
+    fontSize: 9,
     padding: 40,
+    paddingBottom: 50,
     color: GRAY_900,
   },
   // Header
   header: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
-    paddingBottom: 12,
+    marginBottom: 16,
+    paddingBottom: 10,
     borderBottomWidth: 2,
     borderBottomColor: BLUE,
   },
-  headerLogoContainer: {
-    width: 70,
-    height: 50,
+  headerLogoBox: {
+    width: 65,
+    height: 45,
     justifyContent: "center",
     alignItems: "center",
   },
   headerLogo: {
-    maxWidth: 70,
-    maxHeight: 50,
+    maxWidth: 65,
+    maxHeight: 45,
     objectFit: "contain" as const,
   },
   headerCenter: {
     flex: 1,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 700,
     color: GRAY_900,
   },
   headerFolio: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 500,
     color: BLUE,
     marginTop: 2,
   },
   // Info grid
   infoGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginBottom: 16,
+    marginBottom: 12,
     border: `1px solid ${GRAY_300}`,
     borderRadius: 4,
   },
+  infoRow: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: GRAY_200,
+  },
   infoCell: {
     width: "50%",
-    padding: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: GRAY_300,
+    padding: 7,
   },
   infoCellFull: {
     width: "100%",
-    padding: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: GRAY_300,
+    padding: 7,
+  },
+  infoCellProblem: {
+    width: "100%",
+    padding: 7,
+    backgroundColor: "#fffbeb",
   },
   infoLabel: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: 700,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
@@ -136,41 +148,84 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   infoValue: {
-    fontSize: 10,
+    fontSize: 9,
     color: GRAY_900,
   },
-  // Section titles
-  sectionTitle: {
+  // Status badges
+  badgeEstatus: {
+    fontSize: 9,
+    fontWeight: 700,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    alignSelf: "flex-start" as const,
+  },
+  badgeEnProgreso: { backgroundColor: "#dbeafe", color: "#1d4ed8" },
+  badgeEnEspera: { backgroundColor: "#fef3c7", color: "#92400e" },
+  badgeCompletado: { backgroundColor: "#d1fae5", color: "#065f46" },
+  // Summary bar
+  summaryBar: {
+    flexDirection: "row",
+    backgroundColor: GRAY_50,
+    border: `1px solid ${GRAY_200}`,
+    borderRadius: 4,
+    marginBottom: 16,
+    padding: 8,
+  },
+  summaryItem: {
+    flex: 1,
+    alignItems: "center" as const,
+  },
+  summaryValue: {
     fontSize: 12,
     fontWeight: 700,
     color: GRAY_900,
+  },
+  summaryLabel: {
+    fontSize: 7,
+    color: GRAY_500,
+    marginTop: 1,
+  },
+  summaryDivider: {
+    width: 1,
+    backgroundColor: GRAY_200,
+    marginHorizontal: 4,
+  },
+  // Section title
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: GRAY_900,
     marginBottom: 8,
-    marginTop: 16,
-    paddingBottom: 4,
+    marginTop: 14,
+    paddingBottom: 3,
     borderBottomWidth: 1,
     borderBottomColor: BLUE,
   },
-  // Equipment card
-  equipmentCard: {
+  // Equipment header card
+  equipCard: {
     border: `1px solid ${GRAY_300}`,
     borderRadius: 4,
-    padding: 10,
-    marginBottom: 10,
+    marginBottom: 8,
+    overflow: "hidden" as const,
   },
-  equipmentHeader: {
+  equipHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 6,
+    backgroundColor: GRAY_50,
+    padding: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: GRAY_200,
   },
-  equipmentName: {
-    fontSize: 11,
+  equipName: {
+    fontSize: 10,
     fontWeight: 700,
     color: GRAY_900,
     flex: 1,
   },
   badge: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: 700,
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -178,103 +233,171 @@ const styles = StyleSheet.create({
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
   },
-  badgePreventivo: {
-    backgroundColor: "#dbeafe",
-    color: "#1d4ed8",
-  },
-  badgeCorrectivo: {
-    backgroundColor: "#ffedd5",
-    color: "#c2410c",
-  },
-  badgeEstatus: {
-    fontSize: 9,
-    fontWeight: 500,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-  },
-  badgeEnProgreso: {
-    backgroundColor: "#dbeafe",
-    color: "#1d4ed8",
-  },
-  badgeEnEspera: {
-    backgroundColor: "#fef3c7",
-    color: "#92400e",
-  },
-  badgeCompletado: {
-    backgroundColor: "#d1fae5",
-    color: "#065f46",
-  },
-  // Text blocks
-  fieldLabel: {
+  badgePreventivo: { backgroundColor: "#dbeafe", color: "#1d4ed8" },
+  badgeCorrectivo: { backgroundColor: "#ffedd5", color: "#c2410c" },
+  equipProgress: {
     fontSize: 8,
+    color: GRAY_500,
+    padding: 6,
+    paddingTop: 4,
+  },
+  // Free-text fields
+  fieldLabel: {
+    fontSize: 7,
     fontWeight: 700,
     textTransform: "uppercase" as const,
     letterSpacing: 0.5,
     color: GRAY_500,
     marginBottom: 2,
-    marginTop: 6,
+    marginTop: 4,
+    paddingHorizontal: 8,
   },
   fieldValue: {
-    fontSize: 10,
+    fontSize: 9,
     color: GRAY_700,
     lineHeight: 1.4,
+    paddingHorizontal: 8,
+    marginBottom: 4,
   },
-  // Steps
-  stepRow: {
+  // Step block
+  stepBlock: {
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: GRAY_100,
+  },
+  stepHeaderRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 3,
-    paddingLeft: 4,
   },
-  stepCheck: {
-    fontSize: 10,
-    width: 14,
+  stepCheckIcon: {
+    fontSize: 9,
+    width: 12,
     marginRight: 4,
     marginTop: 1,
   },
-  stepName: {
+  stepNameText: {
     fontSize: 9,
     fontWeight: 500,
     color: GRAY_900,
     flex: 1,
   },
-  stepDetail: {
-    fontSize: 8,
+  stepIncompleteName: {
+    fontSize: 9,
+    fontWeight: 400,
     color: GRAY_500,
-    marginLeft: 18,
-    marginBottom: 2,
+    flex: 1,
   },
-  // Photo grid
+  stepNote: {
+    fontSize: 8,
+    color: GRAY_700,
+    marginLeft: 16,
+    marginTop: 2,
+    fontStyle: "italic" as const,
+  },
+  // Readings table
+  readingsTable: {
+    marginLeft: 16,
+    marginTop: 4,
+    marginBottom: 2,
+    border: `1px solid ${GRAY_200}`,
+    borderRadius: 2,
+  },
+  readingsHeaderRow: {
+    flexDirection: "row",
+    backgroundColor: GRAY_100,
+    borderBottomWidth: 1,
+    borderBottomColor: GRAY_200,
+  },
+  readingsDataRow: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: GRAY_50,
+  },
+  readingsDataRowOdd: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: GRAY_50,
+    backgroundColor: GRAY_50,
+  },
+  rCellParam: { width: "35%", padding: 3 },
+  rCellValue: { width: "25%", padding: 3 },
+  rCellRange: { width: "25%", padding: 3 },
+  rCellStatus: { width: "15%", padding: 3, alignItems: "center" as const },
+  rHeaderText: {
+    fontSize: 7,
+    fontWeight: 700,
+    textTransform: "uppercase" as const,
+    letterSpacing: 0.3,
+    color: GRAY_500,
+  },
+  rCellText: { fontSize: 8, color: GRAY_700 },
+  rCellValueText: { fontSize: 8, fontWeight: 500, color: GRAY_900 },
+  statusOk: { fontSize: 8, color: GREEN },
+  statusWarn: { fontSize: 8, color: RED, fontWeight: 700 },
+  statusNa: { fontSize: 8, color: GRAY_300 },
+  // Step photo grid
+  stageLabel: {
+    fontSize: 7,
+    fontWeight: 700,
+    textTransform: "uppercase" as const,
+    letterSpacing: 0.4,
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 2,
+    marginLeft: 16,
+    marginTop: 4,
+    marginBottom: 2,
+    alignSelf: "flex-start" as const,
+  },
+  stageLabelAntes: { backgroundColor: "#dbeafe", color: "#1d4ed8" },
+  stageLabelDurante: { backgroundColor: "#fef3c7", color: "#92400e" },
+  stageLabelDespues: { backgroundColor: "#d1fae5", color: "#065f46" },
   photoGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
-    marginTop: 8,
+    gap: 6,
+    marginLeft: 16,
+    marginBottom: 4,
   },
-  photoContainer: {
-    width: "48%",
-    marginBottom: 6,
+  photoBox: {
+    width: "47%",
+    marginBottom: 4,
   },
-  photoImage: {
-    height: 150,
+  photoImg: {
+    height: 120,
     objectFit: "cover" as const,
-    borderRadius: 3,
-    border: `1px solid ${GRAY_300}`,
+    borderRadius: 2,
+    border: `1px solid ${GRAY_200}`,
   },
-  photoLabel: {
-    fontSize: 7,
-    fontWeight: 500,
+  photoCaption: {
+    fontSize: 6,
+    color: GRAY_500,
+    marginTop: 1,
+  },
+  // Orphan photos
+  orphanSection: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  orphanTitle: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: GRAY_500,
     textTransform: "uppercase" as const,
     letterSpacing: 0.4,
+    marginBottom: 4,
+  },
+  // Empty equipment
+  emptyText: {
+    fontSize: 8,
     color: GRAY_500,
-    marginTop: 2,
+    fontStyle: "italic" as const,
+    padding: 8,
   },
   // Materials table
-  materialsTable: {
-    marginTop: 4,
-  },
-  materialsHeaderRow: {
+  matTable: { marginTop: 4 },
+  matHeaderRow: {
     flexDirection: "row",
     backgroundColor: GRAY_100,
     borderTopLeftRadius: 3,
@@ -282,78 +405,63 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: GRAY_300,
   },
-  materialsDataRow: {
+  matDataRow: {
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: GRAY_100,
   },
-  materialsCellCant: {
-    width: "15%",
-    padding: 6,
+  matDataRowOdd: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: GRAY_100,
+    backgroundColor: GRAY_50,
   },
-  materialsCellUnit: {
-    width: "20%",
-    padding: 6,
-  },
-  materialsCellDesc: {
-    width: "65%",
-    padding: 6,
-  },
-  materialsHeaderText: {
-    fontSize: 8,
+  matCellCant: { width: "15%", padding: 5 },
+  matCellUnit: { width: "20%", padding: 5 },
+  matCellDesc: { width: "65%", padding: 5 },
+  matHeaderText: {
+    fontSize: 7,
     fontWeight: 700,
     textTransform: "uppercase" as const,
     letterSpacing: 0.4,
     color: GRAY_500,
   },
-  materialsCellText: {
-    fontSize: 9,
-    color: GRAY_700,
-  },
+  matCellText: { fontSize: 8, color: GRAY_700 },
   // Signature
-  signatureSection: {
-    alignItems: "center",
-    marginTop: 20,
-    paddingTop: 12,
+  sigSection: {
+    alignItems: "center" as const,
+    marginTop: 16,
+    paddingTop: 10,
   },
-  signatureImage: {
-    width: 200,
-    height: 80,
+  sigImage: {
+    width: 180,
+    height: 70,
     objectFit: "contain" as const,
     marginBottom: 4,
   },
-  signatureLine: {
-    width: 200,
+  sigLine: {
+    width: 180,
     borderBottomWidth: 1,
     borderBottomColor: GRAY_900,
-    marginBottom: 4,
+    marginBottom: 3,
   },
-  signatureName: {
-    fontSize: 10,
-    fontWeight: 500,
-    color: GRAY_900,
-  },
-  signatureLabel: {
-    fontSize: 8,
-    color: GRAY_500,
-    marginTop: 1,
-  },
+  sigName: { fontSize: 9, fontWeight: 500, color: GRAY_900 },
+  sigLabel: { fontSize: 7, color: GRAY_500, marginTop: 1 },
   // Footer
   footer: {
     position: "absolute" as const,
-    bottom: 20,
+    bottom: 18,
     left: 40,
     right: 40,
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: GRAY_300,
-    paddingTop: 6,
+    borderTopColor: GRAY_200,
+    paddingTop: 5,
   },
-  footerText: {
-    fontSize: 7,
-    color: GRAY_500,
-  },
+  footerText: { fontSize: 6, color: GRAY_500 },
+  footerPage: { fontSize: 6, color: GRAY_500 },
 });
 
 // ---------- Status helpers ----------
@@ -367,11 +475,11 @@ const statusLabels: Record<string, string> = {
 function getStatusBadgeStyle(estatus: string) {
   switch (estatus) {
     case "completado":
-      return styles.badgeCompletado;
+      return s.badgeCompletado;
     case "en_espera":
-      return styles.badgeEnEspera;
+      return s.badgeEnEspera;
     default:
-      return styles.badgeEnProgreso;
+      return s.badgeEnProgreso;
   }
 }
 
@@ -381,7 +489,287 @@ const rolLabels: Record<string, string> = {
   ayudante: "Ayudante",
 };
 
-// ---------- Component ----------
+const stageLabelStyles = {
+  antes: s.stageLabelAntes,
+  durante: s.stageLabelDurante,
+  despues: s.stageLabelDespues,
+} as Record<string, typeof s.stageLabelAntes>;
+
+const stageLabels: Record<string, string> = {
+  antes: "ANTES",
+  durante: "DURANTE",
+  despues: "DESPUES",
+};
+
+// ---------- Helper: Readings Table ----------
+
+function ReadingsTable({
+  lecturas,
+  meta,
+}: {
+  lecturas: Record<string, number | string>;
+  meta: Array<{
+    nombre: string;
+    unidad: string;
+    rango_min: number | null;
+    rango_max: number | null;
+  }> | null;
+}) {
+  const entries = Object.entries(lecturas);
+  if (entries.length === 0) return null;
+
+  // Build meta lookup
+  const metaMap = new Map<string, (typeof meta extends Array<infer T> | null ? T : never)>();
+  if (meta) {
+    for (const m of meta) {
+      metaMap.set(m.nombre, m);
+    }
+  }
+
+  return (
+    <View style={s.readingsTable}>
+      <View style={s.readingsHeaderRow}>
+        <View style={s.rCellParam}>
+          <Text style={s.rHeaderText}>Parametro</Text>
+        </View>
+        <View style={s.rCellValue}>
+          <Text style={s.rHeaderText}>Valor</Text>
+        </View>
+        <View style={s.rCellRange}>
+          <Text style={s.rHeaderText}>Rango</Text>
+        </View>
+        <View style={s.rCellStatus}>
+          <Text style={s.rHeaderText}>Estado</Text>
+        </View>
+      </View>
+      {entries.map(([key, value], i) => {
+        const m = metaMap.get(key);
+        const hasRange = m && m.rango_min != null && m.rango_max != null;
+        const numVal = typeof value === "number" ? value : parseFloat(String(value));
+        const isOutOfRange =
+          hasRange && !isNaN(numVal)
+            ? numVal < m.rango_min! || numVal > m.rango_max!
+            : false;
+        const rangeStr = hasRange
+          ? `${m.rango_min}–${m.rango_max} ${m.unidad}`
+          : m?.unidad === "texto" || m?.unidad === "Si/No"
+            ? ""
+            : "";
+
+        return (
+          <View
+            key={key}
+            style={i % 2 === 1 ? s.readingsDataRowOdd : s.readingsDataRow}
+          >
+            <View style={s.rCellParam}>
+              <Text style={s.rCellText}>{key}</Text>
+            </View>
+            <View style={s.rCellValue}>
+              <Text style={s.rCellValueText}>{String(value)}</Text>
+            </View>
+            <View style={s.rCellRange}>
+              <Text style={s.rCellText}>{rangeStr || "\u2014"}</Text>
+            </View>
+            <View style={s.rCellStatus}>
+              {hasRange ? (
+                <Text style={isOutOfRange ? s.statusWarn : s.statusOk}>
+                  {isOutOfRange ? "\u26A0" : "\u2713"}
+                </Text>
+              ) : (
+                <Text style={s.statusNa}>{"\u2014"}</Text>
+              )}
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+// ---------- Helper: Step Photo Grid ----------
+
+function StepPhotoGrid({ photos }: { photos: PhotoBase64[] }) {
+  if (photos.length === 0) return null;
+
+  // Group by stage
+  const stageOrder = ["antes", "durante", "despues"];
+  const grouped: Record<string, PhotoBase64[]> = {};
+  for (const p of photos) {
+    const stage = p.etiqueta?.toLowerCase() ?? "otros";
+    if (!grouped[stage]) grouped[stage] = [];
+    grouped[stage].push(p);
+  }
+
+  const stages = stageOrder.filter((st) => grouped[st]?.length);
+  // Also include any non-standard stages
+  for (const st of Object.keys(grouped)) {
+    if (!stages.includes(st)) stages.push(st);
+  }
+
+  return (
+    <>
+      {stages.map((stage) => (
+        <View key={stage}>
+          <Text
+            style={[
+              s.stageLabel,
+              stageLabelStyles[stage] ?? s.stageLabelAntes,
+            ]}
+          >
+            {stageLabels[stage] ?? stage.toUpperCase()}
+          </Text>
+          <View style={s.photoGrid}>
+            {grouped[stage].map((photo, pIdx) => (
+              <View key={pIdx} style={s.photoBox}>
+                <Image src={photo.data} style={s.photoImg} />
+                <Text style={s.photoCaption}>
+                  {photo.etiqueta || "Foto"}
+                  {photo.fecha
+                    ? ` - ${new Date(photo.fecha).toLocaleString("es-MX", {
+                        day: "2-digit",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}`
+                    : ""}
+                </Text>
+                {photo.gps && (
+                  <Text style={s.photoCaption}>GPS: {photo.gps}</Text>
+                )}
+              </View>
+            ))}
+          </View>
+        </View>
+      ))}
+    </>
+  );
+}
+
+// ---------- Helper: Step Block ----------
+
+function StepBlock({
+  step,
+  stepNumber,
+}: {
+  step: PdfStepData;
+  stepNumber: number;
+}) {
+  const hasContent =
+    step.photosBase64.length > 0 ||
+    (step.lecturas && Object.keys(step.lecturas).length > 0) ||
+    step.notas;
+
+  // Completed step with no content — single line
+  if (step.completado && !hasContent) {
+    return (
+      <View style={s.stepBlock}>
+        <View style={s.stepHeaderRow}>
+          <Text style={[s.stepCheckIcon, { color: GREEN }]}>{"\u2713"}</Text>
+          <Text style={s.stepNameText}>
+            Paso {stepNumber}: {step.nombre} — Completado
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Incomplete step — single line
+  if (!step.completado) {
+    return (
+      <View style={s.stepBlock}>
+        <View style={s.stepHeaderRow}>
+          <Text style={[s.stepCheckIcon, { color: RED }]}>{"\u2717"}</Text>
+          <Text style={s.stepIncompleteName}>
+            Paso {stepNumber}: {step.nombre} — No completado
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Completed step with content — full block
+  return (
+    <View style={s.stepBlock} wrap={true}>
+      <View style={s.stepHeaderRow}>
+        <Text style={[s.stepCheckIcon, { color: GREEN }]}>{"\u2713"}</Text>
+        <Text style={s.stepNameText}>
+          Paso {stepNumber}: {step.nombre}
+        </Text>
+      </View>
+
+      {/* Readings table */}
+      {step.lecturas && Object.keys(step.lecturas).length > 0 && (
+        <ReadingsTable lecturas={step.lecturas} meta={step.lecturas_meta} />
+      )}
+
+      {/* Notes */}
+      {step.notas && (
+        <Text style={s.stepNote}>Nota: {step.notas}</Text>
+      )}
+
+      {/* Photos grouped by stage */}
+      {step.photosBase64.length > 0 && (
+        <StepPhotoGrid photos={step.photosBase64} />
+      )}
+    </View>
+  );
+}
+
+// ---------- Summary Bar ----------
+
+function SummaryBar({ data }: { data: PdfReportData }) {
+  const totalEquipos = data.equipmentEntries.length;
+  let prevCount = 0;
+  let corrCount = 0;
+  let totalSteps = 0;
+  let completedSteps = 0;
+  let totalPhotos = 0;
+
+  for (const entry of data.equipmentEntries) {
+    if (entry.tipo_trabajo === "correctivo") corrCount++;
+    else prevCount++;
+
+    for (const step of entry.steps) {
+      totalSteps++;
+      if (step.completado) completedSteps++;
+      totalPhotos += step.photosBase64.length;
+    }
+    totalPhotos += entry.orphanPhotosBase64.length;
+  }
+
+  return (
+    <View style={s.summaryBar}>
+      <View style={s.summaryItem}>
+        <Text style={s.summaryValue}>{totalEquipos}</Text>
+        <Text style={s.summaryLabel}>equipos</Text>
+      </View>
+      <View style={s.summaryDivider} />
+      <View style={s.summaryItem}>
+        <Text style={s.summaryValue}>{prevCount}</Text>
+        <Text style={s.summaryLabel}>preventivo</Text>
+      </View>
+      <View style={s.summaryDivider} />
+      <View style={s.summaryItem}>
+        <Text style={s.summaryValue}>{corrCount}</Text>
+        <Text style={s.summaryLabel}>correctivo</Text>
+      </View>
+      <View style={s.summaryDivider} />
+      <View style={s.summaryItem}>
+        <Text style={s.summaryValue}>
+          {completedSteps}/{totalSteps}
+        </Text>
+        <Text style={s.summaryLabel}>pasos</Text>
+      </View>
+      <View style={s.summaryDivider} />
+      <View style={s.summaryItem}>
+        <Text style={s.summaryValue}>{totalPhotos}</Text>
+        <Text style={s.summaryLabel}>fotos</Text>
+      </View>
+    </View>
+  );
+}
+
+// ---------- Main Component ----------
 
 export function ReportDocument({ data }: { data: PdfReportData }) {
   const generatedDate = new Date().toLocaleDateString("es-MX", {
@@ -414,245 +802,250 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
       title={`Reporte ${data.folio.numero_folio} - ${data.fecha}`}
       author="OMLEB"
     >
-      <Page size="LETTER" style={styles.page}>
+      <Page
+        size="LETTER"
+        style={s.page}
+        wrap={true}
+      >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={s.header} fixed>
           {data.companyLogoBase64 ? (
-            <View style={styles.headerLogoContainer}>
-              <Image src={data.companyLogoBase64} style={styles.headerLogo} />
+            <View style={s.headerLogoBox}>
+              <Image src={data.companyLogoBase64} style={s.headerLogo} />
             </View>
           ) : (
-            <View style={styles.headerLogoContainer}>
-              <Text style={{ fontSize: 14, fontWeight: 700, color: BLUE }}>
+            <View style={s.headerLogoBox}>
+              <Text style={{ fontSize: 13, fontWeight: 700, color: BLUE }}>
                 OMLEB
               </Text>
             </View>
           )}
-          <View style={styles.headerCenter}>
-            <Text style={styles.headerTitle}>Reporte de Mantenimiento</Text>
-            <Text style={styles.headerFolio}>
+          <View style={s.headerCenter}>
+            <Text style={s.headerTitle}>Reporte de Mantenimiento</Text>
+            <Text style={s.headerFolio}>
               Folio: {data.folio.numero_folio}
             </Text>
           </View>
           {data.cliente.logoBase64 && (
-            <View style={styles.headerLogoContainer}>
-              <Image
-                src={data.cliente.logoBase64}
-                style={styles.headerLogo}
-              />
+            <View style={s.headerLogoBox}>
+              <Image src={data.cliente.logoBase64} style={s.headerLogo} />
             </View>
           )}
         </View>
 
-        {/* Info grid */}
-        <View style={styles.infoGrid}>
-          <View style={styles.infoCell}>
-            <Text style={styles.infoLabel}>Fecha</Text>
-            <Text style={styles.infoValue}>{fechaFormatted}</Text>
+        {/* Info Grid */}
+        <View style={s.infoGrid}>
+          <View style={s.infoRow}>
+            <View style={s.infoCell}>
+              <Text style={s.infoLabel}>Fecha</Text>
+              <Text style={s.infoValue}>{fechaFormatted}</Text>
+            </View>
+            <View style={s.infoCell}>
+              <Text style={s.infoLabel}>Estatus</Text>
+              <Text
+                style={[s.badgeEstatus, getStatusBadgeStyle(data.estatus)]}
+              >
+                {statusLabels[data.estatus] ?? data.estatus}
+              </Text>
+            </View>
           </View>
-          <View style={styles.infoCell}>
-            <Text style={styles.infoLabel}>Estatus</Text>
-            <Text
-              style={[
-                styles.badgeEstatus,
-                getStatusBadgeStyle(data.estatus),
-              ]}
-            >
-              {statusLabels[data.estatus] ?? data.estatus}
-            </Text>
+          <View style={s.infoRow}>
+            <View style={s.infoCell}>
+              <Text style={s.infoLabel}>Sucursal</Text>
+              <Text style={s.infoValue}>
+                {data.sucursal.nombre} ({data.sucursal.numero})
+              </Text>
+            </View>
+            <View style={s.infoCell}>
+              <Text style={s.infoLabel}>Cliente</Text>
+              <Text style={s.infoValue}>{data.cliente.nombre}</Text>
+            </View>
           </View>
-          <View style={styles.infoCell}>
-            <Text style={styles.infoLabel}>Sucursal</Text>
-            <Text style={styles.infoValue}>
-              {data.sucursal.nombre} ({data.sucursal.numero})
-            </Text>
+          <View style={s.infoRow}>
+            <View style={s.infoCellFull}>
+              <Text style={s.infoLabel}>Direccion</Text>
+              <Text style={s.infoValue}>{data.sucursal.direccion}</Text>
+            </View>
           </View>
-          <View style={styles.infoCell}>
-            <Text style={styles.infoLabel}>Cliente</Text>
-            <Text style={styles.infoValue}>{data.cliente.nombre}</Text>
+          <View style={s.infoRow}>
+            <View style={s.infoCellProblem}>
+              <Text style={s.infoLabel}>Problema Reportado</Text>
+              <Text style={[s.infoValue, { fontSize: 10 }]}>
+                {data.folio.descripcion_problema}
+              </Text>
+            </View>
           </View>
-          <View style={styles.infoCellFull}>
-            <Text style={styles.infoLabel}>Direccion</Text>
-            <Text style={styles.infoValue}>{data.sucursal.direccion}</Text>
-          </View>
-          <View style={styles.infoCellFull}>
-            <Text style={styles.infoLabel}>Problema Reportado</Text>
-            <Text style={styles.infoValue}>
-              {data.folio.descripcion_problema}
-            </Text>
-          </View>
-          <View style={styles.infoCellFull}>
-            <Text style={styles.infoLabel}>Equipo de Trabajo</Text>
-            <Text style={styles.infoValue}>{teamStr}</Text>
+          <View style={{ ...s.infoRow, borderBottomWidth: 0 }}>
+            <View style={s.infoCellFull}>
+              <Text style={s.infoLabel}>Equipo de Trabajo</Text>
+              <Text style={s.infoValue}>{teamStr}</Text>
+            </View>
           </View>
         </View>
 
-        {/* Equipment section */}
+        {/* Summary Bar */}
+        <SummaryBar data={data} />
+
+        {/* Equipment Sections */}
         {data.equipmentEntries.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>
+            <Text style={s.sectionTitle}>
               Equipos Atendidos ({data.equipmentEntries.length})
             </Text>
-            {data.equipmentEntries.map((entry, idx) => (
-              <View key={idx} style={styles.equipmentCard} wrap={true}>
-                {/* Equipment header */}
-                <View style={styles.equipmentHeader}>
-                  <Text style={styles.equipmentName}>
-                    {entry.equipo.numero_etiqueta}
-                    {entry.equipo.marca || entry.equipo.modelo
-                      ? ` - ${[entry.equipo.marca, entry.equipo.modelo]
-                          .filter(Boolean)
-                          .join(" ")}`
-                      : ""}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.badge,
-                      entry.tipo_trabajo === "correctivo"
-                        ? styles.badgeCorrectivo
-                        : styles.badgePreventivo,
-                    ]}
-                  >
-                    {entry.tipo_trabajo === "correctivo"
-                      ? "CORRECTIVO"
-                      : "PREVENTIVO"}
-                  </Text>
-                </View>
+            {data.equipmentEntries.map((entry, idx) => {
+              const completedCount = entry.steps.filter(
+                (st) => st.completado
+              ).length;
+              const totalCount = entry.steps.length;
+              const hasSteps = totalCount > 0;
+              const hasAnyContent =
+                hasSteps ||
+                entry.diagnostico ||
+                entry.trabajo_realizado ||
+                entry.observaciones ||
+                entry.orphanPhotosBase64.length > 0;
 
-                {/* Free-text fields */}
-                {entry.diagnostico && (
-                  <>
-                    <Text style={styles.fieldLabel}>Diagnostico</Text>
-                    <Text style={styles.fieldValue}>{entry.diagnostico}</Text>
-                  </>
-                )}
-                {entry.trabajo_realizado && (
-                  <>
-                    <Text style={styles.fieldLabel}>Trabajo Realizado</Text>
-                    <Text style={styles.fieldValue}>
-                      {entry.trabajo_realizado}
+              return (
+                <View key={idx} style={s.equipCard} wrap={true}>
+                  {/* Equipment header */}
+                  <View style={s.equipHeader}>
+                    <Text style={s.equipName}>
+                      {entry.equipo.numero_etiqueta}
+                      {entry.equipo.marca || entry.equipo.modelo
+                        ? ` \u2014 ${[entry.equipo.marca, entry.equipo.modelo]
+                            .filter(Boolean)
+                            .join(" ")}`
+                        : ""}
                     </Text>
-                  </>
-                )}
-                {entry.observaciones && (
-                  <>
-                    <Text style={styles.fieldLabel}>Observaciones</Text>
-                    <Text style={styles.fieldValue}>
-                      {entry.observaciones}
+                    <Text
+                      style={[
+                        s.badge,
+                        entry.tipo_trabajo === "correctivo"
+                          ? s.badgeCorrectivo
+                          : s.badgePreventivo,
+                      ]}
+                    >
+                      {entry.tipo_trabajo === "correctivo"
+                        ? "CORRECTIVO"
+                        : "PREVENTIVO"}
                     </Text>
-                  </>
-                )}
+                  </View>
 
-                {/* Workflow steps */}
-                {entry.steps.length > 0 && (
-                  <>
-                    <Text style={styles.fieldLabel}>
-                      Pasos del Flujo de Trabajo
+                  {/* Progress line */}
+                  {hasSteps && (
+                    <Text style={s.equipProgress}>
+                      Progreso: {completedCount}/{totalCount} pasos completados
                     </Text>
-                    {entry.steps.map((step, sIdx) => (
-                      <View key={sIdx}>
-                        <View style={styles.stepRow}>
-                          <Text style={styles.stepCheck}>
-                            {step.completado ? "\u2713" : "\u2717"}
-                          </Text>
-                          <Text style={styles.stepName}>{step.nombre}</Text>
-                        </View>
-                        {/* Readings summary */}
-                        {step.lecturas &&
-                          Object.keys(step.lecturas).length > 0 && (
-                            <Text style={styles.stepDetail}>
-                              {Object.entries(step.lecturas)
-                                .map(([k, v]) => `${k}: ${v}`)
-                                .join(" | ")}
-                            </Text>
-                          )}
-                        {/* Notes */}
-                        {step.notas && (
-                          <Text style={styles.stepDetail}>
-                            Nota: {step.notas}
-                          </Text>
-                        )}
-                      </View>
-                    ))}
-                  </>
-                )}
+                  )}
 
-                {/* Photos */}
-                {entry.photosBase64.length > 0 && (
-                  <>
-                    <Text style={styles.fieldLabel}>
-                      Fotos ({entry.photosBase64.length})
+                  {/* No content */}
+                  {!hasAnyContent && (
+                    <Text style={s.emptyText}>
+                      Sin actividad registrada
                     </Text>
-                    <View style={styles.photoGrid}>
-                      {entry.photosBase64.map((photo, pIdx) => (
-                        <View key={pIdx} style={styles.photoContainer}>
-                          <Image
-                            src={photo.data}
-                            style={styles.photoImage}
-                          />
-                          <Text style={styles.photoLabel}>
-                            {photo.etiqueta || "Foto"}
-                            {photo.fecha
-                              ? ` - ${new Date(photo.fecha).toLocaleString(
-                                  "es-MX",
-                                  {
+                  )}
+
+                  {/* Free-text fields */}
+                  {entry.diagnostico && (
+                    <>
+                      <Text style={s.fieldLabel}>Diagnostico</Text>
+                      <Text style={s.fieldValue}>{entry.diagnostico}</Text>
+                    </>
+                  )}
+                  {entry.trabajo_realizado && (
+                    <>
+                      <Text style={s.fieldLabel}>Trabajo Realizado</Text>
+                      <Text style={s.fieldValue}>
+                        {entry.trabajo_realizado}
+                      </Text>
+                    </>
+                  )}
+                  {entry.observaciones && (
+                    <>
+                      <Text style={s.fieldLabel}>Observaciones</Text>
+                      <Text style={s.fieldValue}>{entry.observaciones}</Text>
+                    </>
+                  )}
+
+                  {/* Step blocks */}
+                  {entry.steps.map((step, sIdx) => (
+                    <StepBlock
+                      key={step.id}
+                      step={step}
+                      stepNumber={sIdx + 1}
+                    />
+                  ))}
+
+                  {/* Orphan photos */}
+                  {entry.orphanPhotosBase64.length > 0 && (
+                    <View style={s.orphanSection}>
+                      <Text style={s.orphanTitle}>
+                        Fotos adicionales ({entry.orphanPhotosBase64.length})
+                      </Text>
+                      <View style={s.photoGrid}>
+                        {entry.orphanPhotosBase64.map((photo, pIdx) => (
+                          <View key={pIdx} style={s.photoBox}>
+                            <Image src={photo.data} style={s.photoImg} />
+                            <Text style={s.photoCaption}>
+                              {photo.etiqueta || "Foto"}
+                              {photo.fecha
+                                ? ` - ${new Date(
+                                    photo.fecha
+                                  ).toLocaleString("es-MX", {
                                     day: "2-digit",
                                     month: "short",
                                     hour: "2-digit",
                                     minute: "2-digit",
-                                  }
-                                )}`
-                              : ""}
-                          </Text>
-                          {photo.gps && (
-                            <Text style={styles.photoLabel}>
-                              GPS: {photo.gps}
+                                  })}`
+                                : ""}
                             </Text>
-                          )}
-                        </View>
-                      ))}
+                            {photo.gps && (
+                              <Text style={s.photoCaption}>
+                                GPS: {photo.gps}
+                              </Text>
+                            )}
+                          </View>
+                        ))}
+                      </View>
                     </View>
-                  </>
-                )}
-              </View>
-            ))}
+                  )}
+                </View>
+              );
+            })}
           </>
         )}
 
         {/* Materials table */}
         {data.materials.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>
+            <Text style={s.sectionTitle}>
               Material Empleado ({data.materials.length})
             </Text>
-            <View style={styles.materialsTable}>
-              {/* Header row */}
-              <View style={styles.materialsHeaderRow}>
-                <View style={styles.materialsCellCant}>
-                  <Text style={styles.materialsHeaderText}>Cant.</Text>
+            <View style={s.matTable}>
+              <View style={s.matHeaderRow}>
+                <View style={s.matCellCant}>
+                  <Text style={s.matHeaderText}>Cant.</Text>
                 </View>
-                <View style={styles.materialsCellUnit}>
-                  <Text style={styles.materialsHeaderText}>Unidad</Text>
+                <View style={s.matCellUnit}>
+                  <Text style={s.matHeaderText}>Unidad</Text>
                 </View>
-                <View style={styles.materialsCellDesc}>
-                  <Text style={styles.materialsHeaderText}>Descripcion</Text>
+                <View style={s.matCellDesc}>
+                  <Text style={s.matHeaderText}>Descripcion</Text>
                 </View>
               </View>
-              {/* Data rows */}
               {data.materials.map((mat, mIdx) => (
-                <View key={mIdx} style={styles.materialsDataRow}>
-                  <View style={styles.materialsCellCant}>
-                    <Text style={styles.materialsCellText}>
-                      {mat.cantidad}
-                    </Text>
+                <View
+                  key={mIdx}
+                  style={mIdx % 2 === 1 ? s.matDataRowOdd : s.matDataRow}
+                >
+                  <View style={s.matCellCant}>
+                    <Text style={s.matCellText}>{mat.cantidad}</Text>
                   </View>
-                  <View style={styles.materialsCellUnit}>
-                    <Text style={styles.materialsCellText}>{mat.unidad}</Text>
+                  <View style={s.matCellUnit}>
+                    <Text style={s.matCellText}>{mat.unidad}</Text>
                   </View>
-                  <View style={styles.materialsCellDesc}>
-                    <Text style={styles.materialsCellText}>
-                      {mat.descripcion}
-                    </Text>
+                  <View style={s.matCellDesc}>
+                    <Text style={s.matCellText}>{mat.descripcion}</Text>
                   </View>
                 </View>
               ))}
@@ -660,31 +1053,33 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
           </>
         )}
 
-        {/* Signature section */}
+        {/* Signature */}
         {data.firmaBase64 && (
           <>
-            <Text style={styles.sectionTitle}>Firma del Encargado</Text>
-            <View style={styles.signatureSection}>
-              <Image src={data.firmaBase64} style={styles.signatureImage} />
-              <View style={styles.signatureLine} />
+            <Text style={s.sectionTitle}>Firma del Encargado</Text>
+            <View style={s.sigSection}>
+              <Image src={data.firmaBase64} style={s.sigImage} />
+              <View style={s.sigLine} />
               {data.nombreEncargado && (
-                <Text style={styles.signatureName}>
-                  {data.nombreEncargado}
-                </Text>
+                <Text style={s.sigName}>{data.nombreEncargado}</Text>
               )}
-              <Text style={styles.signatureLabel}>
-                Encargado de Sucursal
-              </Text>
+              <Text style={s.sigLabel}>Encargado de Sucursal</Text>
             </View>
           </>
         )}
 
-        {/* Footer */}
-        <View style={styles.footer} fixed>
-          <Text style={styles.footerText}>
+        {/* Footer — fixed on all pages with page numbers */}
+        <View style={s.footer} fixed>
+          <Text style={s.footerText}>
             Generado el {generatedDate}
           </Text>
-          <Text style={styles.footerText}>OMLEB - Servicios HVAC</Text>
+          <Text
+            style={s.footerPage}
+            render={({ pageNumber, totalPages }) =>
+              `Pagina ${pageNumber} de ${totalPages}`
+            }
+          />
+          <Text style={s.footerText}>OMLEB - Servicios HVAC</Text>
         </View>
       </Page>
     </Document>
