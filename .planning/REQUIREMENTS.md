@@ -73,28 +73,28 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Technician Evidence UI
 
-- [ ] **UIEV-01**: Preventive workflow step card shows deduplicated stage sections (one per etapa) with guidance bullets and single photo button per stage
-- [ ] **UIEV-02**: Corrective workflow issues use same stage-section evidence pattern
-- [ ] **UIEV-03**: Shared EvidenceStageSection component extracted for reuse across both workflows
+- [x] **UIEV-01**: Preventive workflow step card shows deduplicated stage sections (one per etapa) with guidance bullets and single photo button per stage
+- [x] **UIEV-02**: Corrective workflow issues use same stage-section evidence pattern
+- [x] **UIEV-03**: Shared EvidenceStageSection component extracted for reuse across both workflows
 
 ### PDF Report Redesign
 
-- [ ] **PDFD-01**: PDF restructured with step-organized layout — each step as a distinct block with inline readings, notes, and photos
-- [ ] **PDFD-02**: Readings displayed in structured table with Parameter / Value / Range / Status columns and out-of-range warning indicators
-- [ ] **PDFD-03**: Summary bar on page 1 shows at-a-glance counts (equipos atendidos, pasos completados, fotos capturadas)
-- [ ] **PDFD-04**: Photos grouped by stage (ANTES / DURANTE / DESPUES) within each step block
-- [ ] **PDFD-05**: Page numbers on all pages (Pagina N de M)
-- [ ] **PDFD-06**: Equipment header card shows work type badge and step completion progress
+- [x] **PDFD-01**: PDF restructured with step-organized layout — each step as a distinct block with inline readings, notes, and photos
+- [x] **PDFD-02**: Readings displayed in structured table with Parameter / Value / Range / Status columns and out-of-range warning indicators
+- [x] **PDFD-03**: Summary bar on page 1 shows at-a-glance counts (equipos atendidos, pasos completados, fotos capturadas)
+- [x] **PDFD-04**: Photos grouped by stage (ANTES / DURANTE / DESPUES) within each step block
+- [x] **PDFD-05**: Page numbers on all pages (Pagina N de M)
+- [x] **PDFD-06**: Equipment header card shows work type badge and step completion progress
 
 ### Data Pipeline
 
-- [ ] **PIPE-01**: Photo data pipeline carries reporte_paso_id through to PDF generation
-- [ ] **PIPE-02**: lecturas_requeridas metadata (range min/max/unit) fetched and available in PDF data
-- [ ] **PIPE-03**: Orphan photos (no reporte_paso_id) rendered in fallback section per equipment
+- [x] **PIPE-01**: Photo data pipeline carries reporte_paso_id through to PDF generation
+- [x] **PIPE-02**: lecturas_requeridas metadata (range min/max/unit) fetched and available in PDF data
+- [x] **PIPE-03**: Orphan photos (no reporte_paso_id) rendered in fallback section per equipment
 
 ### Admin View
 
-- [ ] **ADVW-01**: Admin report detail shows photos inline with their steps for consistency with PDF
+- [x] **ADVW-01**: Admin report detail shows photos inline with their steps for consistency with PDF
 
 ## v1.0 Launch Prep Requirements
 
@@ -211,26 +211,26 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEED-01 | Phase 7 | Pending |
 | SEED-02 | Phase 7 | Pending |
 | CLEN-01 | Phase 6 | Pending |
-| UIEV-01 | Phase 5.5 | Pending |
-| UIEV-02 | Phase 5.5 | Pending |
-| UIEV-03 | Phase 5.5 | Pending |
-| PDFD-01 | Phase 5.5 | Pending |
-| PDFD-02 | Phase 5.5 | Pending |
-| PDFD-03 | Phase 5.5 | Pending |
-| PDFD-04 | Phase 5.5 | Pending |
-| PDFD-05 | Phase 5.5 | Pending |
-| PDFD-06 | Phase 5.5 | Pending |
-| PIPE-01 | Phase 5.5 | Pending |
-| PIPE-02 | Phase 5.5 | Pending |
-| PIPE-03 | Phase 5.5 | Pending |
-| ADVW-01 | Phase 5.5 | Pending |
+| UIEV-01 | Phase 5.5 | Complete |
+| UIEV-02 | Phase 5.5 | Complete |
+| UIEV-03 | Phase 5.5 | Complete |
+| PDFD-01 | Phase 5.5 | Complete |
+| PDFD-02 | Phase 5.5 | Complete |
+| PDFD-03 | Phase 5.5 | Complete |
+| PDFD-04 | Phase 5.5 | Complete |
+| PDFD-05 | Phase 5.5 | Complete |
+| PDFD-06 | Phase 5.5 | Complete |
+| PIPE-01 | Phase 5.5 | Complete |
+| PIPE-02 | Phase 5.5 | Complete |
+| PIPE-03 | Phase 5.5 | Complete |
+| ADVW-01 | Phase 5.5 | Complete |
 
 **Coverage:**
-- v1 requirements: 44 total (28 complete, 16 pending)
+- v1 requirements: 44 total (41 complete, 3 pending)
 - v1.0 Launch Prep requirements: 5 total
 - Total mapped to phases: 49
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-23*
-*Last updated: 2026-03-01 after Phase 5.5 insertion*
+*Last updated: 2026-03-01 after Phase 5.5 completion*

@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3.5: Guided Maintenance Workflows** - INSERTED - Structured step-by-step preventive workflows and corrective issue picker replacing free-text reporting
 - [x] **Phase 4: Photo Capture & Signatures** - Camera with GPS overlay, gallery upload, photo labels, digital signature
 - [x] **Phase 5: Admin Review & PDF Export** - Report list, edit/approve workflow, branded PDF generation
-- [ ] **Phase 5.5: Step-Centric Evidence Redesign** - INSERTED - Technician evidence UI deduplication + PDF restructure with step-organized layout
+- [x] **Phase 5.5: Step-Centric Evidence Redesign** - INSERTED - Technician evidence UI deduplication + PDF restructure with step-organized layout
 - [ ] **Phase 6: Foundation Completion & PWA** - Middleware fix, PWA manifest, service worker, offline fallback, install prompt, tech debt cleanup
 - [ ] **Phase 7: Deployment Guide & Seed Data** - Step-by-step deployment playbook and realistic seed data for QA testing
 
@@ -140,7 +140,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 05.5-01-PLAN.md — Shared EvidenceStageSection component, workflow card redesign, PDF data pipeline restructure, full PDF rewrite, admin detail update
+- [x] 05.5-01-PLAN.md — Shared EvidenceStageSection component, workflow card redesign, PDF data pipeline restructure, full PDF rewrite, admin detail update
 
 ### Phase 6: Foundation Completion & PWA
 **Goal**: Close all remaining v1 gaps — fix middleware auth guard, add PWA installability, service worker caching, and offline fallback
@@ -188,10 +188,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 3.5 -> 4 -> 5 -> 5.5 -> 6 -> 7
 | 3.5. Guided Maintenance Workflows | 1/1 | Complete | 2026-02-27 |
 | 4. Photo Capture & Signatures | 3/3 | Complete | 2026-02-28 |
 | 5. Admin Review & PDF Export | 3/3 | Complete | 2026-02-28 |
-| 5.5. Step-Centric Evidence Redesign | 0/1 | Pending | - |
+| 5.5. Step-Centric Evidence Redesign | 1/1 | Complete | 2026-03-01 |
 | 6. Foundation Completion & PWA | 0/1 | Pending | - |
 | 7. Deployment Guide & Seed Data | 0/2 | Pending | - |
 
 ---
 *Roadmap created: 2026-02-23*
-*Last updated: 2026-03-01 after Phase 5.5 insertion*
+*Last updated: 2026-03-01 after Phase 5.5 execution*

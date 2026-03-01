@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-Phase: 5.5 of 7 (Step-Centric Evidence Redesign) -- COMPLETE
-Plan: 1 of 1 in current phase
-Status: Phase complete
-Last activity: 2026-03-01 -- Completed 05.5-01-PLAN.md
+Phase: 6 of 7 (Foundation Completion & PWA) -- next to execute
+Plan: 0 of 1 in current phase
+Status: Ready to plan/execute
+Last activity: 2026-03-01 -- Phase 5.5 complete (step-centric evidence redesign)
 
 Progress: [==============░░░░░░] 71% (15/21 plans complete)
 
@@ -57,5 +57,5 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 05.5-01-PLAN.md (Step-Centric Evidence Redesign)
-Resume file: None
+Stopped at: Phase 5.5 complete — Phase 6 next
+Resume file: .planning/phases/06-foundation-pwa/06-01-PLAN.md
