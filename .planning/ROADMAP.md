@@ -2,7 +2,7 @@
 
 ## Overview
 
-This roadmap delivers a PWA that replaces WhatsApp-based HVAC field reporting with structured daily reports. The build order follows the data dependency chain: auth and infrastructure first, then admin data entry (clients, branches, equipment, folios), then the technician reporting form, then the high-risk photo capture and signature pipeline, and finally admin review with PDF export. The entire user-facing system is in Spanish.
+This roadmap delivers a PWA that replaces WhatsApp-based HVAC field reporting with structured daily reports. The build order follows the data dependency chain: auth and infrastructure first, then admin data entry (clients, branches, equipment, folios), then the technician reporting form, then the high-risk photo capture and signature pipeline, and finally admin review with PDF export. The v1.0 Launch Prep milestone adds foundation completion, PWA installability, deployment documentation, and seed data for QA. The entire user-facing system is in Spanish.
 
 ## Phases
 
@@ -19,6 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Photo Capture & Signatures** - Camera with GPS overlay, gallery upload, photo labels, digital signature
 - [x] **Phase 5: Admin Review & PDF Export** - Report list, edit/approve workflow, branded PDF generation
 - [ ] **Phase 6: Foundation Completion & PWA** - Middleware fix, PWA manifest, service worker, offline fallback, install prompt, tech debt cleanup
+- [ ] **Phase 7: Deployment Guide & Seed Data** - Step-by-step deployment playbook and realistic seed data for QA testing
 
 ## Phase Details
 
@@ -126,7 +127,7 @@ Plans:
 ### Phase 6: Foundation Completion & PWA
 **Goal**: Close all remaining v1 gaps — fix middleware auth guard, add PWA installability, service worker caching, and offline fallback
 **Depends on**: Phase 5 (all feature code exists; this phase adds infrastructure)
-**Requirements**: AUTH-04, PWA-01, PWA-02, PWA-03
+**Requirements**: AUTH-04, PWA-01, PWA-02, PWA-03, CLEN-01
 **Gap Closure**: Closes all gaps from v1-MILESTONE-AUDIT.md
 **Success Criteria** (what must be TRUE):
   1. `src/middleware.ts` exists and re-exports proxy as default — `next build` produces working middleware with auth guards
@@ -140,10 +141,26 @@ Plans:
 Plans:
 - [ ] 06-01-PLAN.md — Middleware fix, Serwist PWA setup (manifest, service worker, offline fallback, icons, install prompt), cleanup
 
+### Phase 7: Deployment Guide & Seed Data
+**Goal**: The project can be deployed from scratch to production by following a single guide, and QA can test the full reporting flow with realistic seed data
+**Depends on**: Phase 6 (all code and infrastructure complete; this phase documents deployment and provides test data)
+**Requirements**: DEPL-01, DEPL-02, SEED-01, SEED-02
+**Success Criteria** (what must be TRUE):
+  1. A developer can follow the deployment guide to create a Supabase project, run all SQL migrations in the documented order, and see the full schema deployed with no errors
+  2. A developer can configure env vars, deploy to Vercel, and access the running application at a public URL
+  3. A developer can create the first admin account following the guide instructions and log in successfully
+  4. Running the seed data script populates the database with realistic test data covering all entity types (clients with logos, branches, equipment across types, users in all roles, folios with crew assignments)
+  5. Seed data includes complete report examples across all three statuses (en_progreso, en_espera, completado) with equipment entries, materials, photo references, and a signature on the completed report
+**Plans:** 2 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Deployment guide: Supabase project creation, SQL migration execution order with dependencies, env var configuration, Vercel deployment, first admin account creation
+- [ ] 07-02-PLAN.md — Seed data SQL script: realistic test data for clients, branches, equipment, users, folios, and complete reports across all statuses
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
+Phases execute in numeric order: 1 -> 2 -> 3 -> 3.5 -> 4 -> 5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -154,7 +171,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 4. Photo Capture & Signatures | 3/3 | Complete | 2026-02-28 |
 | 5. Admin Review & PDF Export | 3/3 | Complete | 2026-02-28 |
 | 6. Foundation Completion & PWA | 0/1 | Pending | - |
+| 7. Deployment Guide & Seed Data | 0/2 | Pending | - |
 
 ---
 *Roadmap created: 2026-02-23*
-*Last updated: 2026-02-28*
+*Last updated: 2026-03-01*
