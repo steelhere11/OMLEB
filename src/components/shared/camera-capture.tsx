@@ -385,29 +385,48 @@ export function CameraCapture({
         </svg>
       </button>
 
-      {/* GPS status indicator - top center, tappable when failed */}
-      <button
-        type="button"
-        onClick={gpsStatus === "failed" ? retryGps : undefined}
-        className={`absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium ${
-          gpsStatus === "acquired"
-            ? "bg-green-600/80 text-white"
+      {/* GPS status indicator - top center */}
+      {gpsStatus === "failed" && gpsError === "denied" ? (
+        /* Denied: show instructions + reload button (retry won't work — iOS caches denial) */
+        <div className="absolute left-4 right-4 top-4 z-10 flex flex-col items-center gap-2 rounded-xl bg-red-700/90 px-4 py-3 text-center">
+          <p className="text-xs font-medium leading-tight text-white">
+            Ubicacion bloqueada por el navegador.
+          </p>
+          <p className="text-[11px] leading-tight text-white/80">
+            iOS: Ajustes &gt; Safari &gt; Ubicacion &gt; Permitir.{"\n"}
+            Android: Toca el candado en la barra de direccion &gt; Permisos &gt; Ubicacion.
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-1 rounded-lg bg-white px-4 py-1.5 text-xs font-semibold text-red-700 active:bg-gray-100"
+          >
+            Recargar pagina
+          </button>
+        </div>
+      ) : (
+        /* Acquired / pending / other failures: show compact pill */
+        <button
+          type="button"
+          onClick={gpsStatus === "failed" ? retryGps : undefined}
+          className={`absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium ${
+            gpsStatus === "acquired"
+              ? "bg-green-600/80 text-white"
+              : gpsStatus === "failed"
+                ? "bg-yellow-600/80 text-white active:bg-yellow-700/80"
+                : "bg-white/20 text-white/70"
+          }`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+          </svg>
+          {gpsStatus === "acquired"
+            ? "GPS activo"
             : gpsStatus === "failed"
-              ? "bg-yellow-600/80 text-white active:bg-yellow-700/80"
-              : "bg-white/20 text-white/70"
-        }`}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-        </svg>
-        {gpsStatus === "acquired"
-          ? "GPS activo"
-          : gpsStatus === "failed"
-            ? gpsError === "denied"
-              ? "Ubicacion denegada — toca para reintentar"
-              : "GPS no disponible — toca para reintentar"
-            : "Obteniendo GPS..."}
-      </button>
+              ? "GPS no disponible — toca para reintentar"
+              : "Obteniendo GPS..."}
+        </button>
+      )}
 
       {/* Label badge - top right */}
       <div className="absolute right-4 top-4 z-10 rounded-lg bg-brand-500 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-white">

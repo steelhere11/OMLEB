@@ -114,14 +114,15 @@ export async function getGpsPosition(options?: GpsOptions): Promise<GpsResult> {
     };
 
     return { position: lastKnownPosition };
-  } catch (err) {
-    // Map GeolocationPositionError codes to reason strings
+  } catch (err: unknown) {
+    // Map GeolocationPositionError codes to reason strings.
+    // Use numeric codes directly (1=denied, 2=unavailable, 3=timeout)
+    // because `instanceof GeolocationPositionError` is unreliable on iOS Safari.
     let error: GpsErrorReason = "unavailable";
-    if (err instanceof GeolocationPositionError) {
-      if (err.code === err.PERMISSION_DENIED) error = "denied";
-      else if (err.code === err.POSITION_UNAVAILABLE) error = "unavailable";
-      else if (err.code === err.TIMEOUT) error = "timeout";
-    }
+    const code = (err as { code?: number })?.code;
+    if (code === 1) error = "denied";
+    else if (code === 2) error = "unavailable";
+    else if (code === 3) error = "timeout";
 
     return {
       position: lastKnownPosition
