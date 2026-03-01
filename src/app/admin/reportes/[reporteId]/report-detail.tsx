@@ -866,22 +866,51 @@ function EquipmentCard({
         </>
       )}
 
-      {/* Workflow steps */}
-      {entry.reporte_pasos.length > 0 && (
-        <div className="mt-3">
-          <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
-            Pasos del Flujo de Trabajo
-          </h4>
-          <div className="space-y-2">
-            {entry.reporte_pasos.map((paso) => (
-              <StepRow key={paso.id} paso={paso} />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Workflow steps with inline photos */}
+      {entry.reporte_pasos.length > 0 && (() => {
+        // Group photos by reporte_paso_id
+        const photosByStep = new Map<string, ReporteFotoData[]>();
+        const orphanPhotos: ReporteFotoData[] = [];
+        for (const foto of photos) {
+          if (foto.reporte_paso_id) {
+            const arr = photosByStep.get(foto.reporte_paso_id) ?? [];
+            arr.push(foto);
+            photosByStep.set(foto.reporte_paso_id, arr);
+          } else {
+            orphanPhotos.push(foto);
+          }
+        }
 
-      {/* Photos for this equipment */}
-      {photos.length > 0 && (
+        return (
+          <div className="mt-3">
+            <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
+              Pasos del Flujo de Trabajo
+            </h4>
+            <div className="space-y-2">
+              {entry.reporte_pasos.map((paso) => (
+                <StepRow
+                  key={paso.id}
+                  paso={paso}
+                  stagePhotos={photosByStep.get(paso.id) ?? []}
+                />
+              ))}
+            </div>
+
+            {/* Orphan photos (not linked to any step) */}
+            {orphanPhotos.length > 0 && (
+              <div className="mt-4">
+                <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
+                  Fotos adicionales ({orphanPhotos.length})
+                </h4>
+                <PhotoGrid photos={orphanPhotos} />
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* Photos for equipment without workflow steps */}
+      {entry.reporte_pasos.length === 0 && photos.length > 0 && (
         <div className="mt-4">
           <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
             Fotos ({photos.length})
@@ -1052,7 +1081,19 @@ function TextBlock({ label, value }: { label: string; value: string }) {
   );
 }
 
-function StepRow({ paso }: { paso: ReportePasoData }) {
+const stageColors: Record<string, string> = {
+  antes: "bg-blue-100 text-blue-700",
+  durante: "bg-amber-100 text-amber-700",
+  despues: "bg-green-100 text-green-700",
+};
+
+function StepRow({
+  paso,
+  stagePhotos = [],
+}: {
+  paso: ReportePasoData;
+  stagePhotos?: ReporteFotoData[];
+}) {
   const name =
     paso.plantillas_pasos?.nombre ??
     paso.fallas_correctivas?.nombre ??
@@ -1060,47 +1101,106 @@ function StepRow({ paso }: { paso: ReportePasoData }) {
 
   const readings = Object.entries(paso.lecturas ?? {});
 
+  // Group photos by stage
+  const photosByStage = new Map<string, ReporteFotoData[]>();
+  for (const foto of stagePhotos) {
+    const stage = foto.etiqueta ?? "otros";
+    const arr = photosByStage.get(stage) ?? [];
+    arr.push(foto);
+    photosByStage.set(stage, arr);
+  }
+  const stageOrder = ["antes", "durante", "despues"];
+  const sortedStages = stageOrder.filter((st) => photosByStage.has(st));
+  for (const st of photosByStage.keys()) {
+    if (!sortedStages.includes(st)) sortedStages.push(st);
+  }
+
   return (
-    <div className="flex items-start gap-2 rounded-[6px] border border-admin-border-subtle px-3 py-2">
-      {/* Completado indicator */}
-      <div className="mt-0.5 shrink-0">
-        {paso.completado ? (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 text-status-success"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-          </svg>
-        ) : (
-          <div className="h-4 w-4 rounded-full border-2 border-text-3" />
-        )}
+    <div className="rounded-[6px] border border-admin-border-subtle px-3 py-2">
+      <div className="flex items-start gap-2">
+        {/* Completado indicator */}
+        <div className="mt-0.5 shrink-0">
+          {paso.completado ? (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4 text-status-success"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <div className="h-4 w-4 rounded-full border-2 border-text-3" />
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-medium text-text-0">{name}</p>
+
+          {/* Readings */}
+          {readings.length > 0 && (
+            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5">
+              {readings.map(([key, val]) => (
+                <span key={key} className="text-[12px] text-text-2">
+                  {key}: <span className="font-mono text-text-1">{String(val)}</span>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Notes */}
+          {paso.notas && (
+            <p className="mt-1 text-[12px] text-text-2 italic">
+              Nota: {paso.notas}
+            </p>
+          )}
+        </div>
       </div>
 
-      <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-medium text-text-0">{name}</p>
-
-        {/* Readings */}
-        {readings.length > 0 && (
-          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5">
-            {readings.map(([key, val]) => (
-              <span key={key} className="text-[12px] text-text-2">
-                {key}: <span className="font-mono text-text-1">{String(val)}</span>
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Notes */}
-        {paso.notas && (
-          <p className="mt-1 text-[12px] text-text-2">
-            Nota: {paso.notas}
-          </p>
-        )}
-      </div>
+      {/* Inline photos grouped by stage */}
+      {sortedStages.length > 0 && (
+        <div className="mt-2 space-y-2 pl-6">
+          {sortedStages.map((stage) => {
+            const photos = photosByStage.get(stage) ?? [];
+            return (
+              <div key={stage}>
+                <span
+                  className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.04em] ${stageColors[stage] ?? "bg-gray-100 text-gray-600"}`}
+                >
+                  {etiquetaLabels[stage] ?? stage}
+                </span>
+                <div className="mt-1 grid grid-cols-3 gap-2">
+                  {photos.map((foto) => (
+                    <div key={foto.id} className="space-y-0.5">
+                      <div className="relative aspect-[4/3] overflow-hidden rounded border border-admin-border-subtle bg-admin-bg">
+                        <Image
+                          src={foto.url}
+                          alt={foto.etiqueta ?? "Foto"}
+                          fill
+                          className="object-cover"
+                          sizes="120px"
+                        />
+                      </div>
+                      {foto.metadata_fecha && (
+                        <span className="text-[9px] text-text-3">
+                          {new Date(foto.metadata_fecha).toLocaleString("es-MX", {
+                            day: "2-digit",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
