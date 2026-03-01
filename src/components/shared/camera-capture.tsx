@@ -54,46 +54,51 @@ export function CameraCapture({
     }
   }, []);
 
-  // Initialize camera and GPS
-  useEffect(() => {
-    let mounted = true;
-
-    async function init() {
-      // Request GPS FIRST so iOS Safari shows location prompt before camera prompt.
-      // Concurrent prompts cause the GPS timeout to fire before the user can respond.
-      const gpsResult = await getGpsPosition({ timeout: 15000 });
-      if (!mounted) return;
+  // Helper: handle GPS result and start refresh interval
+  const handleGpsResult = useCallback(
+    (gpsResult: { position: GpsPosition | null; error?: string }, mounted: { current: boolean }) => {
+      if (!mounted.current) return;
       if (gpsResult.position) {
         gpsRef.current = gpsResult.position;
         setGpsStatus("acquired");
         setGpsError(null);
-        // Reverse-geocode in background (non-blocking)
         reverseGeocode(gpsResult.position.lat, gpsResult.position.lng).then((lines) => {
-          if (mounted) addressRef.current = lines;
+          if (mounted.current) addressRef.current = lines;
         });
+        // Start refresh interval if not already running
+        if (!gpsIntervalRef.current) {
+          gpsIntervalRef.current = setInterval(() => {
+            getGpsPosition().then((result) => {
+              if (mounted.current && result.position) {
+                gpsRef.current = result.position;
+                setGpsStatus("acquired");
+                setGpsError(null);
+                reverseGeocode(result.position.lat, result.position.lng).then((lines) => {
+                  if (mounted.current) addressRef.current = lines;
+                });
+              }
+            });
+          }, 10000);
+        }
       } else {
         setGpsStatus("failed");
-        setGpsError(gpsResult.error ?? null);
+        setGpsError((gpsResult.error as GpsErrorReason) ?? null);
       }
+    },
+    []
+  );
 
-      // Refresh GPS every 10 seconds (only if not denied — retrying denied is pointless without user gesture)
-      if (gpsResult.error !== "denied") {
-        gpsIntervalRef.current = setInterval(() => {
-          getGpsPosition().then((result) => {
-            if (mounted && result.position) {
-              gpsRef.current = result.position;
-              setGpsStatus("acquired");
-              setGpsError(null);
-              // Re-geocode if position changed significantly
-              reverseGeocode(result.position.lat, result.position.lng).then((lines) => {
-                if (mounted) addressRef.current = lines;
-              });
-            }
-          });
-        }, 10000);
-      }
+  // Initialize camera and GPS in parallel (camera no longer waits for GPS)
+  useEffect(() => {
+    const mounted = { current: true };
 
-      // Open camera (after GPS prompt is resolved)
+    // GPS: fire and forget — don't block camera
+    getGpsPosition({ timeout: 10000 }).then((gpsResult) => {
+      handleGpsResult(gpsResult, mounted);
+    });
+
+    // Camera: start immediately
+    (async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
@@ -104,7 +109,7 @@ export function CameraCapture({
           audio: false,
         });
 
-        if (!mounted) {
+        if (!mounted.current) {
           stream.getTracks().forEach((t) => t.stop());
           return;
         }
@@ -116,7 +121,7 @@ export function CameraCapture({
           videoRef.current.play().catch(() => {});
         }
       } catch (err) {
-        if (!mounted) return;
+        if (!mounted.current) return;
         if (err instanceof DOMException) {
           if (err.name === "NotAllowedError") {
             setCameraError(
@@ -137,15 +142,13 @@ export function CameraCapture({
           setCameraError("Error desconocido al abrir la camara.");
         }
       }
-    }
-
-    init();
+    })();
 
     return () => {
-      mounted = false;
+      mounted.current = false;
       cleanup();
     };
-  }, [cleanup]);
+  }, [cleanup, handleGpsResult]);
 
   // Render loop: draw video + overlay to canvas
   useEffect(() => {
@@ -267,38 +270,13 @@ export function CameraCapture({
     );
   }, [isCapturing, reporteId, equipoId, reportePasoId, label, onCapture]);
 
-  // Retry GPS — called from user tap (user gesture context lets iOS Safari show the prompt)
+  // Retry GPS — called from user tap (user gesture context helps iOS Safari)
   const retryGps = useCallback(async () => {
     setGpsStatus("pending");
     setGpsError(null);
-    const result = await getGpsPosition({ timeout: 15000 });
-    if (result.position) {
-      gpsRef.current = result.position;
-      setGpsStatus("acquired");
-      setGpsError(null);
-      // Reverse-geocode the new position
-      reverseGeocode(result.position.lat, result.position.lng).then((lines) => {
-        addressRef.current = lines;
-      });
-      // Start interval refresh if not already running
-      if (!gpsIntervalRef.current) {
-        gpsIntervalRef.current = setInterval(() => {
-          getGpsPosition().then((r) => {
-            if (r.position) {
-              gpsRef.current = r.position;
-              setGpsStatus("acquired");
-              reverseGeocode(r.position.lat, r.position.lng).then((lines) => {
-                addressRef.current = lines;
-              });
-            }
-          });
-        }, 10000);
-      }
-    } else {
-      setGpsStatus("failed");
-      setGpsError(result.error ?? null);
-    }
-  }, []);
+    const result = await getGpsPosition({ timeout: 10000 });
+    handleGpsResult(result, { current: true });
+  }, [handleGpsResult]);
 
   // Handle close
   const handleClose = useCallback(() => {
@@ -387,22 +365,34 @@ export function CameraCapture({
 
       {/* GPS status indicator - top center */}
       {gpsStatus === "failed" && gpsError === "denied" ? (
-        /* Denied: show instructions + reload button (retry won't work — iOS caches denial) */
+        /* Denied: iOS Safari caches denial per-site. Show specific steps to fix. */
         <div className="absolute left-4 right-4 top-4 z-10 flex flex-col items-center gap-2 rounded-xl bg-red-700/90 px-4 py-3 text-center">
-          <p className="text-xs font-medium leading-tight text-white">
-            Ubicacion bloqueada por el navegador.
+          <p className="text-xs font-bold leading-tight text-white">
+            Ubicacion bloqueada
           </p>
-          <p className="text-[11px] leading-tight text-white/80">
-            iOS: Ajustes &gt; Safari &gt; Ubicacion &gt; Permitir.{"\n"}
-            Android: Toca el candado en la barra de direccion &gt; Permisos &gt; Ubicacion.
-          </p>
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-            className="mt-1 rounded-lg bg-white px-4 py-1.5 text-xs font-semibold text-red-700 active:bg-gray-100"
-          >
-            Recargar pagina
-          </button>
+          <div className="text-[11px] leading-snug text-white/90">
+            <p className="font-semibold">Safari (iPhone):</p>
+            <p>1. Ajustes &gt; Privacidad &gt; Localizacion &gt; Safari: &quot;Mientras se usa&quot;</p>
+            <p>2. Ajustes &gt; Safari &gt; Avanzado &gt; Datos de sitios web &gt; busca &quot;omleb&quot; &gt; Eliminar</p>
+            <p className="mt-1 font-semibold">Chrome (Android):</p>
+            <p>Toca el candado en la barra &gt; Permisos &gt; Ubicacion &gt; Permitir</p>
+          </div>
+          <div className="mt-1 flex gap-2">
+            <button
+              type="button"
+              onClick={retryGps}
+              className="rounded-lg bg-white/20 px-4 py-1.5 text-xs font-semibold text-white active:bg-white/30"
+            >
+              Reintentar
+            </button>
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="rounded-lg bg-white px-4 py-1.5 text-xs font-semibold text-red-700 active:bg-gray-100"
+            >
+              Recargar pagina
+            </button>
+          </div>
         </div>
       ) : (
         /* Acquired / pending / other failures: show compact pill */

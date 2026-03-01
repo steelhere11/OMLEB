@@ -82,13 +82,62 @@ export interface GpsOptions {
   timeout?: number;
 }
 
+function classifyError(err: unknown): GpsErrorReason {
+  // Use numeric codes directly (1=denied, 2=unavailable, 3=timeout)
+  // because `instanceof GeolocationPositionError` is unreliable on iOS Safari.
+  const code = (err as { code?: number })?.code;
+  if (code === 1) return "denied";
+  if (code === 2) return "unavailable";
+  if (code === 3) return "timeout";
+  return "unavailable";
+}
+
+/**
+ * Try getCurrentPosition first, then fall back to watchPosition.
+ * watchPosition is more reliable on iOS Safari in some permission states.
+ */
+function tryGeolocation(timeoutMs: number): Promise<GeolocationPosition> {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+
+    // Attempt 1: getCurrentPosition
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        if (!settled) { settled = true; resolve(pos); }
+      },
+      (err) => {
+        if (settled) return;
+        // If denied (code 1), don't bother with watchPosition — it'll also be denied
+        if (err.code === 1) { settled = true; reject(err); return; }
+
+        // Attempt 2: watchPosition as fallback (more reliable on some iOS versions)
+        const watchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            if (!settled) { settled = true; navigator.geolocation.clearWatch(watchId); resolve(pos); }
+          },
+          (watchErr) => {
+            if (!settled) { settled = true; navigator.geolocation.clearWatch(watchId); reject(watchErr); }
+          },
+          { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 60000 }
+        );
+      },
+      { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 60000 }
+    );
+
+    // Hard safety timeout
+    setTimeout(() => {
+      if (!settled) { settled = true; reject({ code: 3 }); }
+    }, timeoutMs + 2000);
+  });
+}
+
 /**
  * Get current GPS position with a configurable timeout (default 10s).
+ * Uses getCurrentPosition with watchPosition fallback for iOS Safari.
  * Returns position (or last-known approximate) and an error reason if it failed.
  * Never throws.
  */
 export async function getGpsPosition(options?: GpsOptions): Promise<GpsResult> {
-  // Check if geolocation is available
   if (typeof navigator === "undefined" || !navigator.geolocation) {
     return {
       position: lastKnownPosition
@@ -99,13 +148,7 @@ export async function getGpsPosition(options?: GpsOptions): Promise<GpsResult> {
   }
 
   try {
-    const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true,
-        timeout: options?.timeout ?? 10000,
-        maximumAge: 60000,
-      });
-    });
+    const pos = await tryGeolocation(options?.timeout ?? 10000);
 
     lastKnownPosition = {
       lat: pos.coords.latitude,
@@ -115,20 +158,11 @@ export async function getGpsPosition(options?: GpsOptions): Promise<GpsResult> {
 
     return { position: lastKnownPosition };
   } catch (err: unknown) {
-    // Map GeolocationPositionError codes to reason strings.
-    // Use numeric codes directly (1=denied, 2=unavailable, 3=timeout)
-    // because `instanceof GeolocationPositionError` is unreliable on iOS Safari.
-    let error: GpsErrorReason = "unavailable";
-    const code = (err as { code?: number })?.code;
-    if (code === 1) error = "denied";
-    else if (code === 2) error = "unavailable";
-    else if (code === 3) error = "timeout";
-
     return {
       position: lastKnownPosition
         ? { ...lastKnownPosition, approximate: true }
         : null,
-      error,
+      error: classifyError(err),
     };
   }
 }
