@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useActionState, useTransition, useEffect } from "react";
-import Image from "next/image";
-import type { ReporteEstatus, TipoTrabajo, FotoEtiqueta } from "@/types";
+import { useRouter } from "next/navigation";
+import type { ReporteEstatus, TipoTrabajo, FotoEtiqueta, FotoEstatusRevision } from "@/types";
 import dynamic from "next/dynamic";
 import {
   adminUpdateEquipmentEntry,
@@ -10,7 +10,10 @@ import {
   adminUpdateReportStatus,
   approveReport,
 } from "@/app/actions/reportes";
+import { adminFlagPhoto, adminDeletePhoto } from "@/app/actions/fotos";
 import { ReporteDeleteButton } from "@/components/admin/reporte-delete-button";
+import { AdminPhotoCard } from "@/components/admin/admin-photo-card";
+import { AdminPhotoUpload } from "@/components/admin/admin-photo-upload";
 
 const ReportPdfButton = dynamic(
   () => import("@/components/admin/report-pdf-button"),
@@ -73,6 +76,9 @@ interface ReporteFotoData {
   reporte_paso_id: string | null;
   url: string;
   etiqueta: FotoEtiqueta | null;
+  tipo_media: "foto" | "video";
+  estatus_revision: FotoEstatusRevision;
+  nota_admin: string | null;
   metadata_gps: string | null;
   metadata_fecha: string | null;
   created_at: string;
@@ -176,6 +182,7 @@ function formatRol(rol: string): string {
 // ---------- Component ----------
 
 export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
+  const router = useRouter();
   const status = statusConfig[reporte.estatus] ?? statusConfig.en_progreso;
   const folio = reporte.folios;
   const sucursal = reporte.sucursales;
@@ -188,6 +195,17 @@ export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
   const [statusPending, startStatusTransition] = useTransition();
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
 
+  // Photo management handlers
+  async function handleFlagPhoto(fotoId: string, estatus: FotoEstatusRevision, nota?: string) {
+    await adminFlagPhoto(fotoId, estatus, nota);
+    router.refresh();
+  }
+
+  async function handleDeletePhoto(fotoId: string) {
+    await adminDeletePhoto(fotoId);
+    router.refresh();
+  }
+
   // Group photos by equipo_id
   const photosByEquipo = new Map<string, ReporteFotoData[]>();
   for (const foto of reporte.reporte_fotos) {
@@ -199,6 +217,21 @@ export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
 
   // General photos (not tied to equipment)
   const generalPhotos = photosByEquipo.get("__general__") ?? [];
+
+  // Photo status summary
+  const allPhotos = reporte.reporte_fotos;
+  const pendienteCount = allPhotos.filter((f) => f.estatus_revision === "pendiente").length;
+  const aceptadaCount = allPhotos.filter((f) => f.estatus_revision === "aceptada").length;
+  const rechazadaCount = allPhotos.filter((f) => f.estatus_revision === "rechazada").length;
+  const retomarCount = allPhotos.filter((f) => f.estatus_revision === "retomar").length;
+
+  // Equipment list for upload component
+  const equiposList = reporte.reporte_equipos
+    .filter((e) => e.equipos)
+    .map((e) => ({
+      id: e.equipo_id,
+      etiqueta: e.equipos!.numero_etiqueta,
+    }));
 
   return (
     <div className="space-y-6">
@@ -343,23 +376,74 @@ export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
                 onEdit={() => setEditingEntryId(entry.id)}
                 onCancelEdit={() => setEditingEntryId(null)}
                 onSaved={() => setEditingEntryId(null)}
+                onFlagPhoto={handleFlagPhoto}
+                onDeletePhoto={handleDeletePhoto}
+                reporteId={reporte.id}
               />
             ))}
           </div>
         )}
       </div>
 
-      {/* General photos (not tied to equipment) */}
-      {generalPhotos.length > 0 && (
-        <div>
-          <h2 className="mb-3 text-[15px] font-semibold text-text-0">
-            Fotos Generales ({generalPhotos.length})
-          </h2>
-          <div className="rounded-[10px] border border-admin-border bg-admin-surface p-4">
-            <PhotoGrid photos={generalPhotos} />
-          </div>
+      {/* Photo status summary */}
+      {allPhotos.length > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-[10px] border border-admin-border bg-admin-surface px-4 py-3">
+          <span className="text-[13px] font-medium text-text-0">
+            Revision de fotos ({allPhotos.length} total):
+          </span>
+          {pendienteCount > 0 && (
+            <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
+              {pendienteCount} pendiente{pendienteCount !== 1 ? "s" : ""}
+            </span>
+          )}
+          {aceptadaCount > 0 && (
+            <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700">
+              {aceptadaCount} aceptada{aceptadaCount !== 1 ? "s" : ""}
+            </span>
+          )}
+          {rechazadaCount > 0 && (
+            <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-medium text-red-700">
+              {rechazadaCount} rechazada{rechazadaCount !== 1 ? "s" : ""}
+            </span>
+          )}
+          {retomarCount > 0 && (
+            <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700">
+              {retomarCount} retomar
+            </span>
+          )}
         </div>
       )}
+
+      {/* General photos (not tied to equipment) */}
+      <div>
+        <h2 className="mb-3 text-[15px] font-semibold text-text-0">
+          Fotos Generales ({generalPhotos.length})
+        </h2>
+        <div className="rounded-[10px] border border-admin-border bg-admin-surface p-4">
+          {generalPhotos.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+              {generalPhotos.map((foto) => (
+                <AdminPhotoCard
+                  key={foto.id}
+                  foto={foto}
+                  onFlag={handleFlagPhoto}
+                  onDelete={handleDeletePhoto}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-[13px] text-text-3">
+              Sin fotos generales
+            </p>
+          )}
+          <div className="mt-3">
+            <AdminPhotoUpload
+              reporteId={reporte.id}
+              equipos={equiposList}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Materials */}
       <MaterialsSection
@@ -836,6 +920,9 @@ function EquipmentCard({
   onEdit,
   onCancelEdit,
   onSaved,
+  onFlagPhoto,
+  onDeletePhoto,
+  reporteId,
 }: {
   entry: ReporteEquipoData;
   photos: ReporteFotoData[];
@@ -843,6 +930,9 @@ function EquipmentCard({
   onEdit: () => void;
   onCancelEdit: () => void;
   onSaved: () => void;
+  onFlagPhoto: (fotoId: string, estatus: FotoEstatusRevision, nota?: string) => Promise<void>;
+  onDeletePhoto: (fotoId: string) => Promise<void>;
+  reporteId: string;
 }) {
   const equipo = entry.equipos;
   const tipoConfig = tipoTrabajoConfig[entry.tipo_trabajo] ?? tipoTrabajoConfig.preventivo;
@@ -935,6 +1025,8 @@ function EquipmentCard({
                   key={paso.id}
                   paso={paso}
                   stagePhotos={photosByStep.get(paso.id) ?? []}
+                  onFlagPhoto={onFlagPhoto}
+                  onDeletePhoto={onDeletePhoto}
                 />
               ))}
             </div>
@@ -945,7 +1037,16 @@ function EquipmentCard({
                 <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
                   Fotos adicionales ({orphanPhotos.length})
                 </h4>
-                <PhotoGrid photos={orphanPhotos} />
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                  {orphanPhotos.map((foto) => (
+                    <AdminPhotoCard
+                      key={foto.id}
+                      foto={foto}
+                      onFlag={onFlagPhoto}
+                      onDelete={onDeletePhoto}
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -958,9 +1059,35 @@ function EquipmentCard({
           <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
             Fotos ({photos.length})
           </h4>
-          <PhotoGrid photos={photos} />
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            {photos.map((foto) => (
+              <AdminPhotoCard
+                key={foto.id}
+                foto={foto}
+                onFlag={onFlagPhoto}
+                onDelete={onDeletePhoto}
+              />
+            ))}
+          </div>
         </div>
       )}
+
+      {/* Upload for this equipment */}
+      <div className="mt-3">
+        <AdminPhotoUpload
+          reporteId={reporteId}
+          equipoId={entry.equipo_id}
+          pasos={entry.reporte_pasos
+            .filter((p) => p.plantillas_pasos || p.fallas_correctivas)
+            .map((p) => ({
+              id: p.id,
+              nombre:
+                p.plantillas_pasos?.nombre ??
+                p.fallas_correctivas?.nombre ??
+                "Paso",
+            }))}
+        />
+      </div>
     </div>
   );
 }
@@ -1133,9 +1260,13 @@ const stageColors: Record<string, string> = {
 function StepRow({
   paso,
   stagePhotos = [],
+  onFlagPhoto,
+  onDeletePhoto,
 }: {
   paso: ReportePasoData;
   stagePhotos?: ReporteFotoData[];
+  onFlagPhoto: (fotoId: string, estatus: FotoEstatusRevision, nota?: string) => Promise<void>;
+  onDeletePhoto: (fotoId: string) => Promise<void>;
 }) {
   const name =
     paso.plantillas_pasos?.nombre ??
@@ -1216,27 +1347,12 @@ function StepRow({
                 </span>
                 <div className="mt-1 grid grid-cols-3 gap-2">
                   {photos.map((foto) => (
-                    <div key={foto.id} className="space-y-0.5">
-                      <div className="relative aspect-[4/3] overflow-hidden rounded border border-admin-border-subtle bg-admin-bg">
-                        <Image
-                          src={foto.url}
-                          alt={foto.etiqueta ?? "Foto"}
-                          fill
-                          className="object-cover"
-                          sizes="120px"
-                        />
-                      </div>
-                      {foto.metadata_fecha && (
-                        <span className="text-[9px] text-text-3">
-                          {new Date(foto.metadata_fecha).toLocaleString("es-MX", {
-                            day: "2-digit",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      )}
-                    </div>
+                    <AdminPhotoCard
+                      key={foto.id}
+                      foto={foto}
+                      onFlag={onFlagPhoto}
+                      onDelete={onDeletePhoto}
+                    />
                   ))}
                 </div>
               </div>
@@ -1248,44 +1364,3 @@ function StepRow({
   );
 }
 
-function PhotoGrid({ photos }: { photos: ReporteFotoData[] }) {
-  return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-      {photos.map((foto) => (
-        <div key={foto.id} className="space-y-1">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-[6px] border border-admin-border-subtle bg-admin-bg">
-            <Image
-              src={foto.url}
-              alt={foto.etiqueta ?? "Foto del reporte"}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 50vw, 33vw"
-            />
-          </div>
-          <div className="flex items-center gap-1.5">
-            {foto.etiqueta && (
-              <span className="inline-flex rounded bg-admin-surface-elevated px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.04em] text-text-2">
-                {etiquetaLabels[foto.etiqueta] ?? foto.etiqueta}
-              </span>
-            )}
-            {foto.metadata_fecha && (
-              <span className="text-[10px] text-text-3">
-                {new Date(foto.metadata_fecha).toLocaleString("es-MX", {
-                  day: "2-digit",
-                  month: "short",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            )}
-          </div>
-          {foto.metadata_gps && (
-            <span className="text-[10px] text-text-3">
-              GPS: {foto.metadata_gps}
-            </span>
-          )}
-        </div>
-      ))}
-    </div>
-  );
-}
