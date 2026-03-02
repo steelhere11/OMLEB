@@ -12,6 +12,7 @@ import { compressAndUpload } from "@/lib/photo-uploader";
 import { CorrectiveIssuePicker } from "./corrective-issue-picker";
 import { PhotoSourcePicker } from "@/components/shared/photo-source-picker";
 import { CameraCapture } from "@/components/shared/camera-capture";
+import { VideoCapture } from "@/components/shared/video-capture";
 import { EvidenceStageSection } from "@/components/shared/evidence-stage-section";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,6 +51,7 @@ export function WorkflowCorrective({
   const [activeLabel, setActiveLabel] = useState<string | null>(null);
   const [showSourcePicker, setShowSourcePicker] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [showVideoCapture, setShowVideoCapture] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -141,6 +143,11 @@ export function WorkflowCorrective({
     setShowCamera(true);
   };
 
+  const handleSelectVideoCamera = () => {
+    setShowSourcePicker(false);
+    setShowVideoCapture(true);
+  };
+
   const handleSelectGallery = () => {
     setShowSourcePicker(false);
     fileInputRef.current?.click();
@@ -166,6 +173,31 @@ export function WorkflowCorrective({
         [activeIssueId]: [...(prev[activeIssueId] ?? []), newPhoto],
       }));
       setShowCamera(false);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeIssueId, activeLabel, reporteId, equipoId, stepProgress]
+  );
+
+  const handleVideoCapture = useCallback(
+    (result: { url: string; fotoId: string }) => {
+      if (!activeIssueId) return;
+      const newPhoto: ReporteFoto = {
+        id: result.fotoId,
+        reporte_id: reporteId,
+        equipo_id: equipoId,
+        reporte_paso_id: getStepId(activeIssueId),
+        url: result.url,
+        etiqueta: (activeLabel?.toLowerCase() ?? "antes") as ReporteFoto["etiqueta"],
+        tipo_media: "video",
+        metadata_gps: null,
+        metadata_fecha: new Date().toISOString(),
+        created_at: new Date().toISOString(),
+      };
+      setPhotosByIssue((prev) => ({
+        ...prev,
+        [activeIssueId]: [...(prev[activeIssueId] ?? []), newPhoto],
+      }));
+      setShowVideoCapture(false);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeIssueId, activeLabel, reporteId, equipoId, stepProgress]
@@ -389,7 +421,7 @@ export function WorkflowCorrective({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,video/*"
         multiple
         className="hidden"
         onChange={handleGalleryFiles}
@@ -400,6 +432,7 @@ export function WorkflowCorrective({
         <PhotoSourcePicker
           label={activeLabel}
           onSelectCamera={handleSelectCamera}
+          onSelectVideoCamera={handleSelectVideoCamera}
           onSelectGallery={handleSelectGallery}
           onClose={() => {
             setShowSourcePicker(false);
@@ -419,6 +452,22 @@ export function WorkflowCorrective({
           onCapture={handleCameraCapture}
           onClose={() => {
             setShowCamera(false);
+            setActiveLabel(null);
+            setActiveIssueId(null);
+          }}
+        />
+      )}
+
+      {/* Video capture fullscreen */}
+      {showVideoCapture && activeLabel && activeIssueId && (
+        <VideoCapture
+          label={activeLabel}
+          reporteId={reporteId}
+          equipoId={equipoId}
+          reportePasoId={getStepId(activeIssueId)}
+          onCapture={handleVideoCapture}
+          onClose={() => {
+            setShowVideoCapture(false);
             setActiveLabel(null);
             setActiveIssueId(null);
           }}

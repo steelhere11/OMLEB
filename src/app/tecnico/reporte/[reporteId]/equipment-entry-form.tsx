@@ -10,6 +10,7 @@ import { WorkflowPreventive } from "./workflow-preventive";
 import { WorkflowCorrective } from "./workflow-corrective";
 import { PhotoSourcePicker } from "@/components/shared/photo-source-picker";
 import { CameraCapture } from "@/components/shared/camera-capture";
+import { VideoCapture } from "@/components/shared/video-capture";
 import { PhotoGalleryRow } from "@/components/shared/photo-gallery-row";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -66,6 +67,7 @@ export function EquipmentEntryForm({
   const [activeLabel, setActiveLabel] = useState<string | null>(null);
   const [showSourcePicker, setShowSourcePicker] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [showVideoCapture, setShowVideoCapture] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -138,6 +140,11 @@ export function EquipmentEntryForm({
     setShowCamera(true);
   };
 
+  const handleSelectVideoCamera = () => {
+    setShowSourcePicker(false);
+    setShowVideoCapture(true);
+  };
+
   const handleSelectGallery = () => {
     setShowSourcePicker(false);
     fileInputRef.current?.click();
@@ -161,6 +168,28 @@ export function EquipmentEntryForm({
         },
       ]);
       setShowCamera(false);
+    },
+    [reporteId, entry.equipo_id, activeLabel]
+  );
+
+  const handleVideoCapture = useCallback(
+    (result: { url: string; fotoId: string }) => {
+      setGeneralPhotos((prev) => [
+        ...prev,
+        {
+          id: result.fotoId,
+          reporte_id: reporteId,
+          equipo_id: entry.equipo_id,
+          reporte_paso_id: null,
+          url: result.url,
+          etiqueta: (activeLabel?.toLowerCase() ?? "antes") as ReporteFoto["etiqueta"],
+          tipo_media: "video" as const,
+          metadata_gps: null,
+          metadata_fecha: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        },
+      ]);
+      setShowVideoCapture(false);
     },
     [reporteId, entry.equipo_id, activeLabel]
   );
@@ -427,7 +456,7 @@ export function EquipmentEntryForm({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,video/*"
         multiple
         className="hidden"
         onChange={handleGalleryFiles}
@@ -438,6 +467,7 @@ export function EquipmentEntryForm({
         <PhotoSourcePicker
           label={activeLabel}
           onSelectCamera={handleSelectCamera}
+          onSelectVideoCamera={handleSelectVideoCamera}
           onSelectGallery={handleSelectGallery}
           onClose={() => {
             setShowSourcePicker(false);
@@ -456,6 +486,21 @@ export function EquipmentEntryForm({
           onCapture={handleCameraCapture}
           onClose={() => {
             setShowCamera(false);
+            setActiveLabel(null);
+          }}
+        />
+      )}
+
+      {/* Video capture fullscreen */}
+      {showVideoCapture && activeLabel && (
+        <VideoCapture
+          label={activeLabel}
+          reporteId={reporteId}
+          equipoId={entry.equipo_id}
+          reportePasoId={null}
+          onCapture={handleVideoCapture}
+          onClose={() => {
+            setShowVideoCapture(false);
             setActiveLabel(null);
           }}
         />

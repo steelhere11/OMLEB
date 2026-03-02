@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 interface PhotoSourcePickerProps {
   label: string;
   onSelectCamera: () => void;
+  onSelectVideoCamera: () => void;
   onSelectGallery: () => void;
   onClose: () => void;
 }
@@ -12,6 +13,7 @@ interface PhotoSourcePickerProps {
 export function PhotoSourcePicker({
   label,
   onSelectCamera,
+  onSelectVideoCamera,
   onSelectGallery,
   onClose,
 }: PhotoSourcePickerProps) {
@@ -47,7 +49,7 @@ export function PhotoSourcePicker({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
           <h3 className="text-base font-semibold text-gray-900">
-            Foto: {label.toUpperCase()}
+            Evidencia: {label.toUpperCase()}
           </h3>
           <button
             onClick={onClose}
@@ -93,6 +95,35 @@ export function PhotoSourcePicker({
             </div>
           </button>
 
+          {/* Video option */}
+          <button
+            onClick={onSelectVideoCamera}
+            className="flex items-center gap-4 rounded-xl border border-gray-200 bg-gray-50 px-4 py-4 transition-colors active:bg-gray-100"
+          >
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-500 text-white">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"
+                />
+              </svg>
+            </div>
+            <div className="text-left">
+              <p className="text-sm font-semibold text-gray-900">Video</p>
+              <p className="text-xs text-gray-500">
+                Grabar video con GPS y fecha
+              </p>
+            </div>
+          </button>
+
           {/* Gallery option */}
           <button
             onClick={onSelectGallery}
@@ -117,7 +148,7 @@ export function PhotoSourcePicker({
             <div className="text-left">
               <p className="text-sm font-semibold text-gray-900">Galeria</p>
               <p className="text-xs text-gray-500">
-                Seleccionar foto existente
+                Seleccionar foto o video
               </p>
             </div>
           </button>

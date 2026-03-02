@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ReadingInput } from "./reading-input";
 import { PhotoSourcePicker } from "@/components/shared/photo-source-picker";
 import { CameraCapture } from "@/components/shared/camera-capture";
+import { VideoCapture } from "@/components/shared/video-capture";
 import { EvidenceStageSection } from "@/components/shared/evidence-stage-section";
 import { getPhotosForStep } from "@/app/actions/fotos";
 import { deletePhotoAction } from "@/app/actions/fotos";
@@ -56,6 +57,7 @@ export function WorkflowStepCard({
   const [activeLabel, setActiveLabel] = useState<string | null>(null);
   const [showSourcePicker, setShowSourcePicker] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [showVideoCapture, setShowVideoCapture] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -120,6 +122,11 @@ export function WorkflowStepCard({
     setShowCamera(true);
   };
 
+  const handleSelectVideoCamera = () => {
+    setShowSourcePicker(false);
+    setShowVideoCapture(true);
+  };
+
   const handleSelectGallery = () => {
     setShowSourcePicker(false);
     fileInputRef.current?.click();
@@ -143,6 +150,28 @@ export function WorkflowStepCard({
         },
       ]);
       setShowCamera(false);
+    },
+    [reporteId, equipoId, savedProgress?.id, activeLabel]
+  );
+
+  const handleVideoCapture = useCallback(
+    (result: { url: string; fotoId: string }) => {
+      setPhotos((prev) => [
+        ...prev,
+        {
+          id: result.fotoId,
+          reporte_id: reporteId,
+          equipo_id: equipoId,
+          reporte_paso_id: savedProgress?.id ?? null,
+          url: result.url,
+          etiqueta: (activeLabel?.toLowerCase() ?? "antes") as ReporteFoto["etiqueta"],
+          tipo_media: "video" as const,
+          metadata_gps: null,
+          metadata_fecha: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        },
+      ]);
+      setShowVideoCapture(false);
     },
     [reporteId, equipoId, savedProgress?.id, activeLabel]
   );
@@ -245,10 +274,10 @@ export function WorkflowStepCard({
           </p>
         </div>
 
-        {/* Photo count indicator */}
+        {/* Media count indicator */}
         {photos.length > 0 && (
           <span className="flex-shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-600">
-            {photos.length} foto{photos.length !== 1 ? "s" : ""}
+            {photos.length} archivo{photos.length !== 1 ? "s" : ""}
           </span>
         )}
 
@@ -363,7 +392,7 @@ export function WorkflowStepCard({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,video/*"
         multiple
         className="hidden"
         onChange={handleGalleryFiles}
@@ -374,6 +403,7 @@ export function WorkflowStepCard({
         <PhotoSourcePicker
           label={activeLabel}
           onSelectCamera={handleSelectCamera}
+          onSelectVideoCamera={handleSelectVideoCamera}
           onSelectGallery={handleSelectGallery}
           onClose={() => {
             setShowSourcePicker(false);
@@ -392,6 +422,21 @@ export function WorkflowStepCard({
           onCapture={handleCameraCapture}
           onClose={() => {
             setShowCamera(false);
+            setActiveLabel(null);
+          }}
+        />
+      )}
+
+      {/* Video capture fullscreen */}
+      {showVideoCapture && activeLabel && (
+        <VideoCapture
+          label={activeLabel}
+          reporteId={reporteId}
+          equipoId={equipoId}
+          reportePasoId={savedProgress?.id ?? null}
+          onCapture={handleVideoCapture}
+          onClose={() => {
+            setShowVideoCapture(false);
             setActiveLabel(null);
           }}
         />
