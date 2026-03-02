@@ -1340,6 +1340,28 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
           </>
         )}
 
+        {/* General Admin Comments */}
+        {(data.comments ?? []).filter((c) => !c.equipo_id).length > 0 && (
+          <>
+            <Text style={s.sectionTitle}>Comentarios del Administrador</Text>
+            {(data.comments ?? [])
+              .filter((c) => !c.equipo_id)
+              .map((c, cIdx) => (
+                <View key={cIdx} style={s.commentBlock}>
+                  <Text style={s.commentText}>{c.contenido}</Text>
+                  <Text style={s.commentMeta}>
+                    — {c.autorNombre},{" "}
+                    {new Date(c.created_at).toLocaleDateString("es-MX", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </Text>
+                </View>
+              ))}
+          </>
+        )}
+
         {/* Signature */}
         {data.firmaBase64 && (
           <>
