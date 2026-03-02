@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 8 (Arrival & Registration Flow)
-Plan: 3 of 5 in current phase
+Plan: 4 of 5 in current phase
 Status: In progress
-Last activity: 2026-03-02 -- Completed 08-03-PLAN.md (Registration UI Components)
+Last activity: 2026-03-02 -- Completed 08-04-PLAN.md (Integration & Page Wiring)
 
-Progress: [=================░░░] 85% (18/21 plans complete)
+Progress: [==================░░] 90% (19/21 plans complete)
 
 ## Performance Metrics
 
 **Velocity (from V1 build + Phase 5.5):**
-- Total plans completed: 18
+- Total plans completed: 19
 - Average duration: ~6 min
-- Total execution time: ~1.9 hours
+- Total execution time: ~2.0 hours
 
 ## Accumulated Context
 
@@ -47,6 +47,8 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | debounced-text-immediate-select | Text inputs save on 800ms debounce, dropdowns/toggles save immediately for responsive UX | 08-03 |
 | yellow-highlight-progressive | Empty fields get yellow highlight instead of red errors -- registration is progressive not form-submit | 08-03 |
 | auto-complete-existing-folio-photo | SiteOverviewSection auto-completes on mount when folio-level site photo exists from previous visit | 08-03 |
+| show-all-phases-completed | Completed reports bypass all gating and show all phases expanded | 08-04 |
+| registration-entries-export-type | RegistrationEntry type exported from page.tsx and imported by report-form.tsx for cross-file type sharing | 08-04 |
 
 ### Pending Todos
 
@@ -78,5 +80,5 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 08-03-PLAN.md (Registration UI Components)
-Resume file: .planning/phases/08-arrival-registration/08-04-PLAN.md
+Stopped at: Completed 08-04-PLAN.md (Integration & Page Wiring)
+Resume file: .planning/phases/08-arrival-registration/08-05-PLAN.md
