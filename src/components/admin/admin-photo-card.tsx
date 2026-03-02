@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import Image from "next/image";
 import type { ReporteFoto, FotoEstatusRevision } from "@/types";
+import { PhotoAnnotator } from "@/components/shared/photo-annotator";
+import { overwriteAnnotatedPhoto } from "@/app/actions/fotos";
 
 // ── Status config ──────────────────────────────────────────────────────────
 
@@ -78,8 +80,11 @@ export function AdminPhotoCard({ foto, onFlag, onDelete }: AdminPhotoCardProps) 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [lightbox, setLightbox] = useState(false);
 
+  const [showAnnotator, setShowAnnotator] = useState(false);
+
   const [flagPending, startFlagTransition] = useTransition();
   const [deletePending, startDeleteTransition] = useTransition();
+  const [annotatePending, startAnnotateTransition] = useTransition();
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
   const isVideo = foto.tipo_media === "video";
@@ -111,6 +116,22 @@ export function AdminPhotoCard({ foto, onFlag, onDelete }: AdminPhotoCardProps) 
   function handleDelete() {
     startDeleteTransition(async () => {
       await onDelete(foto.id);
+    });
+  }
+
+  function handleAnnotateSave(blob: Blob) {
+    startAnnotateTransition(async () => {
+      const formData = new FormData();
+      formData.append("file", blob, "annotated.jpg");
+      const result = await overwriteAnnotatedPhoto(foto.id, formData);
+      setShowAnnotator(false);
+      if (result.success) {
+        setFeedbackMsg("Anotacion guardada");
+        setTimeout(() => setFeedbackMsg(null), 2000);
+      } else {
+        setFeedbackMsg(result.error ?? "Error al guardar");
+        setTimeout(() => setFeedbackMsg(null), 3000);
+      }
     });
   }
 
@@ -150,29 +171,58 @@ export function AdminPhotoCard({ foto, onFlag, onDelete }: AdminPhotoCardProps) 
             {config.label}
           </span>
 
-          {/* Delete button overlay */}
-          <button
-            type="button"
-            onClick={() => setShowDeleteConfirm(true)}
-            disabled={deletePending}
-            className="absolute left-1.5 top-1.5 rounded bg-black/50 p-1 text-white transition-colors hover:bg-red-600 disabled:opacity-50"
-            title="Eliminar foto"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-3.5 w-3.5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
+          {/* Action buttons overlay */}
+          <div className="absolute left-1.5 top-1.5 flex items-center gap-1">
+            {/* Delete button */}
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={deletePending}
+              className="rounded bg-black/50 p-1 text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+              title="Eliminar foto"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-          </button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-3.5 w-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+            </button>
+
+            {/* Annotate button (photos only) */}
+            {!isVideo && (
+              <button
+                type="button"
+                onClick={() => setShowAnnotator(true)}
+                disabled={annotatePending}
+                className="rounded bg-black/50 p-1 text-white transition-colors hover:bg-blue-600 disabled:opacity-50"
+                title="Anotar foto"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-3.5 w-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Info & controls */}
@@ -283,6 +333,15 @@ export function AdminPhotoCard({ foto, onFlag, onDelete }: AdminPhotoCardProps) 
           </div>
         )}
       </div>
+
+      {/* Annotator */}
+      {showAnnotator && !isVideo && (
+        <PhotoAnnotator
+          imageUrl={foto.url}
+          onSave={handleAnnotateSave}
+          onCancel={() => setShowAnnotator(false)}
+        />
+      )}
 
       {/* Lightbox */}
       {lightbox && (
