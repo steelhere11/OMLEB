@@ -550,6 +550,35 @@ const s = StyleSheet.create({
     color: GRAY_700,
     flex: 1,
   },
+  // Comments
+  commentsSection: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  commentsTitle: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: GRAY_500,
+    textTransform: "uppercase" as const,
+    letterSpacing: 0.4,
+    marginBottom: 4,
+  },
+  commentBlock: {
+    marginBottom: 4,
+    paddingLeft: 8,
+    borderLeftWidth: 2,
+    borderLeftColor: AMBER,
+  },
+  commentText: {
+    fontSize: 8,
+    color: GRAY_700,
+    lineHeight: 1.4,
+  },
+  commentMeta: {
+    fontSize: 6,
+    color: GRAY_500,
+    marginTop: 1,
+  },
   // Footer
   footer: {
     position: "absolute" as const,
@@ -1132,12 +1161,16 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
               ).length;
               const totalCount = entry.steps.length;
               const hasSteps = totalCount > 0;
+              const equipComments = (data.comments ?? []).filter(
+                (c) => c.equipo_id === entry.equipo.id
+              );
               const hasAnyContent =
                 hasSteps ||
                 entry.diagnostico ||
                 entry.trabajo_realizado ||
                 entry.observaciones ||
-                entry.orphanPhotosBase64.length > 0;
+                entry.orphanPhotosBase64.length > 0 ||
+                equipComments.length > 0;
 
               return (
                 <View key={idx} style={s.equipCard} wrap={true}>
@@ -1241,6 +1274,26 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                           </View>
                         ))}
                       </View>
+                    </View>
+                  )}
+
+                  {/* Admin comments for this equipment */}
+                  {equipComments.length > 0 && (
+                    <View style={s.commentsSection}>
+                      <Text style={s.commentsTitle}>Comentarios del Administrador</Text>
+                      {equipComments.map((c, cIdx) => (
+                        <View key={cIdx} style={s.commentBlock}>
+                          <Text style={s.commentText}>{c.contenido}</Text>
+                          <Text style={s.commentMeta}>
+                            — {c.autorNombre},{" "}
+                            {new Date(c.created_at).toLocaleDateString("es-MX", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </Text>
+                        </View>
+                      ))}
                     </View>
                   )}
                 </View>
