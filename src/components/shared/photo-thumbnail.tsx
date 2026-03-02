@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import Image from "next/image";
 import type { ReporteFoto } from "@/types";
 import { reverseGeocode } from "@/lib/gps";
+import { PhotoAnnotator } from "@/components/shared/photo-annotator";
+import { overwriteAnnotatedPhoto } from "@/app/actions/fotos";
 
 interface PhotoThumbnailProps {
   foto: ReporteFoto;
@@ -34,9 +36,28 @@ export function PhotoThumbnail({
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [addressLines, setAddressLines] = useState<string[]>([]);
+  const [showAnnotator, setShowAnnotator] = useState(false);
+  const [annotatePending, startAnnotateTransition] = useTransition();
+  const [annotateMsg, setAnnotateMsg] = useState<string | null>(null);
 
   const colors = etapaColors[foto.etiqueta ?? ""] ?? etapaColors.antes;
   const isVideo = isVideoMedia(foto);
+
+  function handleAnnotateSave(blob: Blob) {
+    startAnnotateTransition(async () => {
+      const formData = new FormData();
+      formData.append("file", blob, "annotated.jpg");
+      const result = await overwriteAnnotatedPhoto(foto.id, formData);
+      setShowAnnotator(false);
+      if (result.success) {
+        setAnnotateMsg("Anotacion guardada");
+        setTimeout(() => setAnnotateMsg(null), 2000);
+      } else {
+        setAnnotateMsg(result.error ?? "Error");
+        setTimeout(() => setAnnotateMsg(null), 3000);
+      }
+    });
+  }
 
   // Reverse-geocode GPS coordinates when lightbox opens for a video
   useEffect(() => {
@@ -293,30 +314,62 @@ export function PhotoThumbnail({
             </div>
           )}
 
-          {/* Delete button */}
-          {onDelete && !disabled && !showConfirm && (
-            <div className="absolute bottom-8 inset-x-0 flex justify-center">
-              <button
-                type="button"
-                onClick={() => setShowConfirm(true)}
-                className="flex items-center gap-2 rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg active:bg-red-700"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
+          {/* Action buttons */}
+          {!showConfirm && (
+            <div className="absolute bottom-8 inset-x-0 flex justify-center gap-3">
+              {/* Annotate button (photos only) */}
+              {!isVideo && !disabled && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowLightbox(false);
+                    setShowAnnotator(true);
+                  }}
+                  disabled={annotatePending}
+                  className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg active:bg-blue-700 disabled:opacity-50"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-                Eliminar
-              </button>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                    />
+                  </svg>
+                  Anotar
+                </button>
+              )}
+
+              {/* Delete button */}
+              {onDelete && !disabled && (
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(true)}
+                  className="flex items-center gap-2 rounded-xl bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-lg active:bg-red-700"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                  Eliminar
+                </button>
+              )}
             </div>
           )}
 
@@ -347,6 +400,22 @@ export function PhotoThumbnail({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Annotator */}
+      {showAnnotator && !isVideo && (
+        <PhotoAnnotator
+          imageUrl={foto.url}
+          onSave={handleAnnotateSave}
+          onCancel={() => setShowAnnotator(false)}
+        />
+      )}
+
+      {/* Annotate feedback toast */}
+      {annotateMsg && (
+        <div className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow-lg">
+          {annotateMsg}
         </div>
       )}
     </>
