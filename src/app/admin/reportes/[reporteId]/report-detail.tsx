@@ -10,6 +10,7 @@ import {
   adminUpdateReportStatus,
   approveReport,
 } from "@/app/actions/reportes";
+import { ReporteDeleteButton } from "@/components/admin/reporte-delete-button";
 
 const ReportPdfButton = dynamic(
   () => import("@/components/admin/report-pdf-button"),
@@ -261,6 +262,14 @@ export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
               Aprobado
             </span>
           )}
+          <ReporteDeleteButton
+            reporteId={reporte.id}
+            reporteLabel={`${folio?.numero_folio ?? "—"} - ${new Date(reporte.fecha).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}`}
+            photoCount={reporte.reporte_fotos.length}
+            equipmentCount={reporte.reporte_equipos.length}
+            materialCount={reporte.reporte_materiales.length}
+            redirectTo="/admin/reportes"
+          />
         </div>
       </div>
 

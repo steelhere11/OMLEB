@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { ReporteEstatus } from "@/types";
 import { ReportFilters } from "@/components/admin/report-filters";
+import { ReporteDeleteButton } from "@/components/admin/reporte-delete-button";
 
 type ReporteWithRelations = {
   id: string;
@@ -12,6 +13,7 @@ type ReporteWithRelations = {
   folios: { numero_folio: string; descripcion_problema: string; clientes: { nombre: string } | null } | null;
   sucursales: { nombre: string; numero: string } | null;
   users: { nombre: string; rol: string } | null;
+  reporte_fotos: { id: string }[];
 };
 
 const statusConfig: Record<ReporteEstatus, { label: string; className: string }> = {
@@ -46,7 +48,7 @@ export default async function ReportesPage({
   let query = supabase
     .from("reportes")
     .select(
-      "id, fecha, estatus, finalizado_por_admin, created_at, folios(numero_folio, descripcion_problema, clientes(nombre)), sucursales(nombre, numero), users:creado_por(nombre, rol)"
+      "id, fecha, estatus, finalizado_por_admin, created_at, folios(numero_folio, descripcion_problema, clientes(nombre)), sucursales(nombre, numero), users:creado_por(nombre, rol), reporte_fotos(id)"
     )
     .order("fecha", { ascending: false });
 
@@ -105,7 +107,7 @@ export default async function ReportesPage({
               <div className="w-[120px]">Creado por</div>
               <div className="w-[100px]">Estatus</div>
               <div className="w-[80px]">Aprobado</div>
-              <div className="flex-1 text-right">Acciones</div>
+              <div className="w-[140px] text-right">Acciones</div>
             </div>
 
             {/* Data rows */}
@@ -157,13 +159,18 @@ export default async function ReportesPage({
                       <span className="text-[13px] text-text-3">—</span>
                     )}
                   </div>
-                  <div className="flex-1 text-right">
+                  <div className="flex w-[140px] items-center justify-end gap-3">
                     <Link
                       href={`/admin/reportes/${reporte.id}`}
                       className="text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
                     >
                       Ver →
                     </Link>
+                    <ReporteDeleteButton
+                      reporteId={reporte.id}
+                      reporteLabel={`${reporte.folios?.numero_folio ?? "—"} - ${new Date(reporte.fecha).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}`}
+                      photoCount={reporte.reporte_fotos?.length ?? 0}
+                    />
                   </div>
                 </div>
               );
