@@ -306,8 +306,8 @@ const s = StyleSheet.create({
     marginTop: 1,
   },
   stepNameText: {
-    fontSize: 9,
-    fontWeight: 500,
+    fontSize: 9.5,
+    fontWeight: 600,
     color: GRAY_900,
     flex: 1,
   },
@@ -806,7 +806,6 @@ function StepBlock({ step }: { step: PdfStepData }) {
   return (
     <View style={s.stepBlock} wrap={true}>
       <View style={s.stepHeaderRow}>
-        <Text style={[s.stepCheckIcon, { color: GREEN }]}>{"\u2713"}</Text>
         <Text style={s.stepNameText}>{step.nombre}</Text>
       </View>
 
@@ -834,22 +833,31 @@ function StepBlock({ step }: { step: PdfStepData }) {
 function ChecklistSummary({ steps }: { steps: PdfStepData[] }) {
   if (steps.length === 0) return null;
   return (
-    <View style={{ marginTop: 8 }} wrap={false}>
+    <View style={{ marginTop: 8, paddingHorizontal: 8 }} wrap={false}>
       <Text
         style={{
-          fontSize: 9,
+          fontSize: 7,
           fontWeight: 700,
-          color: GRAY_700,
+          color: GRAY_500,
           marginBottom: 4,
+          textTransform: "uppercase",
+          letterSpacing: 0.5,
         }}
       >
         Verificaciones completadas
       </Text>
-      <View style={{ flexDirection: "column", gap: 2 }}>
+      <View style={{ flexDirection: "column" }}>
         {steps.map((step) => (
           <View
             key={step.id}
-            style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 4,
+              paddingVertical: 3,
+              borderBottomWidth: 1,
+              borderBottomColor: GRAY_100,
+            }}
           >
             <Text style={{ fontSize: 8, color: GREEN }}>{"\u2713"}</Text>
             <Text style={{ fontSize: 8, color: GRAY_700 }}>{step.nombre}</Text>
@@ -1228,7 +1236,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
 
                   {/* Steps — only completed, split into detailed vs checklist */}
                   {(() => {
-                    const completed = entry.steps.filter((st) => st.completado);
+                    const completed = entry.steps.filter((st) => st.completado).sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
                     const templateDetailed = completed.filter((st) => !st.isCustom && stepHasContent(st));
                     const templateChecklist = completed.filter((st) => !st.isCustom && !stepHasContent(st));
                     const customSteps = completed.filter((st) => st.isCustom);
@@ -1246,16 +1254,36 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                         {/* Custom steps */}
                         {customSteps.length > 0 && (
                           <View style={{ marginTop: 8 }}>
-                            <Text
-                              style={{
-                                fontSize: 9,
-                                fontWeight: 700,
-                                color: GRAY_700,
-                                marginBottom: 4,
-                              }}
-                            >
-                              Pasos adicionales
-                            </Text>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                              <View
+                                style={{
+                                  backgroundColor: "#ede9fe",
+                                  paddingHorizontal: 5,
+                                  paddingVertical: 2,
+                                  borderRadius: 3,
+                                }}
+                              >
+                                <Text
+                                  style={{
+                                    fontSize: 7,
+                                    fontWeight: 700,
+                                    color: "#7c3aed",
+                                    textTransform: "uppercase",
+                                  }}
+                                >
+                                  ADICIONAL
+                                </Text>
+                              </View>
+                              <Text
+                                style={{
+                                  fontSize: 9,
+                                  fontWeight: 700,
+                                  color: GRAY_700,
+                                }}
+                              >
+                                Pasos adicionales
+                              </Text>
+                            </View>
                             {customSteps.map((step) => (
                               <StepBlock key={step.id} step={step} />
                             ))}

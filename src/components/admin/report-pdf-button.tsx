@@ -238,7 +238,10 @@ export default function ReportPdfButton({
               arr.push(photo);
               stepPhotosMap.set(photo.reportePasoId, arr);
             } else {
-              orphanPhotos.push(photo);
+              const regLabels = ["placa", "equipo_general"];
+              if (!regLabels.includes(photo.etiqueta ?? "")) {
+                orphanPhotos.push(photo);
+              }
             }
           }
 
