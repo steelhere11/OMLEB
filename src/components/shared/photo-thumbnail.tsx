@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import type { ReporteFoto } from "@/types";
+import { reverseGeocode } from "@/lib/gps";
 
 interface PhotoThumbnailProps {
   foto: ReporteFoto;
@@ -32,9 +33,19 @@ export function PhotoThumbnail({
   const [showLightbox, setShowLightbox] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [addressLines, setAddressLines] = useState<string[]>([]);
 
   const colors = etapaColors[foto.etiqueta ?? ""] ?? etapaColors.antes;
   const isVideo = isVideoMedia(foto);
+
+  // Reverse-geocode GPS coordinates when lightbox opens for a video
+  useEffect(() => {
+    if (!showLightbox || !isVideo || !foto.metadata_gps) return;
+    const parts = foto.metadata_gps.split(",").map(Number);
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      reverseGeocode(parts[0], parts[1]).then(setAddressLines);
+    }
+  }, [showLightbox, isVideo, foto.metadata_gps]);
 
   const handleDelete = async () => {
     if (!onDelete) return;
@@ -168,9 +179,15 @@ export function PhotoThumbnail({
 
           {/* Metadata overlay for videos (photos have it burned into the image) */}
           {isVideo && (foto.metadata_fecha || foto.metadata_gps) && (
-            <div className="absolute bottom-20 right-4 z-10 rounded-lg bg-black/60 px-3 py-2 text-right">
+            <div
+              className="pointer-events-none absolute bottom-20 right-4 z-10 text-right"
+              style={{
+                textShadow:
+                  "-1px -1px 0 rgba(0,0,0,0.85), 1px -1px 0 rgba(0,0,0,0.85), -1px 1px 0 rgba(0,0,0,0.85), 1px 1px 0 rgba(0,0,0,0.85), 0 0 4px rgba(0,0,0,0.5)",
+              }}
+            >
               {foto.metadata_fecha && (
-                <p className="text-xs font-bold text-white">
+                <p className="text-sm font-bold leading-snug text-white">
                   {new Date(foto.metadata_fecha).toLocaleDateString("es-MX", {
                     day: "2-digit",
                     month: "short",
@@ -183,11 +200,17 @@ export function PhotoThumbnail({
                   })}
                 </p>
               )}
-              {foto.metadata_gps && (
-                <p className="text-[10px] font-medium text-white/80">
-                  GPS: {foto.metadata_gps}
-                </p>
-              )}
+              {addressLines.length > 0
+                ? addressLines.map((line, i) => (
+                    <p key={i} className="text-sm font-bold leading-snug text-white">
+                      {line}
+                    </p>
+                  ))
+                : foto.metadata_gps && (
+                    <p className="text-sm font-bold leading-snug text-white">
+                      GPS: {foto.metadata_gps}
+                    </p>
+                  )}
             </div>
           )}
 
