@@ -253,8 +253,8 @@ Plans:
 **Plans:** 7 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — Database migration + types (reporte_revisiones, revision_actual, nombre_custom, etiqueta constraint)
-- [ ] 10-02-PLAN.md — Report revision system (server actions, UI, revision history panel)
+- [x] 10-01-PLAN.md — Database migration + types (reporte_revisiones, revision_actual, nombre_custom, etiqueta constraint)
+- [x] 10-02-PLAN.md — Report revision system (server actions, UI, revision history panel)
 - [x] 10-03-PLAN.md — PDF comment-photo pairing (notes below photos, admin comments in PDF)
 - [ ] 10-04-PLAN.md — Photo annotation component (canvas drawing, text labels, arrows, overwrite-in-place)
 - [ ] 10-05-PLAN.md — Fan coil equipment type + workflow seeds (10 preventive steps, 11 corrective issues)
