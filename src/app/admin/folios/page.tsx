@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Folio, FolioEstatus } from "@/types";
+import { FolioDeleteButton } from "@/components/admin/folio-delete-button";
 
 type FolioWithRelations = Folio & {
   sucursales: { nombre: string; numero: string } | null;
@@ -9,6 +10,7 @@ type FolioWithRelations = Folio & {
     usuario_id: string;
     users: { nombre: string; rol: string } | null;
   }[];
+  reportes: { id: string }[];
 };
 
 const statusConfig: Record<
@@ -39,7 +41,7 @@ export default async function FoliosPage() {
   const { data: folios } = await supabase
     .from("folios")
     .select(
-      "*, sucursales(nombre, numero), clientes(nombre), folio_asignados(usuario_id, users(nombre, rol))"
+      "*, sucursales(nombre, numero), clientes(nombre), folio_asignados(usuario_id, users(nombre, rol)), reportes(id)"
     )
     .order("created_at", { ascending: false });
 
@@ -85,7 +87,7 @@ export default async function FoliosPage() {
               <div className="w-[100px]">Estatus</div>
               <div className="w-[80px]">Equipo</div>
               <div className="flex-1">Fecha</div>
-              <div className="w-[90px] text-right">Acciones</div>
+              <div className="w-[140px] text-right">Acciones</div>
             </div>
 
             {/* Data rows */}
@@ -124,13 +126,18 @@ export default async function FoliosPage() {
                       year: "numeric",
                     })}
                   </div>
-                  <div className="w-[90px] text-right">
+                  <div className="flex w-[140px] items-center justify-end gap-3">
                     <Link
                       href={`/admin/folios/${folio.id}`}
                       className="text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
                     >
                       Ver →
                     </Link>
+                    <FolioDeleteButton
+                      folioId={folio.id}
+                      folioLabel={folio.numero_folio}
+                      reportCount={folio.reportes?.length ?? 0}
+                    />
                   </div>
                 </div>
               );

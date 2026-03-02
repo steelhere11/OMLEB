@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Folio, FolioEstatus, Equipo, ReporteEstatus } from "@/types";
+import { FolioDeleteButton } from "@/components/admin/folio-delete-button";
 
 type FolioDetail = Folio & {
   sucursales: { nombre: string; numero: string } | null;
@@ -94,6 +95,17 @@ export default async function FolioDetailPage({
 
   const reporteList = (reportes as unknown as ReporteSummary[] | null) ?? [];
 
+  // Count photos across all reports for impact summary
+  let photoCount = 0;
+  if (reporteList.length > 0) {
+    const reporteIds = reporteList.map((r) => r.id);
+    const { count } = await supabase
+      .from("reporte_fotos")
+      .select("id", { count: "exact", head: true })
+      .in("reporte_id", reporteIds);
+    photoCount = count ?? 0;
+  }
+
   const status = statusConfig[typedFolio.estatus] ?? statusConfig.abierto;
 
   return (
@@ -147,6 +159,13 @@ export default async function FolioDetailPage({
           >
             Editar
           </Link>
+          <FolioDeleteButton
+            folioId={id}
+            folioLabel={typedFolio.numero_folio}
+            reportCount={reporteList.length}
+            photoCount={photoCount}
+            redirectTo="/admin/folios"
+          />
         </div>
       </div>
 
