@@ -320,7 +320,7 @@ export function ReportForm({
         />
       </PhaseGate>
 
-      {/* ======== PHASE 1: Panoramica del Sitio (locked until arrival) ======== */}
+      {/* ======== PHASE 1: Panoramica del Sitio (unlocked after arrival) ======== */}
       <PhaseGate
         isLocked={!showAllPhases && !arrivalDone}
         lockMessage="Completa la foto de llegada primero"
@@ -338,13 +338,14 @@ export function ReportForm({
         />
       </PhaseGate>
 
-      {/* ======== PHASE 2: Registro de Equipos (locked until site) ======== */}
+      {/* ======== PHASE 2: Registro de Equipos (soft — unlocked after arrival) ======== */}
       <PhaseGate
-        isLocked={!showAllPhases && !siteDone}
-        lockMessage="Completa la foto panoramica primero"
+        isLocked={!showAllPhases && !arrivalDone}
+        lockMessage="Completa la foto de llegada primero"
         title="Registro de Equipos"
         phaseNumber={3}
         isComplete={showAllPhases ? true : registrationDone}
+        softWarning={!siteDone ? "Recomendado: toma la foto panoramica del sitio" : undefined}
       >
         <EquipmentRegistrationSection
           reporteId={reporteId}
@@ -353,13 +354,14 @@ export function ReportForm({
         />
       </PhaseGate>
 
-      {/* ======== PHASE 3: Mantenimiento (locked until all equipment registered) ======== */}
+      {/* ======== PHASE 3: Mantenimiento (soft — unlocked after arrival) ======== */}
       <PhaseGate
-        isLocked={!showAllPhases && !registrationDone}
-        lockMessage="Completa el registro de todos los equipos primero"
+        isLocked={!showAllPhases && !arrivalDone}
+        lockMessage="Completa la foto de llegada primero"
         title="Mantenimiento"
         phaseNumber={4}
         isComplete={showAllPhases ? true : false}
+        softWarning={!registrationDone ? "Recomendado: completa el registro de equipos" : undefined}
       >
         {/* Equipment Section */}
         <EquipmentSection
