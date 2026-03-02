@@ -21,7 +21,7 @@ export default async function ReporteDetailPage({
       users:creado_por(nombre, rol),
       reporte_equipos(
         *,
-        equipos(numero_etiqueta, marca, modelo, numero_serie, tipo_equipo, capacidad, refrigerante, voltaje, fase, ubicacion),
+        equipos(id, numero_etiqueta, marca, modelo, numero_serie, tipo_equipo, tipo_equipo_id, capacidad, refrigerante, voltaje, fase, ubicacion),
         reporte_pasos(*, plantillas_pasos(nombre, procedimiento, lecturas_requeridas), fallas_correctivas(nombre, diagnostico))
       ),
       reporte_fotos(*),
@@ -55,11 +55,17 @@ export default async function ReporteDetailPage({
     );
   }
 
-  // Fetch team members for this folio
-  const { data: asignados } = await supabase
-    .from("folio_asignados")
-    .select("usuario_id, users(nombre, rol)")
-    .eq("folio_id", reporte.folio_id);
+  // Fetch team members and tipos_equipo in parallel
+  const [{ data: asignados }, { data: tiposEquipo }] = await Promise.all([
+    supabase
+      .from("folio_asignados")
+      .select("usuario_id, users(nombre, rol)")
+      .eq("folio_id", reporte.folio_id),
+    supabase
+      .from("tipos_equipo")
+      .select("id, slug, nombre, is_system, created_at")
+      .order("nombre"),
+  ]);
 
   const teamMembers =
     (asignados as { usuario_id: string; users: { nombre: string; rol: string } | null }[] | null) ??
@@ -74,7 +80,7 @@ export default async function ReporteDetailPage({
         ← Reportes
       </Link>
 
-      <ReportDetail reporte={reporte} teamMembers={teamMembers} />
+      <ReportDetail reporte={reporte} teamMembers={teamMembers} tiposEquipo={tiposEquipo ?? []} />
     </div>
   );
 }

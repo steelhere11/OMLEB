@@ -2,18 +2,22 @@
 
 import { useState, useActionState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import type { ReporteEstatus, TipoTrabajo, FotoEtiqueta, FotoEstatusRevision } from "@/types";
+import type { ReporteEstatus, TipoTrabajo, FotoEtiqueta, FotoEstatusRevision, TipoEquipo } from "@/types";
 import dynamic from "next/dynamic";
 import {
   adminUpdateEquipmentEntry,
   adminSaveMaterials,
   adminUpdateReportStatus,
   approveReport,
+  adminUpdateStep,
+  adminUpdateEquipmentInfo,
 } from "@/app/actions/reportes";
 import { adminFlagPhoto, adminDeletePhoto } from "@/app/actions/fotos";
 import { ReporteDeleteButton } from "@/components/admin/reporte-delete-button";
 import { AdminPhotoCard } from "@/components/admin/admin-photo-card";
 import { AdminPhotoUpload } from "@/components/admin/admin-photo-upload";
+import { AdminStepEditor } from "@/components/admin/admin-step-editor";
+import { AdminEquipmentInfoEditor } from "@/components/admin/admin-equipment-info-editor";
 
 const ReportPdfButton = dynamic(
   () => import("@/components/admin/report-pdf-button"),
@@ -36,11 +40,13 @@ interface ReporteEquipoData {
   trabajo_realizado: string | null;
   observaciones: string | null;
   equipos: {
+    id: string;
     numero_etiqueta: string;
     marca: string | null;
     modelo: string | null;
     numero_serie: string | null;
     tipo_equipo: string | null;
+    tipo_equipo_id: string | null;
     capacidad: string | null;
     refrigerante: string | null;
     voltaje: string | null;
@@ -127,6 +133,7 @@ interface TeamMember {
 export interface ReportDetailProps {
   reporte: ReporteData;
   teamMembers: TeamMember[];
+  tiposEquipo: TipoEquipo[];
 }
 
 // ---------- Status config ----------
@@ -181,7 +188,7 @@ function formatRol(rol: string): string {
 
 // ---------- Component ----------
 
-export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
+export function ReportDetail({ reporte, teamMembers, tiposEquipo }: ReportDetailProps) {
   const router = useRouter();
   const status = statusConfig[reporte.estatus] ?? statusConfig.en_progreso;
   const folio = reporte.folios;
@@ -191,6 +198,8 @@ export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
   // Edit state
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [editingMaterials, setEditingMaterials] = useState(false);
+  const [editingStepId, setEditingStepId] = useState<string | null>(null);
+  const [editingEquipoId, setEditingEquipoId] = useState<string | null>(null);
   const [currentEstatus, setCurrentEstatus] = useState<ReporteEstatus>(reporte.estatus);
   const [statusPending, startStatusTransition] = useTransition();
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
@@ -379,6 +388,15 @@ export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
                 onFlagPhoto={handleFlagPhoto}
                 onDeletePhoto={handleDeletePhoto}
                 reporteId={reporte.id}
+                editingStepId={editingStepId}
+                onEditStep={(stepId) => setEditingStepId(stepId)}
+                onCancelEditStep={() => setEditingStepId(null)}
+                onStepSaved={() => { setEditingStepId(null); router.refresh(); }}
+                editingEquipoId={editingEquipoId}
+                onEditEquipo={(equipoId) => setEditingEquipoId(equipoId)}
+                onCancelEditEquipo={() => setEditingEquipoId(null)}
+                onEquipoSaved={() => { setEditingEquipoId(null); router.refresh(); }}
+                tiposEquipo={tiposEquipo}
               />
             ))}
           </div>
@@ -923,6 +941,15 @@ function EquipmentCard({
   onFlagPhoto,
   onDeletePhoto,
   reporteId,
+  editingStepId,
+  onEditStep,
+  onCancelEditStep,
+  onStepSaved,
+  editingEquipoId,
+  onEditEquipo,
+  onCancelEditEquipo,
+  onEquipoSaved,
+  tiposEquipo,
 }: {
   entry: ReporteEquipoData;
   photos: ReporteFotoData[];
@@ -933,9 +960,19 @@ function EquipmentCard({
   onFlagPhoto: (fotoId: string, estatus: FotoEstatusRevision, nota?: string) => Promise<void>;
   onDeletePhoto: (fotoId: string) => Promise<void>;
   reporteId: string;
+  editingStepId: string | null;
+  onEditStep: (stepId: string) => void;
+  onCancelEditStep: () => void;
+  onStepSaved: () => void;
+  editingEquipoId: string | null;
+  onEditEquipo: (equipoId: string) => void;
+  onCancelEditEquipo: () => void;
+  onEquipoSaved: () => void;
+  tiposEquipo: TipoEquipo[];
 }) {
   const equipo = entry.equipos;
   const tipoConfig = tipoTrabajoConfig[entry.tipo_trabajo] ?? tipoTrabajoConfig.preventivo;
+  const isEditingThisEquipo = equipo?.id ? editingEquipoId === equipo.id : false;
 
   return (
     <div className="rounded-[10px] border border-admin-border bg-admin-surface p-4">
@@ -955,19 +992,30 @@ function EquipmentCard({
           </span>
         )}
         <div className="flex-1" />
-        {!isEditing && (
-          <button
-            type="button"
-            onClick={onEdit}
-            className="text-[12px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
-          >
-            Editar
-          </button>
+        {!isEditing && !isEditingThisEquipo && (
+          <div className="flex items-center gap-2">
+            {equipo?.id && (
+              <button
+                type="button"
+                onClick={() => onEditEquipo(equipo.id)}
+                className="text-[12px] font-medium text-text-2 transition-colors duration-[80ms] hover:text-accent"
+              >
+                Editar equipo
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onEdit}
+              className="text-[12px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
+            >
+              Editar
+            </button>
+          </div>
         )}
       </div>
 
       {/* Serial and type info */}
-      {(equipo?.numero_serie || equipo?.tipo_equipo) && (
+      {!isEditingThisEquipo && (equipo?.numero_serie || equipo?.tipo_equipo) && (
         <div className="mb-3 flex flex-wrap gap-4 text-[12px] text-text-2">
           {equipo?.numero_serie && (
             <span>No. Serie: {equipo.numero_serie}</span>
@@ -976,6 +1024,31 @@ function EquipmentCard({
             <span>Tipo: {equipo.tipo_equipo}</span>
           )}
         </div>
+      )}
+
+      {/* Inline equipment info editor */}
+      {isEditingThisEquipo && equipo && (
+        <AdminEquipmentInfoEditor
+          equipo={{
+            id: equipo.id,
+            marca: equipo.marca,
+            modelo: equipo.modelo,
+            numero_serie: equipo.numero_serie,
+            tipo_equipo_id: equipo.tipo_equipo_id,
+            capacidad: equipo.capacidad,
+            refrigerante: equipo.refrigerante,
+            voltaje: equipo.voltaje,
+            fase: equipo.fase,
+            ubicacion: equipo.ubicacion,
+          }}
+          tiposEquipo={tiposEquipo}
+          onSave={async (data) => {
+            const result = await adminUpdateEquipmentInfo(equipo.id, data);
+            if (result.error) throw new Error(result.error);
+            onEquipoSaved();
+          }}
+          onCancel={onCancelEditEquipo}
+        />
       )}
 
       {isEditing ? (
@@ -1027,6 +1100,10 @@ function EquipmentCard({
                   stagePhotos={photosByStep.get(paso.id) ?? []}
                   onFlagPhoto={onFlagPhoto}
                   onDeletePhoto={onDeletePhoto}
+                  isEditing={editingStepId === paso.id}
+                  onEdit={() => onEditStep(paso.id)}
+                  onCancelEdit={onCancelEditStep}
+                  onSaved={onStepSaved}
                 />
               ))}
             </div>
@@ -1262,11 +1339,19 @@ function StepRow({
   stagePhotos = [],
   onFlagPhoto,
   onDeletePhoto,
+  isEditing,
+  onEdit,
+  onCancelEdit,
+  onSaved,
 }: {
   paso: ReportePasoData;
   stagePhotos?: ReporteFotoData[];
   onFlagPhoto: (fotoId: string, estatus: FotoEstatusRevision, nota?: string) => Promise<void>;
   onDeletePhoto: (fotoId: string) => Promise<void>;
+  isEditing: boolean;
+  onEdit: () => void;
+  onCancelEdit: () => void;
+  onSaved: () => void;
 }) {
   const name =
     paso.plantillas_pasos?.nombre ??
@@ -1291,6 +1376,17 @@ function StepRow({
 
   return (
     <div className="rounded-[6px] border border-admin-border-subtle px-3 py-2">
+      {isEditing ? (
+        <AdminStepEditor
+          paso={paso}
+          onSave={async (data) => {
+            const result = await adminUpdateStep(paso.id, data);
+            if (result.error) throw new Error(result.error);
+            onSaved();
+          }}
+          onCancel={onCancelEdit}
+        />
+      ) : (
       <div className="flex items-start gap-2">
         {/* Completado indicator */}
         <div className="mt-0.5 shrink-0">
@@ -1311,7 +1407,16 @@ function StepRow({
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-medium text-text-0">{name}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-[13px] font-medium text-text-0">{name}</p>
+            <button
+              type="button"
+              onClick={onEdit}
+              className="shrink-0 text-[11px] font-medium text-text-3 transition-colors duration-[80ms] hover:text-accent"
+            >
+              Editar
+            </button>
+          </div>
 
           {/* Readings */}
           {readings.length > 0 && (
@@ -1332,6 +1437,7 @@ function StepRow({
           )}
         </div>
       </div>
+      )}
 
       {/* Inline photos grouped by stage */}
       {sortedStages.length > 0 && (
