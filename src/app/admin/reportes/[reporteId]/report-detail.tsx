@@ -67,6 +67,7 @@ interface ReportePasoData {
   notas: string | null;
   lecturas: Record<string, number | string>;
   completed_at: string | null;
+  nombre_custom: string | null;
   plantillas_pasos: {
     nombre: string;
     procedimiento: string;
@@ -699,12 +700,14 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                 nombre:
                   paso.plantillas_pasos?.nombre ??
                   paso.fallas_correctivas?.nombre ??
+                  paso.nombre_custom ??
                   "Paso",
                 completado: paso.completado,
                 notas: paso.notas,
                 lecturas: paso.lecturas ?? null,
                 lecturas_meta:
                   paso.plantillas_pasos?.lecturas_requeridas ?? null,
+                isCustom: !paso.plantillas_pasos && !paso.fallas_correctivas && !!paso.nombre_custom,
               })),
               photos: (photosByEquipo.get(entry.equipo_id) ?? []).map(
                 (foto) => ({
@@ -1473,9 +1476,11 @@ function StepRow({
   onCancelEdit: () => void;
   onSaved: () => void;
 }) {
+  const isCustom = !paso.plantillas_pasos && !paso.fallas_correctivas && !!paso.nombre_custom;
   const name =
     paso.plantillas_pasos?.nombre ??
     paso.fallas_correctivas?.nombre ??
+    paso.nombre_custom ??
     "Paso";
 
   const readings = Object.entries(paso.lecturas ?? {});
@@ -1529,6 +1534,11 @@ function StepRow({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-[13px] font-medium text-text-0">{name}</p>
+            {isCustom && (
+              <span className="shrink-0 rounded-full bg-purple-100 px-1.5 py-0.5 text-[10px] font-semibold text-purple-700">
+                Personalizado
+              </span>
+            )}
             <button
               type="button"
               onClick={onEdit}

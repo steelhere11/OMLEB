@@ -26,6 +26,7 @@ export interface PdfStepData {
     rango_max: number | null;
   }> | null;
   photosBase64: PhotoBase64[];
+  isCustom?: boolean;
 }
 
 export interface PdfRegistrationEntry {
@@ -794,9 +795,11 @@ function StepPhotoGrid({ photos }: { photos: PhotoBase64[] }) {
 function StepBlock({
   step,
   stepNumber,
+  labelPrefix = "Paso",
 }: {
   step: PdfStepData;
   stepNumber: number;
+  labelPrefix?: string;
 }) {
   const hasContent =
     step.photosBase64.length > 0 ||
@@ -810,7 +813,7 @@ function StepBlock({
         <View style={s.stepHeaderRow}>
           <Text style={[s.stepCheckIcon, { color: GREEN }]}>{"\u2713"}</Text>
           <Text style={s.stepNameText}>
-            Paso {stepNumber}: {step.nombre} — Completado
+            {labelPrefix} {stepNumber}: {step.nombre} — Completado
           </Text>
         </View>
       </View>
@@ -824,7 +827,7 @@ function StepBlock({
         <View style={s.stepHeaderRow}>
           <Text style={[s.stepCheckIcon, { color: RED }]}>{"\u2717"}</Text>
           <Text style={s.stepIncompleteName}>
-            Paso {stepNumber}: {step.nombre} — No completado
+            {labelPrefix} {stepNumber}: {step.nombre} — No completado
           </Text>
         </View>
       </View>
@@ -837,7 +840,7 @@ function StepBlock({
       <View style={s.stepHeaderRow}>
         <Text style={[s.stepCheckIcon, { color: GREEN }]}>{"\u2713"}</Text>
         <Text style={s.stepNameText}>
-          Paso {stepNumber}: {step.nombre}
+          {labelPrefix} {stepNumber}: {step.nombre}
         </Text>
       </View>
 
@@ -1234,14 +1237,40 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                     </>
                   )}
 
-                  {/* Step blocks */}
-                  {entry.steps.map((step, sIdx) => (
+                  {/* Template step blocks */}
+                  {entry.steps.filter((st) => !st.isCustom).map((step, sIdx) => (
                     <StepBlock
                       key={step.id}
                       step={step}
                       stepNumber={sIdx + 1}
                     />
                   ))}
+
+                  {/* Custom steps ("Pasos adicionales") */}
+                  {entry.steps.filter((st) => st.isCustom).length > 0 && (
+                    <View style={{ marginTop: 8 }}>
+                      <Text
+                        style={{
+                          fontSize: 9,
+                          fontWeight: 600,
+                          color: GRAY_700,
+                          marginBottom: 4,
+                        }}
+                      >
+                        Pasos adicionales
+                      </Text>
+                      {entry.steps
+                        .filter((st) => st.isCustom)
+                        .map((step, sIdx) => (
+                          <StepBlock
+                            key={step.id}
+                            step={step}
+                            stepNumber={sIdx + 1}
+                            labelPrefix="Adicional"
+                          />
+                        ))}
+                    </View>
+                  )}
 
                   {/* Orphan photos */}
                   {entry.orphanPhotosBase64.length > 0 && (
