@@ -10,6 +10,7 @@ interface ReportePasoForEdit {
   completado: boolean;
   notas: string | null;
   lecturas: Record<string, number | string>;
+  nombre_custom: string | null;
   plantillas_pasos: {
     nombre: string;
     procedimiento: string;
@@ -24,6 +25,7 @@ interface AdminStepEditorProps {
     lecturas?: Record<string, number | string>;
     notas?: string;
     completado?: boolean;
+    nombre_custom?: string;
   }) => Promise<void>;
   onCancel: () => void;
 }
@@ -55,11 +57,14 @@ export function AdminStepEditor({
   onCancel,
 }: AdminStepEditorProps) {
   const lecturasDef = paso.plantillas_pasos?.lecturas_requeridas ?? [];
+  const isCustom = !paso.plantillas_pasos && !paso.fallas_correctivas && !!paso.nombre_custom;
   const name =
     paso.plantillas_pasos?.nombre ??
     paso.fallas_correctivas?.nombre ??
+    paso.nombre_custom ??
     "Paso";
 
+  const [nombreCustom, setNombreCustom] = useState(paso.nombre_custom ?? "");
   const [lecturas, setLecturas] = useState<Record<string, number | string>>(
     () => ({ ...(paso.lecturas ?? {}) })
   );
@@ -87,7 +92,18 @@ export function AdminStepEditor({
     setError(null);
     startTransition(async () => {
       try {
-        await onSave({ lecturas, notas, completado });
+        const saveData: {
+          lecturas?: Record<string, number | string>;
+          notas?: string;
+          completado?: boolean;
+          nombre_custom?: string;
+        } = { lecturas, notas, completado };
+
+        if (isCustom) {
+          saveData.nombre_custom = nombreCustom.trim() || undefined;
+        }
+
+        await onSave(saveData);
       } catch (e) {
         setError(
           e instanceof Error ? e.message : "Error al guardar"
@@ -103,6 +119,22 @@ export function AdminStepEditor({
           Editando: {name}
         </p>
       </div>
+
+      {/* Nombre custom (editable only for custom steps) */}
+      {isCustom && (
+        <div>
+          <label className="mb-0.5 block text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
+            Nombre del paso
+          </label>
+          <input
+            type="text"
+            value={nombreCustom}
+            onChange={(e) => setNombreCustom(e.target.value)}
+            className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2.5 py-1 text-[13px]"
+            placeholder="Nombre del paso personalizado..."
+          />
+        </div>
+      )}
 
       {/* Lecturas */}
       {lecturasDef.length > 0 && (

@@ -607,6 +607,7 @@ export async function adminUpdateStep(
     lecturas?: Record<string, unknown>;
     notas?: string;
     completado?: boolean;
+    nombre_custom?: string;
   }
 ): Promise<ActionState> {
   const supabase = await createClient();
@@ -632,6 +633,9 @@ export async function adminUpdateStep(
     updatePayload.completed_at = data.completado
       ? new Date().toISOString()
       : null;
+  }
+  if (data.nombre_custom !== undefined) {
+    updatePayload.nombre_custom = data.nombre_custom || null;
   }
 
   if (Object.keys(updatePayload).length === 0) {
