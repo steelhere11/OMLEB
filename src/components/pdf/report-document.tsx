@@ -72,6 +72,8 @@ export interface PdfReportData {
   materials: Array<{ cantidad: number; unidad: string; descripcion: string }>;
   firmaBase64: string | null;
   nombreEncargado: string | null;
+  revisionActual: number;
+  lastRevision: { fecha: string; autor: string } | null;
 }
 
 // ---------- Colors ----------
@@ -917,6 +919,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
             <Text style={s.headerTitle}>Reporte de Mantenimiento</Text>
             <Text style={s.headerFolio}>
               Folio: {data.folio.numero_folio}
+              {data.revisionActual > 0 ? `  |  Revision ${data.revisionActual}` : ""}
             </Text>
           </View>
           {data.cliente.logoBase64 && (
@@ -1280,7 +1283,9 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         {/* Footer — fixed on all pages with page numbers */}
         <View style={s.footer} fixed>
           <Text style={s.footerText}>
-            Generado el {generatedDate}
+            {data.lastRevision
+              ? `Ultima revision: ${new Date(data.lastRevision.fecha).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })} por ${data.lastRevision.autor}`
+              : `Generado el ${generatedDate}`}
           </Text>
           <Text
             style={s.footerPage}

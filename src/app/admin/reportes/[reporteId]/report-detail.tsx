@@ -19,6 +19,9 @@ import { AdminPhotoUpload } from "@/components/admin/admin-photo-upload";
 import { AdminStepEditor } from "@/components/admin/admin-step-editor";
 import { AdminEquipmentInfoEditor } from "@/components/admin/admin-equipment-info-editor";
 import { CommentSection } from "@/components/admin/comment-section";
+import { RevisionHistoryPanel } from "@/components/admin/revision-history-panel";
+import { createRevision } from "@/app/actions/admin-revisions";
+import type { RevisionWithAuthor } from "@/app/actions/admin-revisions";
 import type { ReporteComentario } from "@/types";
 
 const ReportPdfButton = dynamic(
@@ -109,6 +112,7 @@ interface ReporteData {
   firma_encargado: string | null;
   nombre_encargado: string | null;
   finalizado_por_admin: boolean;
+  revision_actual: number;
   created_at: string;
   updated_at: string;
   folios: {
@@ -141,6 +145,7 @@ export interface ReportDetailProps {
   teamMembers: TeamMember[];
   tiposEquipo: TipoEquipo[];
   comments: CommentWithAuthor[];
+  revisions: RevisionWithAuthor[];
 }
 
 // ---------- Status config ----------
@@ -195,7 +200,7 @@ function formatRol(rol: string): string {
 
 // ---------- Component ----------
 
-export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments }: ReportDetailProps) {
+export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revisions }: ReportDetailProps) {
   const router = useRouter();
   const status = statusConfig[reporte.estatus] ?? statusConfig.en_progreso;
   const folio = reporte.folios;
@@ -210,6 +215,12 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments }: Re
   const [currentEstatus, setCurrentEstatus] = useState<ReporteEstatus>(reporte.estatus);
   const [statusPending, startStatusTransition] = useTransition();
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
+
+  // Revision modal state (for post-approval edits)
+  const [showRevisionModal, setShowRevisionModal] = useState(false);
+  const [revisionSummary, setRevisionSummary] = useState("");
+  const [revisionPending, startRevisionTransition] = useTransition();
+  const [revisionError, setRevisionError] = useState<string | null>(null);
 
   // Photo management handlers
   async function handleFlagPhoto(fotoId: string, estatus: FotoEstatusRevision, nota?: string) {
@@ -257,14 +268,21 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments }: Re
           <h1 className="text-[22px] font-bold tracking-[-0.025em] text-text-0">
             Reporte - {folio?.numero_folio ?? "Sin folio"}
           </h1>
-          <p className="mt-1 text-[13px] text-text-2">
-            {new Date(reporte.fecha).toLocaleDateString("es-MX", {
-              weekday: "long",
-              day: "2-digit",
-              month: "long",
-              year: "numeric",
-            })}
-          </p>
+          <div className="mt-1 flex items-center gap-2">
+            <p className="text-[13px] text-text-2">
+              {new Date(reporte.fecha).toLocaleDateString("es-MX", {
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              })}
+            </p>
+            {reporte.revision_actual > 0 && (
+              <span className="inline-flex items-center rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
+                Revision {reporte.revision_actual}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <select
@@ -513,6 +531,82 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments }: Re
         equipos={equiposList}
       />
 
+      {/* Revision History */}
+      <RevisionHistoryPanel revisions={revisions} />
+
+      {/* Create Revision Note (visible when report is approved) */}
+      {reporte.finalizado_por_admin && (
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => { setShowRevisionModal(true); setRevisionSummary(""); setRevisionError(null); }}
+            className="inline-flex items-center gap-1.5 rounded-[6px] border border-accent/30 bg-accent/5 px-3 py-1.5 text-[13px] font-medium text-accent transition-colors hover:bg-accent/10"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Registrar revision
+          </button>
+          <span className="text-[11px] text-text-3">
+            Registra un resumen de los cambios realizados al reporte aprobado
+          </span>
+        </div>
+      )}
+
+      {/* Revision Summary Modal */}
+      {showRevisionModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="mx-4 w-full max-w-md rounded-[10px] border border-admin-border bg-admin-surface p-5 shadow-xl">
+            <h3 className="text-[15px] font-semibold text-text-0">
+              Registrar Revision
+            </h3>
+            <p className="mt-1 text-[12px] text-text-3">
+              Describe brevemente los cambios realizados a este reporte aprobado.
+            </p>
+            <textarea
+              value={revisionSummary}
+              onChange={(e) => setRevisionSummary(e.target.value)}
+              placeholder="Ej: Se corrigio lectura de amperaje en paso 5"
+              rows={3}
+              className="mt-3 w-full rounded-[6px] border border-admin-border bg-admin-surface px-3 py-2 text-[13px] text-text-0 placeholder:text-text-3 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              autoFocus
+            />
+            {revisionError && (
+              <p className="mt-1 text-[12px] text-red-600">{revisionError}</p>
+            )}
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowRevisionModal(false)}
+                className="rounded-[6px] border border-admin-border px-3 py-1.5 text-[13px] font-medium text-text-2 transition-colors hover:bg-admin-surface-hover"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={revisionPending || !revisionSummary.trim()}
+                onClick={() => {
+                  setRevisionError(null);
+                  startRevisionTransition(async () => {
+                    const result = await createRevision(reporte.id, revisionSummary.trim(), []);
+                    if (result.error) {
+                      setRevisionError(result.error);
+                    } else {
+                      setShowRevisionModal(false);
+                      setRevisionSummary("");
+                      router.refresh();
+                    }
+                  });
+                }}
+                className="rounded-[6px] bg-accent px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
+              >
+                {revisionPending ? "Guardando..." : "Guardar Revision"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Footer: Back, PDF Export, Approve */}
       <div id="admin-actions" className="flex flex-wrap items-center justify-between gap-3 pt-2">
         <a
@@ -528,7 +622,12 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments }: Re
               estatus: reporte.estatus,
               firma_encargado: reporte.firma_encargado,
               nombre_encargado: reporte.nombre_encargado,
+              revision_actual: reporte.revision_actual,
             }}
+            lastRevision={revisions.length > 0 ? {
+              fecha: revisions[0].created_at,
+              autor: revisions[0].autor_nombre,
+            } : undefined}
             folio={{
               numero_folio: folio?.numero_folio ?? "",
               descripcion_problema: folio?.descripcion_problema ?? "",
@@ -641,7 +740,7 @@ function ApproveButton({
 
   async function handleApprove() {
     const confirmed = window.confirm(
-      "Aprobar este reporte? Esta accion no se puede deshacer."
+      "Aprobar este reporte? Podra seguir editandolo y se registraran las revisiones."
     );
     if (!confirmed) return;
 

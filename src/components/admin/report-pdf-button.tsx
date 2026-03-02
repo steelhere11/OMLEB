@@ -19,6 +19,11 @@ interface ReportPdfButtonProps {
     estatus: string;
     firma_encargado: string | null;
     nombre_encargado: string | null;
+    revision_actual: number;
+  };
+  lastRevision?: {
+    fecha: string;
+    autor: string;
   };
   folio: {
     numero_folio: string;
@@ -94,6 +99,7 @@ interface ReportPdfButtonProps {
 
 export default function ReportPdfButton({
   reporte,
+  lastRevision,
   folio,
   sucursal,
   cliente,
@@ -237,6 +243,8 @@ export default function ReportPdfButton({
         materials,
         firmaBase64: reporte.firma_encargado,
         nombreEncargado: reporte.nombre_encargado,
+        revisionActual: reporte.revision_actual,
+        lastRevision: lastRevision ?? null,
       };
 
       // 5. Generate PDF blob

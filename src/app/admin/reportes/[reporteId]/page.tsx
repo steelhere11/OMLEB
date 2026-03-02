@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ReportDetail } from "./report-detail";
+import { getRevisionHistory } from "@/app/actions/admin-revisions";
 import type { ReporteComentario } from "@/types";
 
 export default async function ReporteDetailPage({
@@ -56,8 +57,8 @@ export default async function ReporteDetailPage({
     );
   }
 
-  // Fetch team members, tipos_equipo, and comments in parallel
-  const [{ data: asignados }, { data: tiposEquipo }, { data: comentarios }] = await Promise.all([
+  // Fetch team members, tipos_equipo, comments, and revisions in parallel
+  const [{ data: asignados }, { data: tiposEquipo }, { data: comentarios }, revisions] = await Promise.all([
     supabase
       .from("folio_asignados")
       .select("usuario_id, users(nombre, rol)")
@@ -71,6 +72,7 @@ export default async function ReporteDetailPage({
       .select("*, users:autor_id(nombre)")
       .eq("reporte_id", reporteId)
       .order("created_at", { ascending: true }),
+    getRevisionHistory(reporteId),
   ]);
 
   const teamMembers =
@@ -98,7 +100,7 @@ export default async function ReporteDetailPage({
         ← Reportes
       </Link>
 
-      <ReportDetail reporte={reporte} teamMembers={teamMembers} tiposEquipo={tiposEquipo ?? []} comments={comments} />
+      <ReportDetail reporte={reporte} teamMembers={teamMembers} tiposEquipo={tiposEquipo ?? []} comments={comments} revisions={revisions} />
     </div>
   );
 }
