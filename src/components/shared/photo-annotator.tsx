@@ -43,11 +43,6 @@ const COLOR_PRESETS = [
   { value: "#FFD600", label: "Amarillo" },
 ];
 
-const STROKE_WIDTHS = [
-  { value: 2, label: "Fino" },
-  { value: 5, label: "Grueso" },
-];
-
 // ── Props ───────────────────────────────────────────────────────────────
 
 interface PhotoAnnotatorProps {
@@ -84,6 +79,26 @@ export function PhotoAnnotator({
 
   // Scale factors for translating pointer coords to canvas coords
   const scaleRef = useRef({ x: 1, y: 1, offsetX: 0, offsetY: 0 });
+
+  // ── Lock body scroll and prevent pinch-zoom while annotator is open ─
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    // Prevent pinch zoom and pull-to-refresh on the canvas area
+    const preventGestures = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("touchmove", preventGestures, { passive: false });
+
+    return () => {
+      document.body.style.overflow = prev;
+      document.removeEventListener("touchmove", preventGestures);
+    };
+  }, []);
 
   // ── Load image ──────────────────────────────────────────────────────
 
@@ -239,6 +254,8 @@ export function PhotoAnnotator({
 
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     e.preventDefault();
+    // Dismiss color picker when interacting with canvas
+    if (showColorPicker) setShowColorPicker(false);
     const p = getImageCoords(e);
 
     if (mode === "freehand") {
@@ -479,7 +496,13 @@ export function PhotoAnnotator({
       )}
 
       {/* Bottom toolbar */}
-      <div className="shrink-0 border-t border-gray-800 bg-gray-950 px-2 py-2 safe-area-pb">
+      <div className="shrink-0 border-t border-gray-800 bg-gray-950 px-2 pt-1 pb-2 pb-[env(safe-area-inset-bottom)]">
+        {/* Active mode label */}
+        <p className="mb-1 text-center text-[10px] font-medium uppercase tracking-wider text-gray-500">
+          {mode === "freehand" && "Dibujo libre"}
+          {mode === "arrow" && "Flecha"}
+          {mode === "text" && "Texto -- toca la imagen"}
+        </p>
         <div className="flex items-center justify-between gap-1">
           {/* Left: Cancel */}
           <button
