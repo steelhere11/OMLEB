@@ -5,23 +5,25 @@
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Field technicians can quickly submit complete daily reports (with photos, equipment details, materials, and diagnostics) from their phone on-site -- no WhatsApp, no paper, no back-and-forth.
-**Current focus:** Phase 08 (Arrival & Registration Flow) -- executing plan-by-plan.
+**Current focus:** Phase 08 COMPLETE. All V1 code phases done.
 
 ## Current Position
 
 Phase: 8 (Arrival & Registration Flow)
-Plan: 4 of 5 in current phase
-Status: In progress
-Last activity: 2026-03-02 -- Completed 08-04-PLAN.md (Integration & Page Wiring)
+Plan: 5 of 5 in current phase
+Status: Phase complete
+Last activity: 2026-03-02 -- Completed 08-05-PLAN.md (Finalization - Seeds, PDF & Admin Forms)
 
-Progress: [==================░░] 90% (19/21 plans complete)
+Progress: [████████████████████] 100% (20/21 plans complete)
+
+Note: 20/21 because Phase 1 has 2/3 plans done (auth setup deferred to infrastructure). All V1 code phases (2-5.5, 8) are complete.
 
 ## Performance Metrics
 
-**Velocity (from V1 build + Phase 5.5):**
-- Total plans completed: 19
+**Velocity (from V1 build + Phase 5.5 + Phase 8):**
+- Total plans completed: 20
 - Average duration: ~6 min
-- Total execution time: ~2.0 hours
+- Total execution time: ~2.1 hours
 
 ## Accumulated Context
 
@@ -49,6 +51,8 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | auto-complete-existing-folio-photo | SiteOverviewSection auto-completes on mount when folio-level site photo exists from previous visit | 08-03 |
 | show-all-phases-completed | Completed reports bypass all gating and show all phases expanded | 08-04 |
 | registration-entries-export-type | RegistrationEntry type exported from page.tsx and imported by report-form.tsx for cross-file type sharing | 08-04 |
+| filter-reg-photos-by-etiqueta | Registration photos filtered by etiqueta in report-detail rather than separate query | 08-05 |
+| reg-entries-from-reporte-equipos | Registration entries built from existing reporte_equipos join, not separate query | 08-05 |
 
 ### Pending Todos
 
@@ -66,9 +70,10 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 
 ### Blockers/Concerns
 
-- [V1 Code]: ALL PHASES (2-5.5) COMPLETE. Phase 1 has 2/3 plans done, Phase 6 pending.
+- [V1 Code]: ALL PHASES (2-5.5, 8) COMPLETE. Phase 1 has 2/3 plans done, Phase 6 pending.
 - [Infrastructure]: Supabase and Vercel projects not yet created.
 - [Phase 7]: Deployment guide will consolidate all pending todos above into a single playbook.
+- [Phase 8 Complete]: Arrival & Registration flow fully implemented end-to-end.
 
 ### Quick Tasks Completed
 
@@ -80,5 +85,5 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 08-04-PLAN.md (Integration & Page Wiring)
-Resume file: .planning/phases/08-arrival-registration/08-05-PLAN.md
+Stopped at: Completed 08-05-PLAN.md (Finalization - Seeds, PDF & Admin Forms). Phase 8 COMPLETE.
+Resume file: None
