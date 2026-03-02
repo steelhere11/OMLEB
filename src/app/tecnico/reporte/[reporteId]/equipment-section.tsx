@@ -62,9 +62,21 @@ export function EquipmentSection({
     onEntriesChange?.(entries.length);
   }, [entries.length, onEntriesChange]);
 
-  // Filter out equipment already added to the report
-  const usedEquipoIds = new Set(entries.map((e) => e.equipo_id));
-  const availableToAdd = allEquipment.filter((eq) => !usedEquipoIds.has(eq.id));
+  // Build a map of equipo_id -> Set of tipo_trabajo already in the report
+  const usedWorkTypes = new Map<string, Set<string>>();
+  for (const e of entries) {
+    if (!usedWorkTypes.has(e.equipo_id)) {
+      usedWorkTypes.set(e.equipo_id, new Set());
+    }
+    usedWorkTypes.get(e.equipo_id)!.add(e.tipo_trabajo);
+  }
+
+  // Only hide equipment that already has BOTH preventivo and correctivo entries
+  const availableToAdd = allEquipment.filter((eq) => {
+    const types = usedWorkTypes.get(eq.id);
+    if (!types) return true; // not added at all
+    return !(types.has("preventivo") && types.has("correctivo")); // show if missing one type
+  });
 
   const handleAddExistingEquipment = () => {
     if (!selectedEquipoId) return;
@@ -72,10 +84,14 @@ export function EquipmentSection({
     const equipo = allEquipment.find((eq) => eq.id === selectedEquipoId);
     if (!equipo) return;
 
+    // Smart default: if preventivo already exists, default to correctivo
+    const existingTypes = usedWorkTypes.get(selectedEquipoId);
+    const defaultTipo = existingTypes?.has("preventivo") ? "correctivo" : "preventivo";
+
     startAddTransition(async () => {
       const formData = new FormData();
       formData.set("equipo_id", selectedEquipoId);
-      formData.set("tipo_trabajo", "preventivo");
+      formData.set("tipo_trabajo", defaultTipo);
       formData.set("diagnostico", "");
       formData.set("trabajo_realizado", "");
       formData.set("observaciones", "");
@@ -83,14 +99,11 @@ export function EquipmentSection({
       const result = await saveEquipmentEntry(reporteId, null, null, formData);
 
       if (result.success) {
-        // We need to refetch to get the entry ID, or construct it optimistically
-        // Since the server action doesn't return the new entry ID, we'll use router.refresh via a page-level mechanism
-        // For now, construct an optimistic entry
         const optimisticEntry: ReporteEquipo & { equipos: Equipo & { tipos_equipo?: { slug: string; nombre: string } | null } } = {
-          id: crypto.randomUUID(), // temporary ID until refresh
+          id: crypto.randomUUID(),
           reporte_id: reporteId,
           equipo_id: selectedEquipoId,
-          tipo_trabajo: "preventivo",
+          tipo_trabajo: defaultTipo,
           diagnostico: null,
           trabajo_realizado: null,
           observaciones: null,
@@ -100,6 +113,40 @@ export function EquipmentSection({
 
         setEntries((prev) => [...prev, optimisticEntry]);
         setSelectedEquipoId("");
+      }
+    });
+  };
+
+  const handleAddOtherWorkType = (equipoId: string, currentTipoTrabajo: string) => {
+    const equipo = allEquipment.find((eq) => eq.id === equipoId);
+    if (!equipo) return;
+
+    const oppositeTipo = currentTipoTrabajo === "preventivo" ? "correctivo" : "preventivo";
+
+    startAddTransition(async () => {
+      const formData = new FormData();
+      formData.set("equipo_id", equipoId);
+      formData.set("tipo_trabajo", oppositeTipo);
+      formData.set("diagnostico", "");
+      formData.set("trabajo_realizado", "");
+      formData.set("observaciones", "");
+
+      const result = await saveEquipmentEntry(reporteId, null, null, formData);
+
+      if (result.success) {
+        const optimisticEntry: ReporteEquipo & { equipos: Equipo & { tipos_equipo?: { slug: string; nombre: string } | null } } = {
+          id: crypto.randomUUID(),
+          reporte_id: reporteId,
+          equipo_id: equipoId,
+          tipo_trabajo: oppositeTipo,
+          diagnostico: null,
+          trabajo_realizado: null,
+          observaciones: null,
+          registro_completado: false,
+          equipos: { ...equipo, tipos_equipo: undefined },
+        };
+
+        setEntries((prev) => [...prev, optimisticEntry]);
       }
     });
   };
@@ -155,13 +202,22 @@ export function EquipmentSection({
                     ? "Todos los equipos agregados"
                     : "Seleccionar equipo..."}
                 </option>
-                {availableToAdd.map((eq) => (
-                  <option key={eq.id} value={eq.id}>
-                    {eq.numero_etiqueta}
-                    {eq.marca && ` - ${eq.marca}`}
-                    {eq.modelo && ` ${eq.modelo}`}
-                  </option>
-                ))}
+                {availableToAdd.map((eq) => {
+                  const types = usedWorkTypes.get(eq.id);
+                  const hint = types?.has("preventivo")
+                    ? " (+ Correctivo)"
+                    : types?.has("correctivo")
+                      ? " (+ Preventivo)"
+                      : "";
+                  return (
+                    <option key={eq.id} value={eq.id}>
+                      {eq.numero_etiqueta}
+                      {eq.marca && ` - ${eq.marca}`}
+                      {eq.modelo && ` ${eq.modelo}`}
+                      {hint}
+                    </option>
+                  );
+                })}
               </Select>
             </div>
             <Button
@@ -215,17 +271,31 @@ export function EquipmentSection({
         </div>
       ) : (
         <div className="space-y-3">
-          {entries.map((entry) => (
-            <EquipmentEntryForm
-              key={entry.id}
-              entry={entry}
-              reporteId={reporteId}
-              onRemove={() => handleRemoveEntry(entry.id)}
-              isCompleted={isCompleted}
-              isRemoving={isRemoving}
-              onUnsavedChange={onUnsavedChange}
-            />
-          ))}
+          {[...entries]
+            .sort((a, b) => {
+              // Group same equipment together, preventivo first
+              if (a.equipo_id !== b.equipo_id) return a.equipo_id.localeCompare(b.equipo_id);
+              if (a.tipo_trabajo === "preventivo" && b.tipo_trabajo !== "preventivo") return -1;
+              if (a.tipo_trabajo !== "preventivo" && b.tipo_trabajo === "preventivo") return 1;
+              return 0;
+            })
+            .map((entry) => {
+              const siblingTypes = usedWorkTypes.get(entry.equipo_id);
+              const hasOtherWorkType = siblingTypes ? siblingTypes.size >= 2 : false;
+              return (
+                <EquipmentEntryForm
+                  key={entry.id}
+                  entry={entry}
+                  reporteId={reporteId}
+                  onRemove={() => handleRemoveEntry(entry.id)}
+                  isCompleted={isCompleted}
+                  isRemoving={isRemoving}
+                  onUnsavedChange={onUnsavedChange}
+                  hasOtherWorkType={hasOtherWorkType}
+                  onAddOtherWorkType={() => handleAddOtherWorkType(entry.equipo_id, entry.tipo_trabajo)}
+                />
+              );
+            })}
         </div>
       )}
 

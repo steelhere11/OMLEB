@@ -28,6 +28,8 @@ interface EquipmentEntryFormProps {
   isCompleted: boolean;
   isRemoving: boolean;
   onUnsavedChange?: (hasChanges: boolean) => void;
+  hasOtherWorkType: boolean;
+  onAddOtherWorkType?: () => void;
 }
 
 const generalLabelColors: Record<
@@ -50,6 +52,8 @@ export function EquipmentEntryForm({
   isCompleted,
   isRemoving,
   onUnsavedChange,
+  hasOtherWorkType,
+  onAddOtherWorkType,
 }: EquipmentEntryFormProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [tipoTrabajo, setTipoTrabajo] = useState<TipoTrabajo>(
@@ -312,18 +316,52 @@ export function EquipmentEntryForm({
       {/* Expanded form */}
       {isExpanded && (
         <div className="border-t border-gray-100 p-4 space-y-4">
-          {/* Work type toggle */}
+          {/* Work type toggle / read-only label */}
           <div>
             <Label className="mb-2">Tipo de trabajo</Label>
-            <WorkTypeToggle
-              name="tipo_trabajo"
-              value={tipoTrabajo}
-              onChange={(val) => {
-                setTipoTrabajo(val);
-                handleFieldChange();
-              }}
-              disabled={isCompleted}
-            />
+            {hasOtherWorkType ? (
+              /* Both types exist — show read-only label to prevent accidental switching */
+              <div
+                className={`inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium ${
+                  tipoTrabajo === "preventivo"
+                    ? "bg-blue-50 text-blue-700"
+                    : "bg-amber-50 text-amber-700"
+                }`}
+              >
+                {tipoTrabajo === "preventivo" ? "Preventivo" : "Correctivo"}
+              </div>
+            ) : (
+              <>
+                <WorkTypeToggle
+                  name="tipo_trabajo"
+                  value={tipoTrabajo}
+                  onChange={(val) => {
+                    setTipoTrabajo(val);
+                    handleFieldChange();
+                  }}
+                  disabled={isCompleted}
+                />
+                {!isCompleted && onAddOtherWorkType && (
+                  <button
+                    type="button"
+                    onClick={onAddOtherWorkType}
+                    className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs font-medium text-gray-500 transition-colors active:bg-gray-50"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-3.5 w-3.5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Agregar {tipoTrabajo === "preventivo" ? "Correctivo" : "Preventivo"}
+                  </button>
+                )}
+              </>
+            )}
           </div>
 
           {/* Workflow section -- conditionally renders based on tipo_trabajo */}
