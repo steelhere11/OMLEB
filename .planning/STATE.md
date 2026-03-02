@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-Phase: 10 (Feature Expansion) — planned, ready to execute
-Plan: 2 of 7 in current phase
-Status: 10-02 complete, ready for 10-03
-Last activity: 2026-03-02 -- Completed 10-02-PLAN.md
+Phase: 10 (Feature Expansion) — in progress
+Plan: 3 of 7 in current phase
+Status: 10-03 complete, ready for 10-04
+Last activity: 2026-03-02 -- Completed 10-03-PLAN.md
 
 Progress: [██████████████████████████] 100% (27/27 plans complete)
 
@@ -68,6 +68,10 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | feedback-banner-amber | Used amber/yellow banner for admin feedback to match warning pattern without being alarming | 09-06 |
 | status-ring-on-thumbnail | Used colored ring borders (ring-2) on photo thumbnails for review status instead of overlays to keep photo content visible | 09-06 |
 | reuse-comment-section-readonly | Reused CommentSection from admin with readOnly=true for technician view instead of creating a separate component | 09-06 |
+| notes-below-photos | Step notes moved after photos in PDF for better visual pairing | 10-03 |
+| callout-style-notes | Notes styled as italic callout blocks with blue left border and light background | 10-03 |
+| equipo-id-in-pdf-data | Added equipo id to PdfReportData equipment entries for comment-to-equipment matching | 10-03 |
+| amber-border-comments | Admin comments use amber left border to distinguish from blue note callouts | 10-03 |
 
 ### Pending Todos
 
@@ -103,5 +107,5 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 10-02. Ready to execute 10-03.
+Stopped at: Completed 10-03. Ready to execute 10-04.
 Resume file: .planning/phases/10-feature-expansion/10-PLAN.md
