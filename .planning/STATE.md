@@ -10,13 +10,13 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 10 (Feature Expansion) — in progress
-Plan: 3 of 7 in current phase
-Status: 10-03 complete, ready for 10-04
-Last activity: 2026-03-02 -- Completed 10-03-PLAN.md
+Plan: 4 of 7 in current phase (10-01, 10-02, 10-03, 10-05 complete)
+Status: 10-05 complete, ready for 10-04 or 10-06
+Last activity: 2026-03-02 -- Completed 10-05-PLAN.md
 
-Progress: [██████████████████████████] 100% (27/27 plans complete)
+Progress: [██████████████████████████] 100% (28/28 plans complete)
 
-Note: All 27 feature plans complete across phases 2-5.5, 8, 9. Phase 1 has 2/3 done. Phase 6 (deployment) and Phase 7 (deployment guide) pending.
+Note: All 28 feature plans complete across phases 2-5.5, 8, 9, 10 (partial). Phase 1 has 2/3 done. Phase 6 (deployment) and Phase 7 (deployment guide) pending.
 
 ## Performance Metrics
 
@@ -72,6 +72,7 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | callout-style-notes | Notes styled as italic callout blocks with blue left border and light background | 10-03 |
 | equipo-id-in-pdf-data | Added equipo id to PdfReportData equipment entries for comment-to-equipment matching | 10-03 |
 | amber-border-comments | Admin comments use amber left border to distinguish from blue note callouts | 10-03 |
+| dynamic-dropdown-no-changes | Equipment type dropdowns already load dynamically from tipos_equipo table; no code changes needed for fan_coil | 10-05 |
 
 ### Pending Todos
 
@@ -88,6 +89,7 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 - User must run supabase/migration-08-registration.sql in Supabase SQL Editor after migration-07-video-support.sql
 - User must run supabase/migration-09-admin-control.sql in Supabase SQL Editor after migration-08-registration.sql
 - User must run supabase/migration-10-feature-expansion.sql in Supabase SQL Editor after migration-09-admin-control.sql
+- User must run supabase/seed-fan-coil-workflows.sql in Supabase SQL Editor after seed-workflows.sql
 
 ### Blockers/Concerns
 
@@ -107,5 +109,5 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 10-03. Ready to execute 10-04.
+Stopped at: Completed 10-05. Ready to execute 10-04 or 10-06.
 Resume file: .planning/phases/10-feature-expansion/10-PLAN.md
