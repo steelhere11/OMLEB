@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 8 (Arrival & Registration Flow)
-Plan: 1 of 5 in current phase
+Plan: 2 of 5 in current phase
 Status: In progress
-Last activity: 2026-03-02 -- Completed 08-01-PLAN.md (Schema & Types Foundation)
+Last activity: 2026-03-02 -- Completed 08-02-PLAN.md (Registration Server Actions)
 
-Progress: [===============░░░░░] 76% (16/21 plans complete)
+Progress: [================░░░░] 81% (17/21 plans complete)
 
 ## Performance Metrics
 
 **Velocity (from V1 build + Phase 5.5):**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: ~6 min
-- Total execution time: ~1.75 hours
+- Total execution time: ~1.8 hours
 
 ## Accumulated Context
 
@@ -41,6 +41,8 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | html-overlay-not-canvas | Used HTML/CSS overlay on video instead of canvas.captureStream() to avoid audio sync and perf issues | quick-002 |
 | as-const-dropdowns | Constants use 'as const' with value/label objects for typed dropdowns | 08-01 |
 | nullable-nameplate-fields | Nameplate fields (capacidad, refrigerante, voltaje, fase, ubicacion) are nullable strings, not required | 08-01 |
+| two-step-photo-query | Used two-step query (get report IDs, then IN query) for cross-folio photo lookups instead of Supabase inner join | 08-02 |
+| shared-completeness-evaluator | Extracted evaluateRegistrationCompleteness as private helper shared between save and update actions | 08-02 |
 
 ### Pending Todos
 
@@ -72,5 +74,5 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 08-01-PLAN.md (Schema & Types Foundation)
-Resume file: .planning/phases/08-arrival-registration/08-02-PLAN.md
+Stopped at: Completed 08-02-PLAN.md (Registration Server Actions)
+Resume file: .planning/phases/08-arrival-registration/08-03-PLAN.md
