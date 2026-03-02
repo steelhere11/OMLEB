@@ -5,25 +5,25 @@
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Field technicians can quickly submit complete daily reports (with photos, equipment details, materials, and diagnostics) from their phone on-site -- no WhatsApp, no paper, no back-and-forth.
-**Current focus:** Phase 9 executing. Plan 09-01 complete. Plans 09-02 through 09-06 remaining.
+**Current focus:** Phase 9 executing. Plans 09-01 and 09-02 complete. Plans 09-03 through 09-06 remaining.
 
 ## Current Position
 
 Phase: 9 (Admin Full Control) — in progress
-Plan: 1 of 6 in current phase
+Plan: 2 of 6 in current phase
 Status: In progress
-Last activity: 2026-03-02 -- Completed 09-01-PLAN.md
+Last activity: 2026-03-02 -- Completed 09-02-PLAN.md
 
-Progress: [█████████████████████] 100% (21/27 plans complete)
+Progress: [██████████████████████] 100% (22/27 plans complete)
 
-Note: 21/27 total plans across all phases. Phase 1 has 2/3 done. Phase 9 has 1/6 done.
+Note: 22/27 total plans across all phases. Phase 1 has 2/3 done. Phase 9 has 2/6 done.
 
 ## Performance Metrics
 
 **Velocity (from V1 build + Phase 5.5 + Phase 8 + Phase 9):**
-- Total plans completed: 21
+- Total plans completed: 22
 - Average duration: ~6 min
-- Total execution time: ~2.2 hours
+- Total execution time: ~2.3 hours
 
 ## Accumulated Context
 
@@ -56,6 +56,8 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | soft-cascade-via-actions | Keep RESTRICT FK constraints; implement explicit admin cascade deletes via server actions | 09-01 |
 | admin-upload-auto-accepted | Photos uploaded by admin are auto-set to estatus_revision=aceptada | 09-01 |
 | estatus-revision-default-pendiente | New photo review column defaults to pendiente for all tech-uploaded photos | 09-01 |
+| entity-specific-wrappers | Thin client wrapper components per entity type to bridge server components with cascade delete actions | 09-02 |
+| typed-confirmation-threshold | Typed confirmation required when entity has child data (reports, photos, references) | 09-02 |
 
 ### Pending Todos
 
@@ -78,7 +80,7 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 - [Infrastructure]: Supabase and Vercel projects not yet created.
 - [Phase 7]: Deployment guide will consolidate all pending todos above into a single playbook.
 - [Phase 8 Complete]: Arrival & Registration flow fully implemented end-to-end.
-- [Phase 9 In Progress]: 09-01 done (migration + actions). Plans 09-02 through 09-06 remain (UI components).
+- [Phase 9 In Progress]: 09-01 and 09-02 done (migration, actions, delete UI). Plans 09-03 through 09-06 remain.
 
 ### Quick Tasks Completed
 
@@ -90,5 +92,5 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 09-01-PLAN.md. Ready for 09-02.
-Resume file: .planning/phases/09-admin-full-control/09-02-PLAN.md
+Stopped at: Completed 09-02-PLAN.md. Ready for 09-03.
+Resume file: .planning/phases/09-admin-full-control/09-03-PLAN.md
