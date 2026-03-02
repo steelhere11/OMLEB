@@ -61,8 +61,15 @@ interface ReportPdfButtonProps {
     voltaje: string | null;
     fase: string | null;
   }>;
+  comments: Array<{
+    contenido: string;
+    autor_nombre: string;
+    equipo_id: string | null;
+    created_at: string;
+  }>;
   equipmentEntries: Array<{
     equipo: {
+      id: string;
       numero_etiqueta: string;
       marca: string | null;
       modelo: string | null;
@@ -106,6 +113,7 @@ export default function ReportPdfButton({
   teamMembers,
   registrationPhotos,
   registrationEquipment,
+  comments,
   equipmentEntries,
   materials,
 }: ReportPdfButtonProps) {
@@ -209,6 +217,12 @@ export default function ReportPdfButton({
         arrivalPhoto: arrivalPhotoData,
         sitePhoto: sitePhotoData,
         registrationEntries: pdfRegistrationEntries,
+        comments: (comments ?? []).map((c) => ({
+          contenido: c.contenido,
+          autorNombre: c.autor_nombre,
+          equipo_id: c.equipo_id,
+          created_at: c.created_at,
+        })),
         equipmentEntries: equipmentEntries.map((entry, idx) => {
           const allPhotos = photosPerEntry[idx];
 

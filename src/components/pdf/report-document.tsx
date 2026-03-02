@@ -54,8 +54,15 @@ export interface PdfReportData {
   arrivalPhoto: { data: string; gps: string | null; fecha: string | null } | null;
   sitePhoto: { data: string; gps: string | null; fecha: string | null } | null;
   registrationEntries: PdfRegistrationEntry[];
+  comments: Array<{
+    contenido: string;
+    autorNombre: string;
+    equipo_id: string | null;
+    created_at: string;
+  }>;
   equipmentEntries: Array<{
     equipo: {
+      id: string;
       numero_etiqueta: string;
       marca: string | null;
       modelo: string | null;

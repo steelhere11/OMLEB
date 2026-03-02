@@ -676,8 +676,15 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                 voltaje: entry.equipos!.voltaje,
                 fase: entry.equipos!.fase,
               }))}
+            comments={comments.map((c) => ({
+              contenido: c.contenido,
+              autor_nombre: c.autor_nombre ?? "Admin",
+              equipo_id: c.equipo_id,
+              created_at: c.created_at,
+            }))}
             equipmentEntries={reporte.reporte_equipos.map((entry) => ({
               equipo: {
+                id: entry.equipo_id,
                 numero_etiqueta:
                   entry.equipos?.numero_etiqueta ?? "Equipo desconocido",
                 marca: entry.equipos?.marca ?? null,
