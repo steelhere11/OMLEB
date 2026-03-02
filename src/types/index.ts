@@ -111,6 +111,8 @@ export type FotoEtiqueta = "antes" | "durante" | "despues" | "dano" | "placa" | 
 
 export type TipoMedia = "foto" | "video";
 
+export type FotoEstatusRevision = "pendiente" | "aceptada" | "rechazada" | "retomar";
+
 export interface ReporteFoto {
   id: string;
   reporte_id: string;
@@ -119,6 +121,8 @@ export interface ReporteFoto {
   url: string;
   etiqueta: FotoEtiqueta | null;
   tipo_media: TipoMedia;
+  estatus_revision: FotoEstatusRevision;
+  nota_admin: string | null;
   metadata_gps: string | null;
   metadata_fecha: string | null;
   created_at: string;
@@ -130,6 +134,15 @@ export interface ReporteMaterial {
   cantidad: number;
   unidad: string;
   descripcion: string;
+}
+
+export interface ReporteComentario {
+  id: string;
+  reporte_id: string;
+  equipo_id: string | null;
+  autor_id: string;
+  contenido: string;
+  created_at: string;
 }
 
 // Re-export workflow types from workflows.ts
