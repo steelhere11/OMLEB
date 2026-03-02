@@ -15,7 +15,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 export async function getOrCreateTodayReport(
   folioId: string
-): Promise<{ reporteId: string } | { error: string }> {
+): Promise<
+  | {
+      reporteId: string;
+      llegada_completada: boolean;
+      sitio_completado: boolean;
+    }
+  | { error: string }
+> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -30,7 +37,7 @@ export async function getOrCreateTodayReport(
   // Check for existing report for this folio today
   const { data: existing, error: selectError } = await supabase
     .from("reportes")
-    .select("id")
+    .select("id, llegada_completada, sitio_completado")
     .eq("folio_id", folioId)
     .eq("fecha", today)
     .maybeSingle();
@@ -40,7 +47,11 @@ export async function getOrCreateTodayReport(
   }
 
   if (existing) {
-    return { reporteId: existing.id };
+    return {
+      reporteId: existing.id,
+      llegada_completada: existing.llegada_completada ?? false,
+      sitio_completado: existing.sitio_completado ?? false,
+    };
   }
 
   // Get folio's sucursal_id for the new report
@@ -72,7 +83,7 @@ export async function getOrCreateTodayReport(
     if (insertError.code === "23505") {
       const { data: raceReport, error: raceError } = await supabase
         .from("reportes")
-        .select("id")
+        .select("id, llegada_completada, sitio_completado")
         .eq("folio_id", folioId)
         .eq("fecha", today)
         .maybeSingle();
@@ -81,7 +92,11 @@ export async function getOrCreateTodayReport(
         return { error: "Error al crear reporte (conflicto)" };
       }
 
-      return { reporteId: raceReport.id };
+      return {
+        reporteId: raceReport.id,
+        llegada_completada: raceReport.llegada_completada ?? false,
+        sitio_completado: raceReport.sitio_completado ?? false,
+      };
     }
 
     return { error: "Error al crear reporte: " + insertError.message };
@@ -90,7 +105,11 @@ export async function getOrCreateTodayReport(
   // Pre-fill equipment entries from previous report
   await preFillFromPreviousReport(supabase, folioId, newReport.id, today);
 
-  return { reporteId: newReport.id };
+  return {
+    reporteId: newReport.id,
+    llegada_completada: false,
+    sitio_completado: false,
+  };
 }
 
 // ── Pre-fill from Previous Report (private) ─────────────────────────────

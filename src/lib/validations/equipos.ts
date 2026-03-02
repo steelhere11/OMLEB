@@ -32,6 +32,31 @@ export const equipoSchema = z.object({
     })
     .optional()
     .or(z.literal("")),
+  capacidad: z
+    .string()
+    .max(100, { error: "La capacidad no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  refrigerante: z
+    .string()
+    .max(100, { error: "El refrigerante no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  voltaje: z
+    .string()
+    .max(100, { error: "El voltaje no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  fase: z
+    .string()
+    .max(50, { error: "La fase no puede exceder 50 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  ubicacion: z
+    .string()
+    .max(100, { error: "La ubicacion no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
 });
 
 export type EquipoInput = z.infer<typeof equipoSchema>;
@@ -66,6 +91,81 @@ export const equipoForFolioSchema = z.object({
     })
     .optional()
     .or(z.literal("")),
+  capacidad: z
+    .string()
+    .max(100, { error: "La capacidad no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  refrigerante: z
+    .string()
+    .max(100, { error: "El refrigerante no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  voltaje: z
+    .string()
+    .max(100, { error: "El voltaje no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  fase: z
+    .string()
+    .max(50, { error: "La fase no puede exceder 50 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  ubicacion: z
+    .string()
+    .max(100, { error: "La ubicacion no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
 });
 
 export type EquipoForFolioInput = z.infer<typeof equipoForFolioSchema>;
+
+// Schema for equipment registration (nameplate data from field)
+export const equipmentRegistrationSchema = z.object({
+  marca: z
+    .string()
+    .max(100, { error: "La marca no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  modelo: z
+    .string()
+    .max(100, { error: "El modelo no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  numero_serie: z
+    .string()
+    .max(100, {
+      error: "El numero de serie no puede exceder 100 caracteres",
+    })
+    .optional()
+    .or(z.literal("")),
+  capacidad: z
+    .string()
+    .max(100, { error: "La capacidad no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  refrigerante: z
+    .string()
+    .max(100, { error: "El refrigerante no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  voltaje: z
+    .string()
+    .max(100, { error: "El voltaje no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  fase: z
+    .string()
+    .max(50, { error: "La fase no puede exceder 50 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  ubicacion: z
+    .string()
+    .max(100, { error: "La ubicacion no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
+});
+
+export type EquipmentRegistrationInput = z.infer<
+  typeof equipmentRegistrationSchema
+>;
