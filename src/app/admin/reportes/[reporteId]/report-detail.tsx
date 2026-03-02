@@ -12,7 +12,7 @@ import {
   adminUpdateStep,
   adminUpdateEquipmentInfo,
 } from "@/app/actions/reportes";
-import { adminFlagPhoto, adminDeletePhoto } from "@/app/actions/fotos";
+import { adminFlagPhoto, adminDeletePhoto, adminUploadPhoto } from "@/app/actions/fotos";
 import { ReporteDeleteButton } from "@/components/admin/reporte-delete-button";
 import { AdminPhotoCard } from "@/components/admin/admin-photo-card";
 import { AdminPhotoUpload } from "@/components/admin/admin-photo-upload";
@@ -1227,6 +1227,8 @@ function EquipmentCard({
                   onEdit={() => onEditStep(paso.id)}
                   onCancelEdit={onCancelEditStep}
                   onSaved={onStepSaved}
+                  reporteId={reporteId}
+                  equipoId={entry.equipo_id}
                 />
               ))}
             </div>
@@ -1466,6 +1468,8 @@ function StepRow({
   onEdit,
   onCancelEdit,
   onSaved,
+  reporteId,
+  equipoId,
 }: {
   paso: ReportePasoData;
   stagePhotos?: ReporteFotoData[];
@@ -1475,7 +1479,12 @@ function StepRow({
   onEdit: () => void;
   onCancelEdit: () => void;
   onSaved: () => void;
+  reporteId: string;
+  equipoId: string;
 }) {
+  const [showUpload, setShowUpload] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const isCustom = !paso.plantillas_pasos && !paso.fallas_correctivas && !!paso.nombre_custom;
   const name =
     paso.plantillas_pasos?.nombre ??
@@ -1546,7 +1555,82 @@ function StepRow({
             >
               Editar
             </button>
+            <button
+              type="button"
+              onClick={() => { setShowUpload((v) => !v); setUploadError(null); }}
+              className="shrink-0 text-[11px] font-medium text-text-3 transition-colors duration-[80ms] hover:text-accent flex items-center gap-0.5"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Agregar foto
+            </button>
           </div>
+
+          {/* Inline photo upload form */}
+          {showUpload && (
+            <form
+              className="mt-2 flex flex-wrap items-end gap-2 rounded border border-admin-border-subtle bg-admin-surface-raised p-2"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setUploading(true);
+                setUploadError(null);
+                const fd = new FormData(e.currentTarget);
+                fd.set("reporteId", reporteId);
+                fd.set("equipoId", equipoId);
+                fd.set("reportePasoId", paso.id);
+                const result = await adminUploadPhoto(fd);
+                setUploading(false);
+                if (result.error) {
+                  setUploadError(result.error);
+                } else {
+                  setShowUpload(false);
+                  onSaved();
+                }
+              }}
+            >
+              <label className="flex flex-col gap-1 text-[11px] font-medium text-text-2">
+                Archivo
+                <input
+                  type="file"
+                  name="file"
+                  accept="image/*,video/*"
+                  required
+                  className="w-[180px] text-[11px] file:mr-2 file:rounded file:border-0 file:bg-accent/10 file:px-2 file:py-0.5 file:text-[11px] file:font-medium file:text-accent"
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-[11px] font-medium text-text-2">
+                Etiqueta
+                <select
+                  name="etiqueta"
+                  required
+                  className="rounded border border-admin-border-subtle bg-admin-surface px-2 py-1 text-[12px] text-text-0"
+                >
+                  <option value="antes">Antes</option>
+                  <option value="durante">Durante</option>
+                  <option value="despues">Despues</option>
+                </select>
+              </label>
+              <button
+                type="submit"
+                disabled={uploading}
+                className="rounded bg-accent px-3 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
+              >
+                {uploading ? "Subiendo..." : "Subir"}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowUpload(false); setUploadError(null); }}
+                className="text-[11px] font-medium text-text-3 hover:text-text-1"
+              >
+                Cancelar
+              </button>
+              {uploadError && (
+                <p className="w-full text-[11px] text-status-error">{uploadError}</p>
+              )}
+            </form>
+          )}
 
           {/* Readings */}
           {readings.length > 0 && (
