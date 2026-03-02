@@ -156,6 +156,7 @@ export function WorkflowCorrective({
         reporte_paso_id: getStepId(activeIssueId),
         url: result.url,
         etiqueta: (activeLabel?.toLowerCase() ?? "antes") as ReporteFoto["etiqueta"],
+        tipo_media: "foto",
         metadata_gps: null,
         metadata_fecha: new Date().toISOString(),
         created_at: new Date().toISOString(),
@@ -192,6 +193,7 @@ export function WorkflowCorrective({
 
         if (result.success) {
           const issueId = activeIssueId;
+          const isVideo = file.type.startsWith("video/");
           setPhotosByIssue((prev) => ({
             ...prev,
             [issueId]: [
@@ -203,6 +205,7 @@ export function WorkflowCorrective({
                 reporte_paso_id: stepId,
                 url: result.url,
                 etiqueta: label as ReporteFoto["etiqueta"],
+                tipo_media: isVideo ? "video" as const : "foto" as const,
                 metadata_gps: null,
                 metadata_fecha: new Date().toISOString(),
                 created_at: new Date().toISOString(),

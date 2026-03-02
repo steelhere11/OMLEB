@@ -136,6 +136,7 @@ export function WorkflowStepCard({
           reporte_paso_id: savedProgress?.id ?? null,
           url: result.url,
           etiqueta: (activeLabel?.toLowerCase() ?? "antes") as ReporteFoto["etiqueta"],
+          tipo_media: "foto" as const,
           metadata_gps: null,
           metadata_fecha: new Date().toISOString(),
           created_at: new Date().toISOString(),
@@ -156,6 +157,7 @@ export function WorkflowStepCard({
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+        const isVideo = file.type.startsWith("video/");
         const result = await compressAndUpload(
           file,
           {
@@ -178,6 +180,7 @@ export function WorkflowStepCard({
               reporte_paso_id: savedProgress?.id ?? null,
               url: result.url,
               etiqueta: label as ReporteFoto["etiqueta"],
+              tipo_media: isVideo ? "video" as const : "foto" as const,
               metadata_gps: null,
               metadata_fecha: new Date().toISOString(),
               created_at: new Date().toISOString(),

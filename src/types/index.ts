@@ -101,6 +101,8 @@ export interface ReporteEquipo {
 
 export type FotoEtiqueta = "antes" | "durante" | "despues" | "dano" | "placa" | "progreso";
 
+export type TipoMedia = "foto" | "video";
+
 export interface ReporteFoto {
   id: string;
   reporte_id: string;
@@ -108,6 +110,7 @@ export interface ReporteFoto {
   reporte_paso_id: string | null;
   url: string;
   etiqueta: FotoEtiqueta | null;
+  tipo_media: TipoMedia;
   metadata_gps: string | null;
   metadata_fecha: string | null;
   created_at: string;

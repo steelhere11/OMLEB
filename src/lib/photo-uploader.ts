@@ -1,9 +1,10 @@
-// Photo compression and upload pipeline
-// Compress -> Upload to Supabase Storage -> Insert reporte_fotos row
+// Photo/video compression and upload pipeline
+// Compress (images only) -> Upload to Supabase Storage -> Insert reporte_fotos row
 // Uses browser Supabase client (NOT admin/service role)
 
 import imageCompression from "browser-image-compression";
 import { createClient } from "@/lib/supabase/client";
+import type { TipoMedia } from "@/types";
 
 export type UploadResult =
   | { success: true; url: string; fotoId: string }
@@ -16,47 +17,74 @@ export interface PhotoMetadata {
   etiqueta: string;
   gps: string | null;
   fecha: Date;
+  tipoMedia?: TipoMedia;
+}
+
+/** Map video MIME type to file extension */
+function videoExtension(mimeType: string): string {
+  if (mimeType === "video/mp4") return ".mp4";
+  if (mimeType === "video/quicktime") return ".mov";
+  if (mimeType === "video/webm") return ".webm";
+  return ".mp4"; // fallback
 }
 
 /**
- * Compress an image blob and upload to Supabase Storage, then insert a
- * reporte_fotos row. If the DB insert fails, the uploaded file is cleaned up.
+ * Compress an image blob (or upload a video blob directly) to Supabase Storage,
+ * then insert a reporte_fotos row. If the DB insert fails, the uploaded file
+ * is cleaned up.
  *
- * @param imageBlob - Raw image blob (from canvas.toBlob or file input)
- * @param metadata - Report/equipment/step context for the photo
+ * @param blob - Raw blob (from canvas.toBlob, file input, or MediaRecorder)
+ * @param metadata - Report/equipment/step context for the media
  * @param onProgress - Optional progress callback (0-100)
  * @returns UploadResult with url and fotoId on success
  */
 export async function compressAndUpload(
-  imageBlob: Blob,
+  blob: Blob,
   metadata: PhotoMetadata,
   onProgress?: (pct: number) => void
 ): Promise<UploadResult> {
   const supabase = createClient();
+  const isVideo = blob.type.startsWith("video/");
+  const tipoMedia: TipoMedia = isVideo ? "video" : "foto";
 
   try {
-    // 1. Convert Blob to File (browser-image-compression requires File)
     onProgress?.(10);
-    const file = new File([imageBlob], "photo.jpg", { type: "image/jpeg" });
 
-    // 2. Compress with Web Worker
-    const compressed = await imageCompression(file, {
-      maxSizeMB: 0.8,
-      maxWidthOrHeight: 1920,
-      useWebWorker: true,
-      onProgress: (pct: number) => onProgress?.(10 + pct * 0.4), // 10-50%
-    });
+    let uploadBlob: Blob;
+    let contentType: string;
+    let fileName: string;
 
-    // 3. Upload to Supabase Storage
+    if (isVideo) {
+      // Video: skip compression, upload raw blob directly
+      uploadBlob = blob;
+      contentType = blob.type || "video/mp4";
+      fileName = `${crypto.randomUUID()}${videoExtension(contentType)}`;
+      onProgress?.(30);
+    } else {
+      // Image: compress with Web Worker
+      const file = new File([blob], "photo.jpg", { type: blob.type || "image/jpeg" });
+
+      const compressed = await imageCompression(file, {
+        maxSizeMB: 0.8,
+        maxWidthOrHeight: 1920,
+        useWebWorker: true,
+        onProgress: (pct: number) => onProgress?.(10 + pct * 0.4), // 10-50%
+      });
+
+      uploadBlob = compressed;
+      contentType = "image/jpeg";
+      fileName = `${crypto.randomUUID()}.jpg`;
+    }
+
+    // Upload to Supabase Storage
     onProgress?.(50);
-    const fileName = `${crypto.randomUUID()}.jpg`;
     const folder = metadata.equipoId ?? "general";
     const filePath = `${metadata.reporteId}/${folder}/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from("reportes")
-      .upload(filePath, compressed, {
-        contentType: "image/jpeg",
+      .upload(filePath, uploadBlob, {
+        contentType,
         upsert: false,
       });
 
@@ -72,14 +100,14 @@ export async function compressAndUpload(
       return { success: false, error: uploadError.message };
     }
 
-    // 4. Get public URL
+    // Get public URL
     const { data: urlData } = supabase.storage
       .from("reportes")
       .getPublicUrl(filePath);
 
     onProgress?.(80);
 
-    // 5. Insert DB record
+    // Insert DB record
     const { data: fotoRow, error: dbError } = await supabase
       .from("reporte_fotos")
       .insert({
@@ -88,6 +116,7 @@ export async function compressAndUpload(
         reporte_paso_id: metadata.reportePasoId,
         url: urlData.publicUrl,
         etiqueta: metadata.etiqueta,
+        tipo_media: tipoMedia,
         metadata_gps: metadata.gps,
         metadata_fecha: metadata.fecha.toISOString(),
       })
@@ -104,13 +133,13 @@ export async function compressAndUpload(
     return { success: true, url: urlData.publicUrl, fotoId: fotoRow.id };
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : "Error desconocido al subir foto";
+      err instanceof Error ? err.message : "Error desconocido al subir archivo";
     return { success: false, error: message };
   }
 }
 
 /**
- * Delete a photo from Storage and its reporte_fotos row.
+ * Delete a photo/video from Storage and its reporte_fotos row.
  *
  * @param fotoId - The reporte_fotos row ID
  * @param filePath - The Storage file path (extracted from URL)
@@ -146,7 +175,7 @@ export async function deletePhoto(
     const message =
       err instanceof Error
         ? err.message
-        : "Error desconocido al eliminar foto";
+        : "Error desconocido al eliminar archivo";
     return { success: false, error: message };
   }
 }

@@ -154,6 +154,7 @@ export function EquipmentEntryForm({
           reporte_paso_id: null,
           url: result.url,
           etiqueta: (activeLabel?.toLowerCase() ?? "antes") as ReporteFoto["etiqueta"],
+          tipo_media: "foto" as const,
           metadata_gps: null,
           metadata_fecha: new Date().toISOString(),
           created_at: new Date().toISOString(),
@@ -174,6 +175,7 @@ export function EquipmentEntryForm({
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+        const isVideo = file.type.startsWith("video/");
         const result = await compressAndUpload(file, {
           reporteId,
           equipoId: entry.equipo_id,
@@ -193,6 +195,7 @@ export function EquipmentEntryForm({
               reporte_paso_id: null,
               url: result.url,
               etiqueta: label as ReporteFoto["etiqueta"],
+              tipo_media: isVideo ? "video" as const : "foto" as const,
               metadata_gps: null,
               metadata_fecha: new Date().toISOString(),
               created_at: new Date().toISOString(),
