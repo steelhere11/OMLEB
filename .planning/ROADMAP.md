@@ -22,6 +22,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 6: Foundation Completion & PWA** - Middleware fix, PWA manifest, service worker, offline fallback, install prompt, tech debt cleanup
 - [ ] **Phase 7: Deployment Guide & Seed Data** - Step-by-step deployment playbook and realistic seed data for QA testing
 - [x] **Phase 8: Arrival, Site Overview & Equipment Registration** - Pre-maintenance gated phases: arrival photo (PPE evidence), site panoramic, equipment nameplate registration with photos and data fields
+- [ ] **Phase 9: Admin Full Control** - INSERTED - Cascade delete for all entities, photo management (delete/flag/upload), edit workflow steps and equipment info from report detail, admin comments system, technician feedback visibility
+- [ ] **Phase 10: Photo Export & Device Save** - PLANNED - ZIP photo package download organized by report structure, save-to-device for individual photos, PDF photo optimization (thumbnails in PDF, full-res in ZIP)
 
 ## Phase Details
 
@@ -201,6 +203,45 @@ Plans:
 - [x] 08-04-PLAN.md — Report form integration with gating logic
 - [x] 08-05-PLAN.md — Workflow seed update + PDF + admin updates
 
+### Phase 9: Admin Full Control (INSERTED)
+**Goal**: Give admins complete CRUD control over every entity — cascade deletes, photo management, step/equipment editing, commenting, and feedback loop with technicians
+**Depends on**: Phase 5.5 (admin report detail view, photo infrastructure). Compatible with Phase 8 additions.
+**Success Criteria** (what must be TRUE):
+  1. Admin can delete a folio with reports — all reports, photos (storage + DB), materials, steps cascade-deleted
+  2. Admin can delete a report — all children cleaned up including storage
+  3. Admin can delete an equipo that has report references — equipo detached and deleted
+  4. Admin can delete a sucursal with folios — full cascade works
+  5. High-impact deletes require typed confirmation
+  6. Admin can flag any photo as accepted/rejected/retomar with a note
+  7. Admin can delete any individual photo (storage + DB)
+  8. Admin can upload a photo to any report from admin side
+  9. Admin can edit any workflow step's readings and notes
+  10. Admin can edit equipment info (marca, modelo, serie, tipo) directly from report detail
+  11. Admin can add comments to reports (general or per-equipment)
+  12. Technician sees flagged photos and admin comments in their view
+  13. Technician sees "retomar" items with admin notes explaining why
+**Plans:** 6 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Database migration + types + cascade delete actions
+- [ ] 09-02-PLAN.md — Delete UI for folios, reportes, equipos, sucursales
+- [ ] 09-03-PLAN.md — Photo management: delete, flag, upload from admin
+- [ ] 09-04-PLAN.md — Edit workflow steps + equipment info from report detail
+- [ ] 09-05-PLAN.md — Admin comments system
+- [ ] 09-06-PLAN.md — Technician-side feedback visibility
+
+### Phase 10: Photo Export & Device Save (PLANNED)
+**Goal**: Enable photo package downloads as organized ZIP files and individual photo save-to-device, with PDF optimization for thumbnails vs full-res
+**Depends on**: Phase 9 (photo management infrastructure)
+**Success Criteria** (what must be TRUE):
+  1. Admin can download all photos for a report as an organized ZIP file
+  2. Individual photos can be saved to device
+  3. PDF uses optimized thumbnails; full-res available in ZIP
+  4. ZIP structure mirrors report organization (by equipment/step)
+  5. Download progress indicator for large photo sets
+  6. Works on both desktop and mobile browsers
+**Plans:** TBD
+
 ## Progress
 
 **Execution Order:**
@@ -218,6 +259,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 3.5 -> 4 -> 5 -> 5.5 -> 6 -> 7 -
 | 6. Foundation Completion & PWA | 0/1 | Pending | - |
 | 7. Deployment Guide & Seed Data | 0/2 | Pending | - |
 | 8. Arrival, Site Overview & Equipment Registration | 5/5 | Complete | 2026-03-02 |
+| 9. Admin Full Control | 0/6 | Pending | - |
+| 10. Photo Export & Device Save | 0/TBD | Planned | - |
 
 ---
 *Roadmap created: 2026-02-23*
