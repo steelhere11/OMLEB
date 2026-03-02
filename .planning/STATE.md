@@ -10,13 +10,13 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 10 (Feature Expansion) — in progress
-Plan: 4 of 7 in current phase (10-01, 10-02, 10-03, 10-05 complete)
-Status: 10-05 complete, ready for 10-04 or 10-06
-Last activity: 2026-03-02 -- Completed 10-05-PLAN.md
+Plan: 5 of 7 in current phase (10-01, 10-02, 10-03, 10-04, 10-05 complete)
+Status: 10-04 complete, ready for 10-06
+Last activity: 2026-03-02 -- Completed 10-04-PLAN.md
 
-Progress: [██████████████████████████] 100% (28/28 plans complete)
+Progress: [██████████████████████████] 100% (29/29 plans complete)
 
-Note: All 28 feature plans complete across phases 2-5.5, 8, 9, 10 (partial). Phase 1 has 2/3 done. Phase 6 (deployment) and Phase 7 (deployment guide) pending.
+Note: All 29 feature plans complete across phases 2-5.5, 8, 9, 10 (partial). Phase 1 has 2/3 done. Phase 6 (deployment) and Phase 7 (deployment guide) pending.
 
 ## Performance Metrics
 
@@ -73,6 +73,10 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | equipo-id-in-pdf-data | Added equipo id to PdfReportData equipment entries for comment-to-equipment matching | 10-03 |
 | amber-border-comments | Admin comments use amber left border to distinguish from blue note callouts | 10-03 |
 | dynamic-dropdown-no-changes | Equipment type dropdowns already load dynamically from tipos_equipo table; no code changes needed for fan_coil | 10-05 |
+| overwrite-not-duplicate | Annotated photo overwrites original in Supabase Storage at same path -- no duplicate rows or extra storage | 10-04 |
+| native-resolution-export | Annotations rendered at native image resolution on offscreen canvas for export quality | 10-04 |
+| annotate-photos-only | Annotation only available for photos (tipo_media=foto), not videos | 10-04 |
+| body-scroll-lock | Body scroll locked and pinch-zoom prevented while annotator is open for smooth mobile drawing | 10-04 |
 
 ### Pending Todos
 
@@ -109,5 +113,5 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 10-05. Ready to execute 10-04 or 10-06.
+Stopped at: Completed 10-04. Ready to execute 10-06.
 Resume file: .planning/phases/10-feature-expansion/10-PLAN.md
