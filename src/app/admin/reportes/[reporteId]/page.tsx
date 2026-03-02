@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ReportDetail } from "./report-detail";
+import type { ReporteComentario } from "@/types";
 
 export default async function ReporteDetailPage({
   params,
@@ -55,8 +56,8 @@ export default async function ReporteDetailPage({
     );
   }
 
-  // Fetch team members and tipos_equipo in parallel
-  const [{ data: asignados }, { data: tiposEquipo }] = await Promise.all([
+  // Fetch team members, tipos_equipo, and comments in parallel
+  const [{ data: asignados }, { data: tiposEquipo }, { data: comentarios }] = await Promise.all([
     supabase
       .from("folio_asignados")
       .select("usuario_id, users(nombre, rol)")
@@ -65,11 +66,28 @@ export default async function ReporteDetailPage({
       .from("tipos_equipo")
       .select("id, slug, nombre, is_system, created_at")
       .order("nombre"),
+    supabase
+      .from("reporte_comentarios")
+      .select("*, users:autor_id(nombre)")
+      .eq("reporte_id", reporteId)
+      .order("created_at", { ascending: true }),
   ]);
 
   const teamMembers =
     (asignados as { usuario_id: string; users: { nombre: string; rol: string } | null }[] | null) ??
     [];
+
+  // Flatten author name into comment objects
+  type ComentarioRow = ReporteComentario & { users: { nombre: string } | null };
+  const comments = ((comentarios ?? []) as ComentarioRow[]).map((c) => ({
+    id: c.id,
+    reporte_id: c.reporte_id,
+    equipo_id: c.equipo_id,
+    autor_id: c.autor_id,
+    contenido: c.contenido,
+    created_at: c.created_at,
+    autor_nombre: c.users?.nombre ?? undefined,
+  }));
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -80,7 +98,7 @@ export default async function ReporteDetailPage({
         ← Reportes
       </Link>
 
-      <ReportDetail reporte={reporte} teamMembers={teamMembers} tiposEquipo={tiposEquipo ?? []} />
+      <ReportDetail reporte={reporte} teamMembers={teamMembers} tiposEquipo={tiposEquipo ?? []} comments={comments} />
     </div>
   );
 }

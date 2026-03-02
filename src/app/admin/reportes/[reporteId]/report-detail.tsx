@@ -18,6 +18,8 @@ import { AdminPhotoCard } from "@/components/admin/admin-photo-card";
 import { AdminPhotoUpload } from "@/components/admin/admin-photo-upload";
 import { AdminStepEditor } from "@/components/admin/admin-step-editor";
 import { AdminEquipmentInfoEditor } from "@/components/admin/admin-equipment-info-editor";
+import { CommentSection } from "@/components/admin/comment-section";
+import type { ReporteComentario } from "@/types";
 
 const ReportPdfButton = dynamic(
   () => import("@/components/admin/report-pdf-button"),
@@ -130,10 +132,15 @@ interface TeamMember {
   users: { nombre: string; rol: string } | null;
 }
 
+interface CommentWithAuthor extends ReporteComentario {
+  autor_nombre?: string;
+}
+
 export interface ReportDetailProps {
   reporte: ReporteData;
   teamMembers: TeamMember[];
   tiposEquipo: TipoEquipo[];
+  comments: CommentWithAuthor[];
 }
 
 // ---------- Status config ----------
@@ -188,7 +195,7 @@ function formatRol(rol: string): string {
 
 // ---------- Component ----------
 
-export function ReportDetail({ reporte, teamMembers, tiposEquipo }: ReportDetailProps) {
+export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments }: ReportDetailProps) {
   const router = useRouter();
   const status = statusConfig[reporte.estatus] ?? statusConfig.en_progreso;
   const folio = reporte.folios;
@@ -498,6 +505,13 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo }: ReportDetail
           )}
         </div>
       </div>
+
+      {/* Comments */}
+      <CommentSection
+        comments={comments.filter((c) => !c.equipo_id)}
+        reporteId={reporte.id}
+        equipos={equiposList}
+      />
 
       {/* Footer: Back, PDF Export, Approve */}
       <div id="admin-actions" className="flex flex-wrap items-center justify-between gap-3 pt-2">
