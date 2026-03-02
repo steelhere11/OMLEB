@@ -166,6 +166,31 @@ export function PhotoThumbnail({
             )}
           </div>
 
+          {/* Metadata overlay for videos (photos have it burned into the image) */}
+          {isVideo && (foto.metadata_fecha || foto.metadata_gps) && (
+            <div className="absolute bottom-20 right-4 z-10 rounded-lg bg-black/60 px-3 py-2 text-right">
+              {foto.metadata_fecha && (
+                <p className="text-xs font-bold text-white">
+                  {new Date(foto.metadata_fecha).toLocaleDateString("es-MX", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}{" "}
+                  {new Date(foto.metadata_fecha).toLocaleTimeString("es-MX", {
+                    hour: "numeric",
+                    minute: "2-digit",
+                    second: "2-digit",
+                  })}
+                </p>
+              )}
+              {foto.metadata_gps && (
+                <p className="text-[10px] font-medium text-white/80">
+                  GPS: {foto.metadata_gps}
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Delete button */}
           {onDelete && !disabled && !showConfirm && (
             <div className="absolute bottom-8 inset-x-0 flex justify-center">
