@@ -11,6 +11,8 @@ import { EquipmentRegistrationSection } from "./equipment-registration-section";
 import { EquipmentSection } from "./equipment-section";
 import { MaterialsSection } from "./materials-section";
 import { StatusSection } from "./status-section";
+import { AdminFeedbackBanner } from "@/components/tecnico/admin-feedback-banner";
+import { CommentSection } from "@/components/admin/comment-section";
 import type {
   ReporteEquipo,
   Equipo,
@@ -19,7 +21,7 @@ import type {
   TipoEquipo,
   ReporteFoto,
 } from "@/types";
-import type { RegistrationEntry } from "./page";
+import type { RegistrationEntry, CommentWithAuthor, FlaggedPhotoSummary } from "./page";
 
 interface ReportFormProps {
   reporteId: string;
@@ -51,6 +53,10 @@ interface ReportFormProps {
   } | null;
   existingFolioSitePhoto: { url: string } | null;
   registrationEntries: RegistrationEntry[];
+  // Admin feedback props
+  adminComments: CommentWithAuthor[];
+  flaggedPhotos: FlaggedPhotoSummary[];
+  equipoListForComments: Array<{ id: string; etiqueta: string }>;
 }
 
 const rolLabels: Record<string, string> = {
@@ -80,6 +86,9 @@ export function ReportForm({
   sitePhoto,
   existingFolioSitePhoto,
   registrationEntries,
+  adminComments,
+  flaggedPhotos,
+  equipoListForComments,
 }: ReportFormProps) {
   const router = useRouter();
   const [showRefreshBanner, setShowRefreshBanner] = useState(false);
@@ -238,6 +247,13 @@ export function ReportForm({
         </div>
       )}
 
+      {/* Admin feedback banner */}
+      <AdminFeedbackBanner
+        retakePhotos={flaggedPhotos.filter((p) => p.estatus === "retomar")}
+        rejectedPhotos={flaggedPhotos.filter((p) => p.estatus === "rechazada")}
+        commentCount={adminComments.length}
+      />
+
       {/* Report info section */}
       <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
         {/* Date */}
@@ -380,6 +396,18 @@ export function ReportForm({
           isCompleted={isCompleted}
         />
       </PhaseGate>
+
+      {/* Admin comments section (read-only for technicians) */}
+      {adminComments.length > 0 && (
+        <div className="rounded-xl border border-gray-200 bg-white p-4">
+          <CommentSection
+            comments={adminComments}
+            reporteId={reporteId}
+            equipos={equipoListForComments}
+            readOnly={true}
+          />
+        </div>
+      )}
     </div>
   );
 }

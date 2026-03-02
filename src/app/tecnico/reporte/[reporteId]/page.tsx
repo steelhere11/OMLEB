@@ -1,6 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
 import { ReportForm } from "./report-form";
-import type { ReporteEstatus, ReporteEquipo, Equipo, ReporteMaterial, TipoEquipo, ReporteFoto } from "@/types";
+import type { ReporteEstatus, ReporteEquipo, Equipo, ReporteMaterial, TipoEquipo, ReporteFoto, ReporteComentario } from "@/types";
+
+export type CommentWithAuthor = ReporteComentario & {
+  autor_nombre?: string;
+};
+
+export type FlaggedPhotoSummary = {
+  fotoId: string;
+  etiqueta: string;
+  equipoLabel: string;
+  stepName?: string;
+  nota: string | null;
+  estatus: "retomar" | "rechazada";
+};
 
 type ReportWithRelations = {
   id: string;
@@ -191,6 +204,101 @@ export default async function ReportePage({
     };
   });
 
+  // --- Admin feedback data fetching ---
+
+  // Fetch admin comments for this report (technicians have RLS read access)
+  const { data: rawComments } = await supabase
+    .from("reporte_comentarios")
+    .select("id, reporte_id, equipo_id, autor_id, contenido, created_at, users:autor_id(nombre)")
+    .eq("reporte_id", reporteId)
+    .order("created_at", { ascending: true });
+
+  const adminComments: CommentWithAuthor[] = (rawComments ?? []).map((c) => {
+    const raw = c as unknown as {
+      id: string;
+      reporte_id: string;
+      equipo_id: string | null;
+      autor_id: string;
+      contenido: string;
+      created_at: string;
+      users: { nombre: string } | null;
+    };
+    return {
+      id: raw.id,
+      reporte_id: raw.reporte_id,
+      equipo_id: raw.equipo_id,
+      autor_id: raw.autor_id,
+      contenido: raw.contenido,
+      created_at: raw.created_at,
+      autor_nombre: raw.users?.nombre ?? "Admin",
+    };
+  });
+
+  // Fetch flagged photos (retomar or rechazada) for this report
+  const { data: flaggedPhotos } = await supabase
+    .from("reporte_fotos")
+    .select("id, equipo_id, etiqueta, estatus_revision, nota_admin, reporte_paso_id")
+    .eq("reporte_id", reporteId)
+    .in("estatus_revision", ["retomar", "rechazada"]);
+
+  // Build equipment label lookup from entries
+  const equipoLabelMap = new Map<string, string>();
+  for (const entry of typedEntries) {
+    if (entry.equipos) {
+      equipoLabelMap.set(entry.equipo_id, entry.equipos.numero_etiqueta);
+    }
+  }
+
+  // Build step name lookup if we have paso IDs on flagged photos
+  const flaggedPasoIds = (flaggedPhotos ?? [])
+    .map((p) => (p as unknown as { reporte_paso_id: string | null }).reporte_paso_id)
+    .filter(Boolean) as string[];
+
+  let stepNameMap = new Map<string, string>();
+  if (flaggedPasoIds.length > 0) {
+    const { data: pasos } = await supabase
+      .from("reporte_pasos")
+      .select("id, plantilla_paso_id, plantillas_pasos:plantilla_paso_id(nombre)")
+      .in("id", flaggedPasoIds);
+
+    if (pasos) {
+      for (const paso of pasos) {
+        const raw = paso as unknown as {
+          id: string;
+          plantillas_pasos: { nombre: string } | null;
+        };
+        if (raw.plantillas_pasos?.nombre) {
+          stepNameMap.set(raw.id, raw.plantillas_pasos.nombre);
+        }
+      }
+    }
+  }
+
+  const flaggedPhotoSummaries: FlaggedPhotoSummary[] = (flaggedPhotos ?? []).map((p) => {
+    const raw = p as unknown as {
+      id: string;
+      equipo_id: string | null;
+      etiqueta: string;
+      estatus_revision: "retomar" | "rechazada";
+      nota_admin: string | null;
+      reporte_paso_id: string | null;
+    };
+    return {
+      fotoId: raw.id,
+      etiqueta: raw.etiqueta ?? "",
+      equipoLabel: raw.equipo_id ? (equipoLabelMap.get(raw.equipo_id) ?? "Equipo") : "General",
+      stepName: raw.reporte_paso_id ? stepNameMap.get(raw.reporte_paso_id) : undefined,
+      nota: raw.nota_admin,
+      estatus: raw.estatus_revision,
+    };
+  });
+
+  // Build equipment list for comment section scope display
+  const equipoListForComments = typedEntries.map((e) => ({
+    id: e.equipo_id,
+    etiqueta: e.equipos?.numero_etiqueta ?? "Equipo",
+  }));
+
   const folio = typedReport.folios;
   const isCompleted = typedReport.estatus === "completado";
 
@@ -236,6 +344,9 @@ export default async function ReportePage({
       }
       existingFolioSitePhoto={existingFolioSitePhoto}
       registrationEntries={registrationEntries}
+      adminComments={adminComments}
+      flaggedPhotos={flaggedPhotoSummaries}
+      equipoListForComments={equipoListForComments}
     />
   );
 }
