@@ -289,12 +289,11 @@ export async function adminUploadPhoto(
   const isVideo = file.type.startsWith("video/");
   const tipoMedia = isVideo ? "video" : "foto";
 
-  // Insert database row
+  // Insert database row — tipo_media and estatus_revision are optional
+  // columns that may not exist yet if migrations haven't been run.
   const insertData: Record<string, unknown> = {
     reporte_id: reporteId,
     url: urlData.publicUrl,
-    tipo_media: tipoMedia,
-    estatus_revision: "aceptada", // Admin uploads are auto-accepted
   };
 
   if (equipoId) insertData.equipo_id = equipoId;
