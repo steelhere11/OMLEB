@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import type { ActionState } from "@/types/actions";
 import type { Equipo, TipoEquipo } from "@/types";
+import { REFRIGERANTES, VOLTAJES, FASES } from "@/lib/constants/nameplate-options";
+import { UBICACIONES_BBVA } from "@/lib/constants/ubicaciones";
 
 interface EditEquipoFormProps {
   equipo: Equipo;
@@ -174,6 +176,96 @@ export function EditEquipoForm({ equipo, sucursalId, tiposEquipo }: EditEquipoFo
               error={state?.fieldErrors?.numero_serie?.[0]}
               className="mt-1.5 admin-input"
             />
+          </div>
+
+          <div>
+            <Label htmlFor="capacidad" className="text-[13px] text-text-1">
+              Capacidad
+            </Label>
+            <Input
+              id="capacidad"
+              name="capacidad"
+              type="text"
+              placeholder="Ej: 5 Ton, 60000 BTU"
+              defaultValue={equipo.capacidad ?? ""}
+              className="mt-1.5 admin-input"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="refrigerante" className="text-[13px] text-text-1">
+              Refrigerante
+            </Label>
+            <Select
+              id="refrigerante"
+              name="refrigerante"
+              defaultValue={equipo.refrigerante ?? ""}
+              className="mt-1.5 admin-input"
+            >
+              <option value="">Seleccionar...</option>
+              {REFRIGERANTES.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="voltaje" className="text-[13px] text-text-1">
+              Voltaje
+            </Label>
+            <Select
+              id="voltaje"
+              name="voltaje"
+              defaultValue={equipo.voltaje ?? ""}
+              className="mt-1.5 admin-input"
+            >
+              <option value="">Seleccionar...</option>
+              {VOLTAJES.map((v) => (
+                <option key={v.value} value={v.value}>
+                  {v.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="fase" className="text-[13px] text-text-1">
+              Fase
+            </Label>
+            <Select
+              id="fase"
+              name="fase"
+              defaultValue={equipo.fase ?? ""}
+              className="mt-1.5 admin-input"
+            >
+              <option value="">Seleccionar...</option>
+              {FASES.map((f) => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="ubicacion" className="text-[13px] text-text-1">
+              Ubicacion
+            </Label>
+            <Select
+              id="ubicacion"
+              name="ubicacion"
+              defaultValue={equipo.ubicacion ?? ""}
+              className="mt-1.5 admin-input"
+            >
+              <option value="">Seleccionar...</option>
+              {UBICACIONES_BBVA.map((u) => (
+                <option key={u.value} value={u.value}>
+                  {u.label}
+                </option>
+              ))}
+            </Select>
           </div>
 
           {/* Review status info */}

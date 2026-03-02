@@ -65,6 +65,18 @@ export async function createEquipo(
     insertData.tipo_equipo_id = tipoEquipoId;
   }
 
+  // Handle new nameplate fields
+  const capacidad = formData.get("capacidad") as string;
+  if (capacidad && capacidad !== "") insertData.capacidad = capacidad;
+  const refrigerante = formData.get("refrigerante") as string;
+  if (refrigerante && refrigerante !== "") insertData.refrigerante = refrigerante;
+  const voltaje = formData.get("voltaje") as string;
+  if (voltaje && voltaje !== "") insertData.voltaje = voltaje;
+  const fase = formData.get("fase") as string;
+  if (fase && fase !== "") insertData.fase = fase;
+  const ubicacion = formData.get("ubicacion") as string;
+  if (ubicacion && ubicacion !== "") insertData.ubicacion = ubicacion;
+
   // 4. Insert into database
   const { data: equipo, error: dbError } = await supabase
     .from("equipos")
@@ -135,6 +147,18 @@ export async function updateEquipo(
   // Handle tipo_equipo_id from dropdown
   const tipoEquipoId = formData.get("tipo_equipo_id") as string;
   updateData.tipo_equipo_id = tipoEquipoId && tipoEquipoId !== "" ? tipoEquipoId : null;
+
+  // Handle new nameplate fields
+  const capacidad = formData.get("capacidad") as string;
+  updateData.capacidad = capacidad && capacidad !== "" ? capacidad : null;
+  const refrigerante = formData.get("refrigerante") as string;
+  updateData.refrigerante = refrigerante && refrigerante !== "" ? refrigerante : null;
+  const voltaje = formData.get("voltaje") as string;
+  updateData.voltaje = voltaje && voltaje !== "" ? voltaje : null;
+  const fase = formData.get("fase") as string;
+  updateData.fase = fase && fase !== "" ? fase : null;
+  const ubicacion = formData.get("ubicacion") as string;
+  updateData.ubicacion = ubicacion && ubicacion !== "" ? ubicacion : null;
 
   const { error: dbError } = await supabase
     .from("equipos")
@@ -277,6 +301,18 @@ export async function createEquipoForFolio(
     insertData.tipo_equipo_id = tipoEquipoId;
   }
 
+  // Handle new nameplate fields
+  const capacidad = formData.get("capacidad") as string;
+  if (capacidad && capacidad !== "") insertData.capacidad = capacidad;
+  const refrigerante = formData.get("refrigerante") as string;
+  if (refrigerante && refrigerante !== "") insertData.refrigerante = refrigerante;
+  const voltaje = formData.get("voltaje") as string;
+  if (voltaje && voltaje !== "") insertData.voltaje = voltaje;
+  const fase = formData.get("fase") as string;
+  if (fase && fase !== "") insertData.fase = fase;
+  const ubicacion = formData.get("ubicacion") as string;
+  if (ubicacion && ubicacion !== "") insertData.ubicacion = ubicacion;
+
   // 4. Insert equipment
   const { data: equipo, error: dbError } = await supabase
     .from("equipos")
@@ -389,6 +425,18 @@ export async function createEquipoFromField(
   if (tipoEquipoId && tipoEquipoId !== "") {
     insertData.tipo_equipo_id = tipoEquipoId;
   }
+
+  // Handle new nameplate fields
+  const capacidad = formData.get("capacidad") as string;
+  if (capacidad && capacidad !== "") insertData.capacidad = capacidad;
+  const refrigerante = formData.get("refrigerante") as string;
+  if (refrigerante && refrigerante !== "") insertData.refrigerante = refrigerante;
+  const voltaje = formData.get("voltaje") as string;
+  if (voltaje && voltaje !== "") insertData.voltaje = voltaje;
+  const fase = formData.get("fase") as string;
+  if (fase && fase !== "") insertData.fase = fase;
+  const ubicacion = formData.get("ubicacion") as string;
+  if (ubicacion && ubicacion !== "") insertData.ubicacion = ubicacion;
 
   // 4. Insert into database
   const { data: equipo, error: dbError } = await supabase
