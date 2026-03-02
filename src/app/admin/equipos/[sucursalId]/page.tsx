@@ -2,8 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Equipo, Sucursal } from "@/types";
-import { DeleteButton } from "@/components/admin/delete-button";
-import { deleteEquipo } from "@/app/actions/equipos";
+import { EquipoDeleteButton } from "@/components/admin/equipo-delete-button";
 
 export default async function EquiposSucursalPage({
   params,
@@ -32,6 +31,21 @@ export default async function EquiposSucursalPage({
     .order("numero_etiqueta");
 
   const list = (equipos as Equipo[] | null) ?? [];
+
+  // Fetch report reference counts for each equipment
+  const equipoIds = list.map((e) => e.id);
+  const reportRefMap = new Map<string, number>();
+  if (equipoIds.length > 0) {
+    const { data: refs } = await supabase
+      .from("reporte_equipos")
+      .select("equipo_id")
+      .in("equipo_id", equipoIds);
+    if (refs) {
+      for (const ref of refs) {
+        reportRefMap.set(ref.equipo_id, (reportRefMap.get(ref.equipo_id) ?? 0) + 1);
+      }
+    }
+  }
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -134,10 +148,10 @@ export default async function EquiposSucursalPage({
                 >
                   Editar →
                 </Link>
-                <DeleteButton
-                  id={equipo.id}
-                  action={deleteEquipo}
-                  confirmMessage="Esta seguro de eliminar este equipo?"
+                <EquipoDeleteButton
+                  equipoId={equipo.id}
+                  equipoLabel={equipo.numero_etiqueta}
+                  reportRefCount={reportRefMap.get(equipo.id) ?? 0}
                 />
               </div>
             </div>
