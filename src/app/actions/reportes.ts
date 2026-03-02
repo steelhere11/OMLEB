@@ -598,3 +598,124 @@ export async function approveReport(
   revalidatePath("/admin/reportes");
   return { success: true, message: "Reporte aprobado" };
 }
+
+// ── Admin: Update Step (readings, notes, completion) ────────────────────
+
+export async function adminUpdateStep(
+  reportePasoId: string,
+  data: {
+    lecturas?: Record<string, unknown>;
+    notas?: string;
+    completado?: boolean;
+  }
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  const updatePayload: Record<string, unknown> = {};
+
+  if (data.lecturas !== undefined) {
+    updatePayload.lecturas = data.lecturas;
+  }
+  if (data.notas !== undefined) {
+    updatePayload.notas = data.notas || null;
+  }
+  if (data.completado !== undefined) {
+    updatePayload.completado = data.completado;
+    // Set completed_at when marking as complete, clear when unmarking
+    updatePayload.completed_at = data.completado
+      ? new Date().toISOString()
+      : null;
+  }
+
+  if (Object.keys(updatePayload).length === 0) {
+    return { error: "No se proporcionaron campos para actualizar" };
+  }
+
+  const { error } = await supabase
+    .from("reporte_pasos")
+    .update(updatePayload)
+    .eq("id", reportePasoId);
+
+  if (error) {
+    return { error: "Error al actualizar paso: " + error.message };
+  }
+
+  revalidatePath("/admin/reportes");
+  return { success: true, message: "Paso actualizado" };
+}
+
+// ── Admin: Update Equipment Info (nameplate and catalog fields) ─────────
+
+export async function adminUpdateEquipmentInfo(
+  equipoId: string,
+  data: {
+    marca?: string;
+    modelo?: string;
+    numero_serie?: string;
+    tipo_equipo_id?: string;
+    capacidad?: string;
+    refrigerante?: string;
+    voltaje?: string;
+    fase?: string;
+    ubicacion?: string;
+  }
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  // Build update payload — convert empty strings to null
+  const updatePayload: Record<string, unknown> = {};
+
+  const stringFields = [
+    "marca",
+    "modelo",
+    "numero_serie",
+    "capacidad",
+    "refrigerante",
+    "voltaje",
+    "fase",
+    "ubicacion",
+  ] as const;
+
+  for (const field of stringFields) {
+    if (data[field] !== undefined) {
+      updatePayload[field] = data[field] === "" ? null : data[field];
+    }
+  }
+
+  // Handle tipo_equipo_id separately (UUID FK)
+  if (data.tipo_equipo_id !== undefined) {
+    updatePayload.tipo_equipo_id =
+      data.tipo_equipo_id === "" ? null : data.tipo_equipo_id;
+  }
+
+  if (Object.keys(updatePayload).length === 0) {
+    return { error: "No se proporcionaron campos para actualizar" };
+  }
+
+  const { error } = await supabase
+    .from("equipos")
+    .update(updatePayload)
+    .eq("id", equipoId);
+
+  if (error) {
+    return { error: "Error al actualizar equipo: " + error.message };
+  }
+
+  revalidatePath("/admin/equipos");
+  revalidatePath("/admin/reportes");
+  return { success: true, message: "Equipo actualizado" };
+}
