@@ -10,7 +10,7 @@ interface CameraCaptureProps {
   reporteId: string;
   equipoId: string | null;
   reportePasoId: string | null;
-  onCapture: (result: { url: string; fotoId: string }) => void;
+  onCapture: (result: { url: string; fotoId: string; gps: string | null; fecha: string }) => void;
   onClose: () => void;
 }
 
@@ -258,7 +258,7 @@ export function CameraCapture({
         setUploadProgress(null);
 
         if (result.success) {
-          onCapture({ url: result.url, fotoId: result.fotoId });
+          onCapture({ url: result.url, fotoId: result.fotoId, gps: gpsString, fecha: new Date().toISOString() });
         } else {
           setUploadError(result.error);
           // Clear error after 4 seconds

@@ -151,7 +151,7 @@ export function EquipmentEntryForm({
   };
 
   const handleCameraCapture = useCallback(
-    (result: { url: string; fotoId: string }) => {
+    (result: { url: string; fotoId: string; gps: string | null; fecha: string }) => {
       setGeneralPhotos((prev) => [
         ...prev,
         {
@@ -162,8 +162,8 @@ export function EquipmentEntryForm({
           url: result.url,
           etiqueta: (activeLabel?.toLowerCase() ?? "antes") as ReporteFoto["etiqueta"],
           tipo_media: "foto" as const,
-          metadata_gps: null,
-          metadata_fecha: new Date().toISOString(),
+          metadata_gps: result.gps,
+          metadata_fecha: result.fecha,
           created_at: new Date().toISOString(),
         },
       ]);
@@ -173,7 +173,7 @@ export function EquipmentEntryForm({
   );
 
   const handleVideoCapture = useCallback(
-    (result: { url: string; fotoId: string }) => {
+    (result: { url: string; fotoId: string; gps: string | null; fecha: string }) => {
       setGeneralPhotos((prev) => [
         ...prev,
         {
@@ -184,8 +184,8 @@ export function EquipmentEntryForm({
           url: result.url,
           etiqueta: (activeLabel?.toLowerCase() ?? "antes") as ReporteFoto["etiqueta"],
           tipo_media: "video" as const,
-          metadata_gps: null,
-          metadata_fecha: new Date().toISOString(),
+          metadata_gps: result.gps,
+          metadata_fecha: result.fecha,
           created_at: new Date().toISOString(),
         },
       ]);

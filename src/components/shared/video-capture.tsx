@@ -12,7 +12,7 @@ interface VideoCaptureProps {
   reporteId: string;
   equipoId: string | null;
   reportePasoId: string | null;
-  onCapture: (result: { url: string; fotoId: string }) => void;
+  onCapture: (result: { url: string; fotoId: string; gps: string | null; fecha: string }) => void;
   onClose: () => void;
 }
 
@@ -49,7 +49,7 @@ export function VideoCapture({
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [showWarning, setShowWarning] = useState(false);
-  const [gpsStatus, setGpsStatus] = useState<"pending" | "acquired" | "failed">("pending");
+  const [gpsStatus, setGpsStatus] = useState<"pending" | "acquired" | "failed" | "hidden">("pending");
   const [gpsError, setGpsError] = useState<GpsErrorReason | null>(null);
 
   // Clean up all resources
@@ -79,6 +79,8 @@ export function VideoCapture({
         gpsRef.current = gpsResult.position;
         setGpsStatus("acquired");
         setGpsError(null);
+        // Auto-hide GPS toast after 2 seconds
+        setTimeout(() => setGpsStatus("hidden"), 2000);
         reverseGeocode(gpsResult.position.lat, gpsResult.position.lng).then(() => {
           // Address not needed for video (no overlay burn), but GPS coords stored in DB
         });
@@ -184,7 +186,7 @@ export function VideoCapture({
       setUploadProgress(null);
 
       if (result.success) {
-        onCapture({ url: result.url, fotoId: result.fotoId });
+        onCapture({ url: result.url, fotoId: result.fotoId, gps: gpsString, fecha: new Date().toISOString() });
       } else {
         setUploadError(result.error);
         setTimeout(() => setUploadError(null), 4000);
@@ -343,8 +345,8 @@ export function VideoCapture({
         </button>
       )}
 
-      {/* GPS status indicator - top center */}
-      {gpsStatus === "failed" && gpsError === "denied" ? (
+      {/* GPS status indicator - top center (hidden after acquisition) */}
+      {gpsStatus === "hidden" ? null : gpsStatus === "failed" && gpsError === "denied" ? (
         <div className="absolute left-4 right-4 top-4 z-10 flex flex-col items-center gap-2 rounded-xl bg-red-700/90 px-4 py-3 text-center">
           <p className="text-xs font-bold leading-tight text-white">Ubicacion bloqueada</p>
           <button

@@ -154,7 +154,7 @@ export function WorkflowCorrective({
   };
 
   const handleCameraCapture = useCallback(
-    (result: { url: string; fotoId: string }) => {
+    (result: { url: string; fotoId: string; gps: string | null; fecha: string }) => {
       if (!activeIssueId) return;
       const newPhoto: ReporteFoto = {
         id: result.fotoId,
@@ -164,8 +164,8 @@ export function WorkflowCorrective({
         url: result.url,
         etiqueta: (activeLabel?.toLowerCase() ?? "antes") as ReporteFoto["etiqueta"],
         tipo_media: "foto",
-        metadata_gps: null,
-        metadata_fecha: new Date().toISOString(),
+        metadata_gps: result.gps,
+        metadata_fecha: result.fecha,
         created_at: new Date().toISOString(),
       };
       setPhotosByIssue((prev) => ({
@@ -179,7 +179,7 @@ export function WorkflowCorrective({
   );
 
   const handleVideoCapture = useCallback(
-    (result: { url: string; fotoId: string }) => {
+    (result: { url: string; fotoId: string; gps: string | null; fecha: string }) => {
       if (!activeIssueId) return;
       const newPhoto: ReporteFoto = {
         id: result.fotoId,
@@ -189,8 +189,8 @@ export function WorkflowCorrective({
         url: result.url,
         etiqueta: (activeLabel?.toLowerCase() ?? "antes") as ReporteFoto["etiqueta"],
         tipo_media: "video",
-        metadata_gps: null,
-        metadata_fecha: new Date().toISOString(),
+        metadata_gps: result.gps,
+        metadata_fecha: result.fecha,
         created_at: new Date().toISOString(),
       };
       setPhotosByIssue((prev) => ({
