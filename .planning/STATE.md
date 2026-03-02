@@ -85,5 +85,5 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 08-05-PLAN.md (Finalization - Seeds, PDF & Admin Forms). Phase 8 COMPLETE.
-Resume file: None
+Stopped at: Phase 8 COMPLETE and VERIFIED (11/11 must-haves). Phase 6 next.
+Resume file: .planning/phases/06-foundation-pwa/06-01-PLAN.md

@@ -21,6 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5.5: Step-Centric Evidence Redesign** - INSERTED - Technician evidence UI deduplication + PDF restructure with step-organized layout
 - [ ] **Phase 6: Foundation Completion & PWA** - Middleware fix, PWA manifest, service worker, offline fallback, install prompt, tech debt cleanup
 - [ ] **Phase 7: Deployment Guide & Seed Data** - Step-by-step deployment playbook and realistic seed data for QA testing
+- [x] **Phase 8: Arrival, Site Overview & Equipment Registration** - Pre-maintenance gated phases: arrival photo (PPE evidence), site panoramic, equipment nameplate registration with photos and data fields
 
 ## Phase Details
 
@@ -175,10 +176,35 @@ Plans:
 - [ ] 07-01-PLAN.md — Deployment guide: Supabase project creation, SQL migration execution order with dependencies, env var configuration, Vercel deployment, first admin account creation
 - [ ] 07-02-PLAN.md — Seed data SQL script: realistic test data for clients, branches, equipment, users, folios, and complete reports across all statuses
 
+### Phase 8: Arrival, Site Overview & Equipment Registration
+**Goal**: Add a three-layer evidence chain BEFORE maintenance work begins — arrival photo (tech in PPE), site panoramic, and equipment nameplate registration with photos and data
+**Depends on**: Phase 5.5 (requires existing report form, photo capture, and workflow infrastructure)
+**Requirements**: ARRV-01, ARRV-02, SITE-01, EREG-01, EREG-02, EREG-03, EREG-04, EREG-05
+**Success Criteria** (what must be TRUE):
+  1. Tech opens a report and sees the arrival phase first — cannot access anything below until arrival photo is taken
+  2. After arrival photo, site overview phase unlocks — if this folio already has a site photo from a previous report, it auto-completes
+  3. After site overview, equipment registration phase shows all equipment in the folio with photo slots and nameplate fields
+  4. Empty fields from equipos table are highlighted; pre-filled fields show existing data
+  5. Tech can take overall and placa photos per equipment using existing camera infrastructure
+  6. When tech fills nameplate data, it writes back to equipos table immediately (so future reports see the data)
+  7. After ALL equipment registered (photos + data), maintenance phase unlocks with existing workflow
+  8. Step 2 of preventive workflows no longer duplicates nameplate data capture
+  9. PDF includes arrival photo, site photo, and equipment registration block before maintenance steps
+  10. Admin can see and edit new equipment fields (capacidad, refrigerante, voltaje, fase, ubicacion)
+  11. Ubicacion dropdown shows ATM, PATIO, BOVEDA, TREN DE CAJA, OTRO options
+**Plans:** 5 plans
+
+Plans:
+- [x] 08-01-PLAN.md — Database migration + types + constants
+- [x] 08-02-PLAN.md — Server actions for registration flow
+- [x] 08-03-PLAN.md — Registration UI components (arrival, site, equipment cards)
+- [x] 08-04-PLAN.md — Report form integration with gating logic
+- [x] 08-05-PLAN.md — Workflow seed update + PDF + admin updates
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 3.5 -> 4 -> 5 -> 5.5 -> 6 -> 7
+Phases execute in numeric order: 1 -> 2 -> 3 -> 3.5 -> 4 -> 5 -> 5.5 -> 6 -> 7 -> 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -191,7 +217,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 3.5 -> 4 -> 5 -> 5.5 -> 6 -> 7
 | 5.5. Step-Centric Evidence Redesign | 1/1 | Complete | 2026-03-01 |
 | 6. Foundation Completion & PWA | 0/1 | Pending | - |
 | 7. Deployment Guide & Seed Data | 0/2 | Pending | - |
+| 8. Arrival, Site Overview & Equipment Registration | 5/5 | Complete | 2026-03-02 |
 
 ---
 *Roadmap created: 2026-02-23*
-*Last updated: 2026-03-01 after Phase 5.5 execution*
+*Last updated: 2026-03-02 after Phase 8 execution*

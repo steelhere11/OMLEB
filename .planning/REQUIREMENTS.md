@@ -114,6 +114,23 @@ Requirements for getting V1 deployed and testable on real infrastructure.
 
 - [ ] **CLEN-01**: Remove unused `exifr` dependency from package.json
 
+### Arrival & Site Evidence
+
+- [x] **ARRV-01**: Tech must capture arrival photo (PPE evidence) before accessing any other report section
+- [x] **ARRV-02**: Arrival photo burns GPS/date/time metadata and is stored with etiqueta 'llegada'
+
+### Site Overview
+
+- [x] **SITE-01**: Tech must capture panoramic site photo before equipment registration; auto-completes if folio already has one from previous visit
+
+### Equipment Registration
+
+- [x] **EREG-01**: Equipment registration phase shows all folio equipment with photo slots (overall + nameplate) and nameplate data fields
+- [x] **EREG-02**: New equipment fields: capacidad, refrigerante, voltaje, fase, ubicacion with dropdown/toggle inputs
+- [x] **EREG-03**: Registration data writes back to equipos table immediately for persistence across reports
+- [x] **EREG-04**: All equipment must be registered (photos + data) before maintenance phase unlocks
+- [x] **EREG-05**: Ubicacion uses predefined BBVA zones (ATM, PATIO, BOVEDA, TREN DE CAJA, OTRO)
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -224,13 +241,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PIPE-02 | Phase 5.5 | Complete |
 | PIPE-03 | Phase 5.5 | Complete |
 | ADVW-01 | Phase 5.5 | Complete |
+| ARRV-01 | Phase 8 | Complete |
+| ARRV-02 | Phase 8 | Complete |
+| SITE-01 | Phase 8 | Complete |
+| EREG-01 | Phase 8 | Complete |
+| EREG-02 | Phase 8 | Complete |
+| EREG-03 | Phase 8 | Complete |
+| EREG-04 | Phase 8 | Complete |
+| EREG-05 | Phase 8 | Complete |
 
 **Coverage:**
 - v1 requirements: 44 total (41 complete, 3 pending)
-- v1.0 Launch Prep requirements: 5 total
-- Total mapped to phases: 49
+- v1.0 Launch Prep requirements: 13 total (8 complete, 5 pending)
+- Total mapped to phases: 57
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-23*
-*Last updated: 2026-03-01 after Phase 5.5 completion*
+*Last updated: 2026-03-02 after Phase 8 completion*
