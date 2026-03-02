@@ -39,8 +39,10 @@ export function VideoCapture({
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const gpsRef = useRef<GpsPosition | null>(null);
+  const addressRef = useRef<string[]>([]);
   const gpsIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const clockRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -51,12 +53,17 @@ export function VideoCapture({
   const [showWarning, setShowWarning] = useState(false);
   const [gpsStatus, setGpsStatus] = useState<"pending" | "acquired" | "failed" | "hidden">("pending");
   const [gpsError, setGpsError] = useState<GpsErrorReason | null>(null);
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
   // Clean up all resources
   const cleanup = useCallback(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
+    }
+    if (clockRef.current) {
+      clearInterval(clockRef.current);
+      clockRef.current = null;
     }
     if (recorderRef.current && recorderRef.current.state !== "inactive") {
       try { recorderRef.current.stop(); } catch { /* ignore */ }
@@ -81,8 +88,8 @@ export function VideoCapture({
         setGpsError(null);
         // Auto-hide GPS toast after 2 seconds
         setTimeout(() => setGpsStatus("hidden"), 2000);
-        reverseGeocode(gpsResult.position.lat, gpsResult.position.lng).then(() => {
-          // Address not needed for video (no overlay burn), but GPS coords stored in DB
+        reverseGeocode(gpsResult.position.lat, gpsResult.position.lng).then((lines) => {
+          if (mounted.current) addressRef.current = lines;
         });
         if (!gpsIntervalRef.current) {
           gpsIntervalRef.current = setInterval(() => {
@@ -91,6 +98,9 @@ export function VideoCapture({
                 gpsRef.current = result.position;
                 setGpsStatus("acquired");
                 setGpsError(null);
+                reverseGeocode(result.position.lat, result.position.lng).then((lines) => {
+                  if (mounted.current) addressRef.current = lines;
+                });
               }
             });
           }, 10000);
@@ -157,6 +167,19 @@ export function VideoCapture({
       cleanup();
     };
   }, [cleanup, handleGpsResult]);
+
+  // Tick the overlay clock every second
+  useEffect(() => {
+    clockRef.current = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => {
+      if (clockRef.current) {
+        clearInterval(clockRef.current);
+        clockRef.current = null;
+      }
+    };
+  }, []);
 
   // Upload the recorded video blob
   const uploadVideo = useCallback(
@@ -276,6 +299,18 @@ export function VideoCapture({
     onClose();
   }, [cleanup, onClose]);
 
+  // Format date/time for overlay (matches photo-stamper.ts style)
+  const overlayDateStr = currentTime.toLocaleDateString("es-MX", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+  const overlayTimeStr = currentTime.toLocaleTimeString("es-MX", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
   // Format seconds as mm:ss
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -324,6 +359,24 @@ export function VideoCapture({
         autoPlay
         className="h-full w-full object-cover"
       />
+
+      {/* Live metadata overlay - bottom right (matches photo capture style) */}
+      <div
+        className="pointer-events-none absolute bottom-24 right-4 z-10 text-right"
+        style={{
+          textShadow:
+            "-1px -1px 0 rgba(0,0,0,0.85), 1px -1px 0 rgba(0,0,0,0.85), -1px 1px 0 rgba(0,0,0,0.85), 1px 1px 0 rgba(0,0,0,0.85), 0 0 4px rgba(0,0,0,0.5)",
+        }}
+      >
+        <p className="text-sm font-bold leading-snug text-white">
+          {overlayDateStr} {overlayTimeStr}
+        </p>
+        {addressRef.current.map((line, i) => (
+          <p key={i} className="text-sm font-bold leading-snug text-white">
+            {line}
+          </p>
+        ))}
+      </div>
 
       {/* Close button - top left */}
       {!isRecording && (
