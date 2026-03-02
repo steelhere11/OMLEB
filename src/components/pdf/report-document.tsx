@@ -524,21 +524,31 @@ function ReadingsTable({
     }
   }
 
+  // Check if ANY reading in this step has range data
+  const anyHasRange = entries.some(([key]) => {
+    const m = metaMap.get(key);
+    return m && m.rango_min != null && m.rango_max != null;
+  });
+
   return (
     <View style={s.readingsTable}>
       <View style={s.readingsHeaderRow}>
-        <View style={s.rCellParam}>
+        <View style={anyHasRange ? s.rCellParam : { width: "45%", padding: 3 }}>
           <Text style={s.rHeaderText}>Parametro</Text>
         </View>
-        <View style={s.rCellValue}>
+        <View style={anyHasRange ? s.rCellValue : { width: "55%", padding: 3 }}>
           <Text style={s.rHeaderText}>Valor</Text>
         </View>
-        <View style={s.rCellRange}>
-          <Text style={s.rHeaderText}>Rango</Text>
-        </View>
-        <View style={s.rCellStatus}>
-          <Text style={s.rHeaderText}>Estado</Text>
-        </View>
+        {anyHasRange && (
+          <View style={s.rCellRange}>
+            <Text style={s.rHeaderText}>Rango</Text>
+          </View>
+        )}
+        {anyHasRange && (
+          <View style={s.rCellStatus}>
+            <Text style={s.rHeaderText}>Estado</Text>
+          </View>
+        )}
       </View>
       {entries.map(([key, value], i) => {
         const m = metaMap.get(key);
@@ -550,33 +560,35 @@ function ReadingsTable({
             : false;
         const rangeStr = hasRange
           ? `${m.rango_min}–${m.rango_max} ${m.unidad}`
-          : m?.unidad === "texto" || m?.unidad === "Si/No"
-            ? ""
-            : "";
+          : "";
 
         return (
           <View
             key={key}
             style={i % 2 === 1 ? s.readingsDataRowOdd : s.readingsDataRow}
           >
-            <View style={s.rCellParam}>
+            <View style={anyHasRange ? s.rCellParam : { width: "45%", padding: 3 }}>
               <Text style={s.rCellText}>{key}</Text>
             </View>
-            <View style={s.rCellValue}>
+            <View style={anyHasRange ? s.rCellValue : { width: "55%", padding: 3 }}>
               <Text style={s.rCellValueText}>{String(value)}</Text>
             </View>
-            <View style={s.rCellRange}>
-              <Text style={s.rCellText}>{rangeStr || "\u2014"}</Text>
-            </View>
-            <View style={s.rCellStatus}>
-              {hasRange ? (
-                <Text style={isOutOfRange ? s.statusWarn : s.statusOk}>
-                  {isOutOfRange ? "\u26A0" : "\u2713"}
-                </Text>
-              ) : (
-                <Text style={s.statusNa}>{"\u2014"}</Text>
-              )}
-            </View>
+            {anyHasRange && (
+              <View style={s.rCellRange}>
+                <Text style={s.rCellText}>{rangeStr || "\u2014"}</Text>
+              </View>
+            )}
+            {anyHasRange && (
+              <View style={s.rCellStatus}>
+                {hasRange ? (
+                  <Text style={isOutOfRange ? s.statusWarn : s.statusOk}>
+                    {isOutOfRange ? "\u26A0" : "\u2713"}
+                  </Text>
+                ) : (
+                  <Text style={s.statusNa}>{"\u2014"}</Text>
+                )}
+              </View>
+            )}
           </View>
         );
       })}
