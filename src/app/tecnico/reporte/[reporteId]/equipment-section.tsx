@@ -94,6 +94,7 @@ export function EquipmentSection({
           diagnostico: null,
           trabajo_realizado: null,
           observaciones: null,
+          registro_completado: false,
           equipos: { ...equipo, tipos_equipo: undefined },
         };
 

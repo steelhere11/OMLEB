@@ -39,6 +39,11 @@ export interface Equipo {
   tipo_equipo_id: string | null;
   agregado_por: string | null;
   revisado: boolean;
+  capacidad: string | null;
+  refrigerante: string | null;
+  voltaje: string | null;
+  fase: string | null;
+  ubicacion: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -83,6 +88,8 @@ export interface Reporte {
   firma_encargado: string | null;
   nombre_encargado: string | null;
   finalizado_por_admin: boolean;
+  llegada_completada: boolean;
+  sitio_completado: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -97,9 +104,10 @@ export interface ReporteEquipo {
   diagnostico: string | null;
   trabajo_realizado: string | null;
   observaciones: string | null;
+  registro_completado: boolean;
 }
 
-export type FotoEtiqueta = "antes" | "durante" | "despues" | "dano" | "placa" | "progreso";
+export type FotoEtiqueta = "antes" | "durante" | "despues" | "dano" | "placa" | "progreso" | "llegada" | "sitio" | "equipo_general";
 
 export type TipoMedia = "foto" | "video";
 
