@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Sucursal } from "@/types";
-import { DeleteButton } from "@/components/admin/delete-button";
-import { deleteSucursal } from "@/app/actions/sucursales";
+import { SucursalDeleteButton } from "@/components/admin/sucursal-delete-button";
 
 export default async function SucursalesPage() {
   const supabase = await createClient();
@@ -13,6 +12,67 @@ export default async function SucursalesPage() {
     .order("created_at", { ascending: false });
 
   const list = (sucursales as Sucursal[] | null) ?? [];
+
+  // Fetch cascade impact data per sucursal
+  const sucursalIds = list.map((s) => s.id);
+  type ImpactData = { folios: number; reportes: number; equipos: number; fotos: number };
+  const impactMap = new Map<string, ImpactData>();
+
+  if (sucursalIds.length > 0) {
+    // Folios per sucursal
+    const { data: folioRows } = await supabase
+      .from("folios")
+      .select("id, sucursal_id")
+      .in("sucursal_id", sucursalIds);
+
+    // Equipos per sucursal
+    const { data: equipoRows } = await supabase
+      .from("equipos")
+      .select("id, sucursal_id")
+      .in("sucursal_id", sucursalIds);
+
+    // Reports per sucursal (via folios or direct sucursal_id)
+    const { data: reporteRows } = await supabase
+      .from("reportes")
+      .select("id, sucursal_id")
+      .in("sucursal_id", sucursalIds);
+
+    // Photos per report
+    const reporteIds = (reporteRows ?? []).map((r) => r.id);
+    let photoCountMap = new Map<string, number>();
+    if (reporteIds.length > 0) {
+      const { data: photoRows } = await supabase
+        .from("reporte_fotos")
+        .select("reporte_id")
+        .in("reporte_id", reporteIds);
+      if (photoRows) {
+        for (const p of photoRows) {
+          photoCountMap.set(p.reporte_id, (photoCountMap.get(p.reporte_id) ?? 0) + 1);
+        }
+      }
+    }
+
+    // Build impact map
+    for (const sid of sucursalIds) {
+      const folioCount = (folioRows ?? []).filter((f) => f.sucursal_id === sid).length;
+      const reporteCount = (reporteRows ?? []).filter((r) => r.sucursal_id === sid).length;
+      const equipoCount = (equipoRows ?? []).filter((e) => e.sucursal_id === sid).length;
+      const sucursalReporteIds = (reporteRows ?? [])
+        .filter((r) => r.sucursal_id === sid)
+        .map((r) => r.id);
+      const photoCount = sucursalReporteIds.reduce(
+        (sum, rid) => sum + (photoCountMap.get(rid) ?? 0),
+        0
+      );
+
+      impactMap.set(sid, {
+        folios: folioCount,
+        reportes: reporteCount,
+        equipos: equipoCount,
+        fotos: photoCount,
+      });
+    }
+  }
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -81,10 +141,13 @@ export default async function SucursalesPage() {
                 >
                   Equipos
                 </Link>
-                <DeleteButton
-                  id={sucursal.id}
-                  action={deleteSucursal}
-                  confirmMessage="Esta seguro de eliminar esta sucursal?"
+                <SucursalDeleteButton
+                  sucursalId={sucursal.id}
+                  sucursalLabel={`${sucursal.nombre} (${sucursal.numero})`}
+                  folioCount={impactMap.get(sucursal.id)?.folios ?? 0}
+                  reportCount={impactMap.get(sucursal.id)?.reportes ?? 0}
+                  equipoCount={impactMap.get(sucursal.id)?.equipos ?? 0}
+                  photoCount={impactMap.get(sucursal.id)?.fotos ?? 0}
                 />
               </div>
             </div>
