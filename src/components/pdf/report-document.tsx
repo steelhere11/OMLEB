@@ -324,7 +324,6 @@ const s = StyleSheet.create({
   },
   stepNoteCallout: {
     fontSize: 8,
-    fontStyle: "italic" as const,
     color: GRAY_700,
     marginLeft: 16,
     marginTop: 4,
@@ -857,7 +856,7 @@ function StepBlock({
       {/* Notes (below photos, callout style) */}
       {step.notas && (
         <View style={s.stepNoteCallout}>
-          <Text style={{ fontSize: 8, fontStyle: "italic", color: GRAY_700 }}>{step.notas}</Text>
+          <Text style={{ fontSize: 8, color: GRAY_700 }}>{step.notas}</Text>
         </View>
       )}
     </View>
@@ -1252,7 +1251,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                       <Text
                         style={{
                           fontSize: 9,
-                          fontWeight: 600,
+                          fontWeight: 700,
                           color: GRAY_700,
                           marginBottom: 4,
                         }}
