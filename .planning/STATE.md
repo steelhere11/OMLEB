@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Field technicians can quickly submit complete daily reports (with photos, equipment details, materials, and diagnostics) from their phone on-site -- no WhatsApp, no paper, no back-and-forth.
-**Current focus:** v1.0 Launch Prep -- Phase 6 (Foundation Completion & PWA) next, then Phase 7 (Deployment Guide & Seed Data).
+**Current focus:** Phase 08 (Arrival & Registration Flow) -- executing plan-by-plan.
 
 ## Current Position
 
-Phase: 6 of 7 (Foundation Completion & PWA) -- next to execute
-Plan: 0 of 1 in current phase
-Status: Ready to plan/execute
-Last activity: 2026-03-02 -- Quick task 002 complete (video live overlay)
+Phase: 8 (Arrival & Registration Flow)
+Plan: 1 of 5 in current phase
+Status: In progress
+Last activity: 2026-03-02 -- Completed 08-01-PLAN.md (Schema & Types Foundation)
 
-Progress: [==============░░░░░░] 71% (15/21 plans complete)
+Progress: [===============░░░░░] 76% (16/21 plans complete)
 
 ## Performance Metrics
 
 **Velocity (from V1 build + Phase 5.5):**
-- Total plans completed: 15
+- Total plans completed: 16
 - Average duration: ~6 min
-- Total execution time: ~1.7 hours
+- Total execution time: ~1.75 hours
 
 ## Accumulated Context
 
@@ -39,6 +39,8 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | tipo-media-discriminator | tipo_media column (foto/video) on reporte_fotos with CHECK constraint | quick-001 |
 | media-neutral-labels | UI labels changed to media-neutral Spanish: Evidencia, archivo(s), Agregar evidencia | quick-001 |
 | html-overlay-not-canvas | Used HTML/CSS overlay on video instead of canvas.captureStream() to avoid audio sync and perf issues | quick-002 |
+| as-const-dropdowns | Constants use 'as const' with value/label objects for typed dropdowns | 08-01 |
+| nullable-nameplate-fields | Nameplate fields (capacidad, refrigerante, voltaje, fase, ubicacion) are nullable strings, not required | 08-01 |
 
 ### Pending Todos
 
@@ -52,6 +54,7 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 - User must run supabase/migration-04-photos.sql in Supabase SQL Editor after migration-workflows.sql
 - User must add company logo to public/logo.png for PDF branding
 - User must run supabase/migration-07-video-support.sql in Supabase SQL Editor after migration-04-photos.sql
+- User must run supabase/migration-08-registration.sql in Supabase SQL Editor after migration-07-video-support.sql
 
 ### Blockers/Concerns
 
@@ -69,5 +72,5 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Quick task 002 complete -- Phase 6 next
-Resume file: .planning/phases/06-foundation-pwa/06-01-PLAN.md
+Stopped at: Completed 08-01-PLAN.md (Schema & Types Foundation)
+Resume file: .planning/phases/08-arrival-registration/08-02-PLAN.md
