@@ -90,6 +90,7 @@ export interface Reporte {
   finalizado_por_admin: boolean;
   llegada_completada: boolean;
   sitio_completado: boolean;
+  revision_actual: number;
   created_at: string;
   updated_at: string;
 }
@@ -107,7 +108,7 @@ export interface ReporteEquipo {
   registro_completado: boolean;
 }
 
-export type FotoEtiqueta = "antes" | "durante" | "despues" | "dano" | "placa" | "progreso" | "llegada" | "sitio" | "equipo_general";
+export type FotoEtiqueta = "antes" | "durante" | "despues" | "dano" | "placa" | "progreso" | "llegada" | "sitio" | "equipo_general" | "anotado";
 
 export type TipoMedia = "foto" | "video";
 
@@ -142,6 +143,24 @@ export interface ReporteComentario {
   equipo_id: string | null;
   autor_id: string;
   contenido: string;
+  created_at: string;
+}
+
+export interface CambioRevision {
+  campo: string;
+  valor_anterior: string | number | null;
+  valor_nuevo: string | number | null;
+  entidad: string;
+  entidad_id: string;
+}
+
+export interface ReporteRevision {
+  id: string;
+  reporte_id: string;
+  autor_id: string;
+  numero: number;
+  resumen: string;
+  cambios: CambioRevision[];
   created_at: string;
 }
 

@@ -77,6 +77,7 @@ export function WorkflowPreventive({
           reporte_equipo_id: reporteEquipoId,
           plantilla_paso_id: pasoId,
           falla_correctiva_id: null,
+          nombre_custom: null,
           completado: data.completado,
           notas: data.notas || null,
           lecturas: data.lecturas,

@@ -69,6 +69,7 @@ export interface ReportePaso {
   reporte_equipo_id: string;
   plantilla_paso_id: string | null;
   falla_correctiva_id: string | null;
+  nombre_custom: string | null;
   completado: boolean;
   notas: string | null;
   lecturas: Record<string, number | string>;
