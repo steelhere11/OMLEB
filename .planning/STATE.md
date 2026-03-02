@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 Phase: 8 (Arrival & Registration Flow)
-Plan: 2 of 5 in current phase
+Plan: 3 of 5 in current phase
 Status: In progress
-Last activity: 2026-03-02 -- Completed 08-02-PLAN.md (Registration Server Actions)
+Last activity: 2026-03-02 -- Completed 08-03-PLAN.md (Registration UI Components)
 
-Progress: [================░░░░] 81% (17/21 plans complete)
+Progress: [=================░░░] 85% (18/21 plans complete)
 
 ## Performance Metrics
 
 **Velocity (from V1 build + Phase 5.5):**
-- Total plans completed: 17
+- Total plans completed: 18
 - Average duration: ~6 min
-- Total execution time: ~1.8 hours
+- Total execution time: ~1.9 hours
 
 ## Accumulated Context
 
@@ -43,6 +43,10 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | nullable-nameplate-fields | Nameplate fields (capacidad, refrigerante, voltaje, fase, ubicacion) are nullable strings, not required | 08-01 |
 | two-step-photo-query | Used two-step query (get report IDs, then IN query) for cross-folio photo lookups instead of Supabase inner join | 08-02 |
 | shared-completeness-evaluator | Extracted evaluateRegistrationCompleteness as private helper shared between save and update actions | 08-02 |
+| children-not-rendered-when-locked | PhaseGate does not render children when locked -- prevents unnecessary mounting and data fetching | 08-03 |
+| debounced-text-immediate-select | Text inputs save on 800ms debounce, dropdowns/toggles save immediately for responsive UX | 08-03 |
+| yellow-highlight-progressive | Empty fields get yellow highlight instead of red errors -- registration is progressive not form-submit | 08-03 |
+| auto-complete-existing-folio-photo | SiteOverviewSection auto-completes on mount when folio-level site photo exists from previous visit | 08-03 |
 
 ### Pending Todos
 
@@ -74,5 +78,5 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 08-02-PLAN.md (Registration Server Actions)
-Resume file: .planning/phases/08-arrival-registration/08-03-PLAN.md
+Stopped at: Completed 08-03-PLAN.md (Registration UI Components)
+Resume file: .planning/phases/08-arrival-registration/08-04-PLAN.md
