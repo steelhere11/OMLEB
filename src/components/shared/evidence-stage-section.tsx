@@ -78,6 +78,12 @@ export function EvidenceStageSection({
           (p) => p.etiqueta === stage.toLowerCase()
         );
         const mediaCount = stagePhotos.length;
+        const retakeCount = stagePhotos.filter(
+          (p) => p.estatus_revision === "retomar"
+        ).length;
+        const rejectedCount = stagePhotos.filter(
+          (p) => p.estatus_revision === "rechazada"
+        ).length;
 
         return (
           <div
@@ -109,6 +115,17 @@ export function EvidenceStageSection({
               <span className={`text-xs font-bold ${style.text}`}>
                 {style.label}
               </span>
+              {/* Flagged photo indicators */}
+              {retakeCount > 0 && (
+                <span className="ml-auto rounded-full bg-amber-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                  {retakeCount} retomar
+                </span>
+              )}
+              {rejectedCount > 0 && (
+                <span className={`${retakeCount > 0 ? "" : "ml-auto"} rounded-full bg-red-500 px-1.5 py-0.5 text-[9px] font-bold text-white`}>
+                  {rejectedCount} rechazada{rejectedCount !== 1 ? "s" : ""}
+                </span>
+              )}
             </div>
 
             <div className="p-3 space-y-2">

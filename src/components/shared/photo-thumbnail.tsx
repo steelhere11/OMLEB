@@ -55,56 +55,105 @@ export function PhotoThumbnail({
     setShowLightbox(false);
   };
 
+  // Review status styling
+  const statusBorder =
+    foto.estatus_revision === "retomar"
+      ? "ring-2 ring-amber-400"
+      : foto.estatus_revision === "rechazada"
+        ? "ring-2 ring-red-400 opacity-60"
+        : foto.estatus_revision === "aceptada"
+          ? "ring-2 ring-green-400"
+          : "";
+
   return (
     <>
       {/* Thumbnail */}
-      <button
-        type="button"
-        onClick={() => setShowLightbox(true)}
-        className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg scroll-snap-align-start"
-        style={{ scrollSnapAlign: "start" }}
-      >
-        {isVideo ? (
-          <>
-            {/* Video thumbnail: show first frame via <video> */}
-            <video
-              src={foto.url}
-              preload="metadata"
-              muted
-              playsInline
-              className="h-16 w-16 object-cover rounded-lg"
-            />
-            {/* Play icon overlay */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/50">
-                <svg
-                  className="h-3 w-3 text-white"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M8 5v14l11-7z" />
-                </svg>
+      <div className="flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
+        <button
+          type="button"
+          onClick={() => setShowLightbox(true)}
+          className={`relative h-16 w-16 overflow-hidden rounded-lg ${statusBorder}`}
+        >
+          {isVideo ? (
+            <>
+              {/* Video thumbnail: show first frame via <video> */}
+              <video
+                src={foto.url}
+                preload="metadata"
+                muted
+                playsInline
+                className="h-16 w-16 object-cover rounded-lg"
+              />
+              {/* Play icon overlay */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/50">
+                  <svg
+                    className="h-3 w-3 text-white"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
               </div>
-            </div>
-          </>
-        ) : (
-          <Image
-            src={foto.url}
-            alt={foto.etiqueta ?? "Foto"}
-            fill
-            className="object-cover"
-            sizes="64px"
-          />
-        )}
-        {/* Label badge */}
-        {foto.etiqueta && (
-          <span
-            className={`absolute bottom-0.5 left-0.5 rounded px-1 py-0.5 text-[8px] font-bold uppercase leading-none ${colors.bg} ${colors.text}`}
-          >
-            {foto.etiqueta === "despues" ? "DESP" : foto.etiqueta.slice(0, 4).toUpperCase()}
-          </span>
-        )}
-      </button>
+            </>
+          ) : (
+            <Image
+              src={foto.url}
+              alt={foto.etiqueta ?? "Foto"}
+              fill
+              className="object-cover"
+              sizes="64px"
+            />
+          )}
+          {/* Label badge */}
+          {foto.etiqueta && (
+            <span
+              className={`absolute bottom-0.5 left-0.5 rounded px-1 py-0.5 text-[8px] font-bold uppercase leading-none ${colors.bg} ${colors.text}`}
+            >
+              {foto.etiqueta === "despues" ? "DESP" : foto.etiqueta.slice(0, 4).toUpperCase()}
+            </span>
+          )}
+
+          {/* Review status badge */}
+          {foto.estatus_revision === "aceptada" && (
+            <span className="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-green-500">
+              <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+          )}
+          {foto.estatus_revision === "rechazada" && (
+            <span className="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500">
+              <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </span>
+          )}
+          {foto.estatus_revision === "retomar" && (
+            <span className="absolute top-0.5 right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500">
+              <svg className="h-2.5 w-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </span>
+          )}
+        </button>
+
+        {/* Admin note below thumbnail for flagged photos */}
+        {(foto.estatus_revision === "retomar" || foto.estatus_revision === "rechazada") &&
+          foto.nota_admin && (
+            <p
+              className={`mt-1 max-w-[64px] truncate text-[9px] leading-tight ${
+                foto.estatus_revision === "retomar"
+                  ? "text-amber-600"
+                  : "text-red-500"
+              }`}
+              title={foto.nota_admin}
+            >
+              {foto.nota_admin}
+            </p>
+          )}
+      </div>
 
       {/* Lightbox */}
       {showLightbox && (
@@ -145,12 +194,42 @@ export function PhotoThumbnail({
 
           {/* Label badge in lightbox */}
           {foto.etiqueta && (
-            <div className="absolute left-4 top-4 z-10">
+            <div className="absolute left-4 top-4 z-10 flex items-center gap-2">
               <span
                 className={`rounded-lg px-3 py-1.5 text-xs font-bold uppercase tracking-wider ${colors.bg} ${colors.text}`}
               >
                 {foto.etiqueta}
               </span>
+              {foto.estatus_revision === "retomar" && (
+                <span className="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-white">
+                  RETOMAR
+                </span>
+              )}
+              {foto.estatus_revision === "rechazada" && (
+                <span className="rounded-lg bg-red-500 px-3 py-1.5 text-xs font-bold text-white">
+                  RECHAZADA
+                </span>
+              )}
+              {foto.estatus_revision === "aceptada" && (
+                <span className="rounded-lg bg-green-500 px-3 py-1.5 text-xs font-bold text-white">
+                  ACEPTADA
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Admin note banner in lightbox */}
+          {foto.nota_admin && (foto.estatus_revision === "retomar" || foto.estatus_revision === "rechazada") && (
+            <div
+              className={`absolute left-4 right-4 top-14 z-10 rounded-lg px-3 py-2 ${
+                foto.estatus_revision === "retomar"
+                  ? "bg-amber-500/90"
+                  : "bg-red-500/90"
+              }`}
+            >
+              <p className="text-xs font-medium text-white">
+                Nota del admin: {foto.nota_admin}
+              </p>
             </div>
           )}
 
