@@ -27,6 +27,7 @@ export interface PdfStepData {
   }> | null;
   photosBase64: PhotoBase64[];
   isCustom?: boolean;
+  orden?: number;
 }
 
 export interface PdfRegistrationEntry {
@@ -791,56 +792,22 @@ function StepPhotoGrid({ photos }: { photos: PhotoBase64[] }) {
 
 // ---------- Helper: Step Block ----------
 
-function StepBlock({
-  step,
-  stepNumber,
-  labelPrefix = "Paso",
-}: {
-  step: PdfStepData;
-  stepNumber: number;
-  labelPrefix?: string;
-}) {
-  const hasContent =
+/** Check if a step has detailed content (photos, readings, or notes) */
+function stepHasContent(step: PdfStepData): boolean {
+  return (
     step.photosBase64.length > 0 ||
-    (step.lecturas && Object.keys(step.lecturas).length > 0) ||
-    step.notas;
+    (!!step.lecturas && Object.keys(step.lecturas).length > 0) ||
+    !!step.notas
+  );
+}
 
-  // Completed step with no content — single line
-  if (step.completado && !hasContent) {
-    return (
-      <View style={s.stepBlock}>
-        <View style={s.stepHeaderRow}>
-          <Text style={[s.stepCheckIcon, { color: GREEN }]}>{"\u2713"}</Text>
-          <Text style={s.stepNameText}>
-            {labelPrefix} {stepNumber}: {step.nombre} — Completado
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  // Incomplete step — single line
-  if (!step.completado) {
-    return (
-      <View style={s.stepBlock}>
-        <View style={s.stepHeaderRow}>
-          <Text style={[s.stepCheckIcon, { color: RED }]}>{"\u2717"}</Text>
-          <Text style={s.stepIncompleteName}>
-            {labelPrefix} {stepNumber}: {step.nombre} — No completado
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
-  // Completed step with content — full block
+/** Renders a completed step with detailed content (photos/readings/notes) */
+function StepBlock({ step }: { step: PdfStepData }) {
   return (
     <View style={s.stepBlock} wrap={true}>
       <View style={s.stepHeaderRow}>
         <Text style={[s.stepCheckIcon, { color: GREEN }]}>{"\u2713"}</Text>
-        <Text style={s.stepNameText}>
-          {labelPrefix} {stepNumber}: {step.nombre}
-        </Text>
+        <Text style={s.stepNameText}>{step.nombre}</Text>
       </View>
 
       {/* Readings table */}
@@ -859,6 +826,36 @@ function StepBlock({
           <Text style={{ fontSize: 8, color: GRAY_700 }}>{step.notas}</Text>
         </View>
       )}
+    </View>
+  );
+}
+
+/** Compact checklist summary for completed steps without detailed content */
+function ChecklistSummary({ steps }: { steps: PdfStepData[] }) {
+  if (steps.length === 0) return null;
+  return (
+    <View style={{ marginTop: 8 }} wrap={false}>
+      <Text
+        style={{
+          fontSize: 9,
+          fontWeight: 700,
+          color: GRAY_700,
+          marginBottom: 4,
+        }}
+      >
+        Verificaciones completadas
+      </Text>
+      <View style={{ flexDirection: "column", gap: 2 }}>
+        {steps.map((step) => (
+          <View
+            key={step.id}
+            style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
+          >
+            <Text style={{ fontSize: 8, color: GREEN }}>{"\u2713"}</Text>
+            <Text style={{ fontSize: 8, color: GRAY_700 }}>{step.nombre}</Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -1200,13 +1197,6 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                     </Text>
                   </View>
 
-                  {/* Progress line */}
-                  {hasSteps && (
-                    <Text style={s.equipProgress}>
-                      Progreso: {completedCount}/{totalCount} pasos completados
-                    </Text>
-                  )}
-
                   {/* No content */}
                   {!hasAnyContent && (
                     <Text style={s.emptyText}>
@@ -1236,40 +1226,44 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                     </>
                   )}
 
-                  {/* Template step blocks */}
-                  {entry.steps.filter((st) => !st.isCustom).map((step, sIdx) => (
-                    <StepBlock
-                      key={step.id}
-                      step={step}
-                      stepNumber={sIdx + 1}
-                    />
-                  ))}
+                  {/* Steps — only completed, split into detailed vs checklist */}
+                  {(() => {
+                    const completed = entry.steps.filter((st) => st.completado);
+                    const templateDetailed = completed.filter((st) => !st.isCustom && stepHasContent(st));
+                    const templateChecklist = completed.filter((st) => !st.isCustom && !stepHasContent(st));
+                    const customSteps = completed.filter((st) => st.isCustom);
 
-                  {/* Custom steps ("Pasos adicionales") */}
-                  {entry.steps.filter((st) => st.isCustom).length > 0 && (
-                    <View style={{ marginTop: 8 }}>
-                      <Text
-                        style={{
-                          fontSize: 9,
-                          fontWeight: 700,
-                          color: GRAY_700,
-                          marginBottom: 4,
-                        }}
-                      >
-                        Pasos adicionales
-                      </Text>
-                      {entry.steps
-                        .filter((st) => st.isCustom)
-                        .map((step, sIdx) => (
-                          <StepBlock
-                            key={step.id}
-                            step={step}
-                            stepNumber={sIdx + 1}
-                            labelPrefix="Adicional"
-                          />
+                    return (
+                      <>
+                        {/* Detailed template steps (with photos/readings/notes) */}
+                        {templateDetailed.map((step) => (
+                          <StepBlock key={step.id} step={step} />
                         ))}
-                    </View>
-                  )}
+
+                        {/* Compact checklist for completed-no-content steps */}
+                        <ChecklistSummary steps={templateChecklist} />
+
+                        {/* Custom steps */}
+                        {customSteps.length > 0 && (
+                          <View style={{ marginTop: 8 }}>
+                            <Text
+                              style={{
+                                fontSize: 9,
+                                fontWeight: 700,
+                                color: GRAY_700,
+                                marginBottom: 4,
+                              }}
+                            >
+                              Pasos adicionales
+                            </Text>
+                            {customSteps.map((step) => (
+                              <StepBlock key={step.id} step={step} />
+                            ))}
+                          </View>
+                        )}
+                      </>
+                    );
+                  })()}
 
                   {/* Orphan photos */}
                   {entry.orphanPhotosBase64.length > 0 && (

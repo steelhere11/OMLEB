@@ -77,6 +77,7 @@ interface ReportePasoData {
       rango_min: number | null;
       rango_max: number | null;
     }> | null;
+    orden: number;
   } | null;
   fallas_correctivas: { nombre: string; diagnostico: string } | null;
 }
@@ -662,21 +663,29 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                 metadata_gps: f.metadata_gps,
                 metadata_fecha: f.metadata_fecha,
               }))}
-            registrationEquipment={reporte.reporte_equipos
-              .filter((entry) => entry.equipos)
-              .map((entry) => ({
-                equipo_id: entry.equipo_id,
-                numero_etiqueta: entry.equipos!.numero_etiqueta,
-                tipo_equipo: entry.equipos!.tipo_equipo,
-                ubicacion: entry.equipos!.ubicacion,
-                marca: entry.equipos!.marca,
-                modelo: entry.equipos!.modelo,
-                numero_serie: entry.equipos!.numero_serie,
-                capacidad: entry.equipos!.capacidad,
-                refrigerante: entry.equipos!.refrigerante,
-                voltaje: entry.equipos!.voltaje,
-                fase: entry.equipos!.fase,
-              }))}
+            registrationEquipment={(() => {
+              const seen = new Set<string>();
+              return reporte.reporte_equipos
+                .filter((entry) => entry.equipos)
+                .filter((entry) => {
+                  if (seen.has(entry.equipo_id)) return false;
+                  seen.add(entry.equipo_id);
+                  return true;
+                })
+                .map((entry) => ({
+                  equipo_id: entry.equipo_id,
+                  numero_etiqueta: entry.equipos!.numero_etiqueta,
+                  tipo_equipo: entry.equipos!.tipo_equipo,
+                  ubicacion: entry.equipos!.ubicacion,
+                  marca: entry.equipos!.marca,
+                  modelo: entry.equipos!.modelo,
+                  numero_serie: entry.equipos!.numero_serie,
+                  capacidad: entry.equipos!.capacidad,
+                  refrigerante: entry.equipos!.refrigerante,
+                  voltaje: entry.equipos!.voltaje,
+                  fase: entry.equipos!.fase,
+                }));
+            })()}
             comments={comments.map((c) => ({
               contenido: c.contenido,
               autor_nombre: c.autor_nombre ?? "Admin",
@@ -708,7 +717,8 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                 lecturas_meta:
                   paso.plantillas_pasos?.lecturas_requeridas ?? null,
                 isCustom: !paso.plantillas_pasos && !paso.fallas_correctivas && !!paso.nombre_custom,
-              })),
+                orden: paso.plantillas_pasos?.orden ?? (paso.fallas_correctivas ? 9000 : 9999),
+              })).sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999)),
               photos: (photosByEquipo.get(entry.equipo_id) ?? []).map(
                 (foto) => ({
                   url: foto.url,

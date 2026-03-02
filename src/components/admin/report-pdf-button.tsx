@@ -91,6 +91,7 @@ interface ReportPdfButtonProps {
         rango_max: number | null;
       }> | null;
       isCustom?: boolean;
+      orden?: number;
     }>;
     photos: Array<{
       url: string;
