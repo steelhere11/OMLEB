@@ -236,7 +236,7 @@ const s = StyleSheet.create({
   equipCard: {
     border: `1px solid ${GRAY_300}`,
     borderRadius: 4,
-    marginBottom: 8,
+    marginBottom: 20,
     overflow: "hidden" as const,
   },
   equipHeader: {
@@ -300,20 +300,12 @@ const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
   },
-  stepCheckBox: {
-    width: 11,
-    height: 11,
-    borderRadius: 2,
-    backgroundColor: BRAND_NAVY,
-    alignItems: "center" as const,
-    justifyContent: "center" as const,
-    marginRight: 5,
-    marginTop: 1,
-  },
-  stepCheckMark: {
-    fontSize: 7,
-    color: "#ffffff",
-    lineHeight: 1,
+  stepCheckIcon: {
+    fontSize: 10,
+    color: BRAND_NAVY,
+    width: 14,
+    marginRight: 3,
+    marginTop: 0.5,
   },
   stepNameText: {
     fontSize: 9.5,
@@ -810,9 +802,7 @@ function StepBlock({ step }: { step: PdfStepData }) {
   return (
     <View style={s.stepBlock} wrap={true}>
       <View style={s.stepHeaderRow}>
-        <View style={s.stepCheckBox}>
-          <Text style={s.stepCheckMark}>{"\u2713"}</Text>
-        </View>
+        <Text style={s.stepCheckIcon}>{"\u2713"}</Text>
         <Text style={s.stepNameText}>{step.nombre}</Text>
       </View>
 
