@@ -20,10 +20,11 @@ INSERT INTO public.plantillas_pasos (tipo_equipo_slug, tipo_mantenimiento, orden
  '[{"nombre":"Voltaje en terminales","unidad":"V","rango_min":0,"rango_max":0}]'::jsonb,
  true),
 
+-- Updated for Phase 8: placa/nameplate data moved to registration phase
 ('mini_split_interior', 'preventivo', 2, 'Inspección visual general de la unidad interior',
- 'Examinar carcasa exterior por daños, manchas de agua, decoloración. Verificar que el equipo esté bien montado y nivelado. Revisar que no haya obstrucciones en el flujo de aire. Fotografiar la placa de datos (modelo, serie, capacidad, refrigerante).',
- '[{"etapa":"antes","descripcion":"Foto general frontal del equipo"},{"etapa":"antes","descripcion":"Foto de la placa de datos/modelo"},{"etapa":"antes","descripcion":"Foto de cualquier daño visible o anomalía"}]'::jsonb,
- '[{"nombre":"Modelo","unidad":"texto","rango_min":null,"rango_max":null},{"nombre":"Serie","unidad":"texto","rango_min":null,"rango_max":null},{"nombre":"Capacidad","unidad":"BTU","rango_min":null,"rango_max":null},{"nombre":"Tipo refrigerante","unidad":"texto","rango_min":null,"rango_max":null}]'::jsonb,
+ 'Examinar carcasa exterior por daños, manchas de agua, decoloración. Verificar que el equipo esté bien montado y nivelado. Revisar que no haya obstrucciones en el flujo de aire.',
+ '[{"etapa":"antes","descripcion":"Foto general frontal del equipo"},{"etapa":"antes","descripcion":"Foto de cualquier daño visible o anomalía"}]'::jsonb,
+ '[]'::jsonb,
  true),
 
 ('mini_split_interior', 'preventivo', 3, 'Retiro y limpieza de filtros de aire',
@@ -98,10 +99,11 @@ INSERT INTO public.plantillas_pasos (tipo_equipo_slug, tipo_mantenimiento, orden
 
 INSERT INTO public.plantillas_pasos (tipo_equipo_slug, tipo_mantenimiento, orden, nombre, procedimiento, evidencia_requerida, lecturas_requeridas, es_obligatorio) VALUES
 
+-- Updated for Phase 8: placa/nameplate data moved to registration phase
 ('mini_split_exterior', 'preventivo', 1, 'Inspección visual de la unidad exterior (condensador)',
  'Examinar carcasa por daños, corrosión, óxido. Verificar que la base/soporte esté nivelada y firme. Verificar mínimo 60 cm de espacio libre alrededor para flujo de aire. Remover hojas, basura, tierra y vegetación del área circundante.',
- '[{"etapa":"antes","descripcion":"Foto general de la unidad exterior y su entorno"},{"etapa":"antes","descripcion":"Foto de la placa de datos"},{"etapa":"antes","descripcion":"Foto de cualquier daño o corrosión visible"}]'::jsonb,
- '[{"nombre":"Modelo","unidad":"texto","rango_min":null,"rango_max":null},{"nombre":"Serie","unidad":"texto","rango_min":null,"rango_max":null},{"nombre":"Refrigerante","unidad":"texto","rango_min":null,"rango_max":null},{"nombre":"Voltaje nominal","unidad":"V","rango_min":null,"rango_max":null}]'::jsonb,
+ '[{"etapa":"antes","descripcion":"Foto general de la unidad exterior y su entorno"},{"etapa":"antes","descripcion":"Foto de cualquier daño o corrosión visible"}]'::jsonb,
+ '[]'::jsonb,
  true),
 
 ('mini_split_exterior', 'preventivo', 2, 'Limpieza del serpentín condensador (condenser coil)',
@@ -170,10 +172,11 @@ INSERT INTO public.plantillas_pasos (tipo_equipo_slug, tipo_mantenimiento, orden
  '[{"nombre":"Voltaje verificado","unidad":"V","rango_min":0,"rango_max":0}]'::jsonb,
  true),
 
+-- Updated for Phase 8: placa/nameplate data moved to registration phase
 ('mini_chiller', 'preventivo', 2, 'Inspección visual general del chiller',
- 'Examinar gabinete exterior por daños, corrosión, fugas de agua o aceite. Verificar que la base esté nivelada. Inspeccionar conexiones de tubería de agua (entrada y salida). Verificar estado de aislamiento de tuberías. Fotografiar placa de datos con modelo, serie, capacidad.',
- '[{"etapa":"antes","descripcion":"Foto panorámica del equipo"},{"etapa":"antes","descripcion":"Foto de la placa de datos"},{"etapa":"antes","descripcion":"Fotos de cada lado del equipo"},{"etapa":"antes","descripcion":"Foto de cualquier daño, corrosión o fuga"}]'::jsonb,
- '[{"nombre":"Modelo","unidad":"texto","rango_min":null,"rango_max":null},{"nombre":"Serie","unidad":"texto","rango_min":null,"rango_max":null},{"nombre":"Capacidad","unidad":"Tons","rango_min":null,"rango_max":null},{"nombre":"Refrigerante","unidad":"texto","rango_min":null,"rango_max":null},{"nombre":"Voltaje nominal","unidad":"V","rango_min":null,"rango_max":null}]'::jsonb,
+ 'Examinar gabinete exterior por daños, corrosión, fugas de agua o aceite. Verificar que la base esté nivelada. Inspeccionar conexiones de tubería de agua (entrada y salida). Verificar estado de aislamiento de tuberías.',
+ '[{"etapa":"antes","descripcion":"Foto panorámica del equipo"},{"etapa":"antes","descripcion":"Fotos de cada lado del equipo"},{"etapa":"antes","descripcion":"Foto de cualquier daño, corrosión o fuga"}]'::jsonb,
+ '[]'::jsonb,
  true),
 
 ('mini_chiller', 'preventivo', 3, 'Inspección y limpieza de serpentines del condensador',
