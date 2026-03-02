@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 Phase: 6 of 7 (Foundation Completion & PWA) -- next to execute
 Plan: 0 of 1 in current phase
 Status: Ready to plan/execute
-Last activity: 2026-03-02 -- Quick task 001 complete (video support + evidence layout)
+Last activity: 2026-03-02 -- Quick task 002 complete (video live overlay)
 
 Progress: [==============░░░░░░] 71% (15/21 plans complete)
 
@@ -38,6 +38,7 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | video-no-overlay | Videos skip GPS/date canvas burn; metadata stored in DB row | quick-001 |
 | tipo-media-discriminator | tipo_media column (foto/video) on reporte_fotos with CHECK constraint | quick-001 |
 | media-neutral-labels | UI labels changed to media-neutral Spanish: Evidencia, archivo(s), Agregar evidencia | quick-001 |
+| html-overlay-not-canvas | Used HTML/CSS overlay on video instead of canvas.captureStream() to avoid audio sync and perf issues | quick-002 |
 
 ### Pending Todos
 
@@ -63,9 +64,10 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 001 | Video support on technician side with same legend layout as photos | 2026-03-01 | bd71c83 | [001-video-support-technician-photo-layout](./quick/001-video-support-technician-photo-layout/) |
+| 002 | Live GPS/date/time overlay on video recording screen | 2026-03-02 | 045ee4f | [002-video-location-datetime-legend-overlay](./quick/002-video-location-datetime-legend-overlay/) |
 
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Quick task 001 complete -- Phase 6 next
+Stopped at: Quick task 002 complete -- Phase 6 next
 Resume file: .planning/phases/06-foundation-pwa/06-01-PLAN.md
