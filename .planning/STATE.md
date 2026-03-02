@@ -5,25 +5,25 @@
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Field technicians can quickly submit complete daily reports (with photos, equipment details, materials, and diagnostics) from their phone on-site -- no WhatsApp, no paper, no back-and-forth.
-**Current focus:** Phase 9 planned. All V1 code phases + Phase 8 done.
+**Current focus:** Phase 9 executing. Plan 09-01 complete. Plans 09-02 through 09-06 remaining.
 
 ## Current Position
 
-Phase: 9 (Admin Full Control) — planned, ready to execute
-Plan: 0 of 6 in current phase
-Status: Plan written, ready for execution
-Last activity: 2026-03-02 -- Phase 9 plan created
+Phase: 9 (Admin Full Control) — in progress
+Plan: 1 of 6 in current phase
+Status: In progress
+Last activity: 2026-03-02 -- Completed 09-01-PLAN.md
 
-Progress: [████████████████████] 100% (20/21 plans complete)
+Progress: [█████████████████████] 100% (21/27 plans complete)
 
-Note: 20/21 because Phase 1 has 2/3 plans done (auth setup deferred to infrastructure). All V1 code phases (2-5.5, 8) are complete.
+Note: 21/27 total plans across all phases. Phase 1 has 2/3 done. Phase 9 has 1/6 done.
 
 ## Performance Metrics
 
-**Velocity (from V1 build + Phase 5.5 + Phase 8):**
-- Total plans completed: 20
+**Velocity (from V1 build + Phase 5.5 + Phase 8 + Phase 9):**
+- Total plans completed: 21
 - Average duration: ~6 min
-- Total execution time: ~2.1 hours
+- Total execution time: ~2.2 hours
 
 ## Accumulated Context
 
@@ -53,6 +53,9 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | registration-entries-export-type | RegistrationEntry type exported from page.tsx and imported by report-form.tsx for cross-file type sharing | 08-04 |
 | filter-reg-photos-by-etiqueta | Registration photos filtered by etiqueta in report-detail rather than separate query | 08-05 |
 | reg-entries-from-reporte-equipos | Registration entries built from existing reporte_equipos join, not separate query | 08-05 |
+| soft-cascade-via-actions | Keep RESTRICT FK constraints; implement explicit admin cascade deletes via server actions | 09-01 |
+| admin-upload-auto-accepted | Photos uploaded by admin are auto-set to estatus_revision=aceptada | 09-01 |
+| estatus-revision-default-pendiente | New photo review column defaults to pendiente for all tech-uploaded photos | 09-01 |
 
 ### Pending Todos
 
@@ -67,6 +70,7 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 - User must add company logo to public/logo.png for PDF branding
 - User must run supabase/migration-07-video-support.sql in Supabase SQL Editor after migration-04-photos.sql
 - User must run supabase/migration-08-registration.sql in Supabase SQL Editor after migration-07-video-support.sql
+- User must run supabase/migration-09-admin-control.sql in Supabase SQL Editor after migration-08-registration.sql
 
 ### Blockers/Concerns
 
@@ -74,6 +78,7 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 - [Infrastructure]: Supabase and Vercel projects not yet created.
 - [Phase 7]: Deployment guide will consolidate all pending todos above into a single playbook.
 - [Phase 8 Complete]: Arrival & Registration flow fully implemented end-to-end.
+- [Phase 9 In Progress]: 09-01 done (migration + actions). Plans 09-02 through 09-06 remain (UI components).
 
 ### Quick Tasks Completed
 
@@ -85,5 +90,5 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Phase 9 PLAN WRITTEN. Ready to execute 09-01.
-Resume file: .planning/phases/09-admin-full-control/09-PLAN.md
+Stopped at: Completed 09-01-PLAN.md. Ready for 09-02.
+Resume file: .planning/phases/09-admin-full-control/09-02-PLAN.md
