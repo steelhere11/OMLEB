@@ -595,6 +595,13 @@ export async function approveReport(
     return { error: "Error al aprobar reporte: " + error.message };
   }
 
+  // Bulk-approve all photos still marked as "pendiente"
+  await supabase
+    .from("reporte_fotos")
+    .update({ estatus_revision: "aceptada" })
+    .eq("reporte_id", reporteId)
+    .eq("estatus_revision", "pendiente");
+
   revalidatePath("/admin/reportes");
   return { success: true, message: "Reporte aprobado" };
 }

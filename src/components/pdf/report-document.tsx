@@ -90,6 +90,7 @@ export interface PdfReportData {
 const BLUE = "#2563eb";
 const GREEN = "#059669";
 const RED = "#dc2626";
+const BRAND_NAVY = "#1e3a6e";
 
 const GRAY_50 = "#f9fafb";
 const GRAY_100 = "#f3f4f6";
@@ -299,11 +300,20 @@ const s = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
   },
-  stepCheckIcon: {
-    fontSize: 9,
-    width: 12,
-    marginRight: 4,
+  stepCheckBox: {
+    width: 11,
+    height: 11,
+    borderRadius: 2,
+    backgroundColor: BRAND_NAVY,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    marginRight: 5,
     marginTop: 1,
+  },
+  stepCheckMark: {
+    fontSize: 7,
+    color: "#ffffff",
+    lineHeight: 1,
   },
   stepNameText: {
     fontSize: 9.5,
@@ -800,7 +810,9 @@ function StepBlock({ step }: { step: PdfStepData }) {
   return (
     <View style={s.stepBlock} wrap={true}>
       <View style={s.stepHeaderRow}>
-        <Text style={[s.stepCheckIcon, { color: GREEN }]}>{"\u2713"}</Text>
+        <View style={s.stepCheckBox}>
+          <Text style={s.stepCheckMark}>{"\u2713"}</Text>
+        </View>
         <Text style={s.stepNameText}>{step.nombre}</Text>
       </View>
 
@@ -1200,15 +1212,25 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                       <>
                         {/* Section header for template steps */}
                         {templateSteps.length > 0 && (
-                          <View style={{ marginTop: 4, paddingHorizontal: 8 }}>
+                          <View
+                            style={{
+                              marginTop: 6,
+                              marginHorizontal: 8,
+                              marginBottom: 4,
+                              backgroundColor: "#eef2f7",
+                              borderLeft: `3pt solid ${BRAND_NAVY}`,
+                              borderRadius: 4,
+                              paddingVertical: 6,
+                              paddingHorizontal: 10,
+                            }}
+                          >
                             <Text
                               style={{
-                                fontSize: 7,
+                                fontSize: 10,
                                 fontWeight: 700,
-                                color: GRAY_500,
+                                color: BRAND_NAVY,
                                 textTransform: "uppercase",
                                 letterSpacing: 0.5,
-                                marginBottom: 2,
                               }}
                             >
                               Verificaciones completadas
