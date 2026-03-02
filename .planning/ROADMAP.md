@@ -23,7 +23,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 7: Deployment Guide & Seed Data** - Step-by-step deployment playbook and realistic seed data for QA testing
 - [x] **Phase 8: Arrival, Site Overview & Equipment Registration** - Pre-maintenance gated phases: arrival photo (PPE evidence), site panoramic, equipment nameplate registration with photos and data fields
 - [x] **Phase 9: Admin Full Control** - INSERTED - Cascade delete for all entities, photo management (delete/flag/upload), edit workflow steps and equipment info from report detail, admin comments system, technician feedback visibility
-- [ ] **Phase 10: Photo Export & Device Save** - PLANNED - ZIP photo package download organized by report structure, save-to-device for individual photos, PDF photo optimization (thumbnails in PDF, full-res in ZIP)
+- [ ] **Phase 10: Feature Expansion** - Report revisions with audit trail, PDF comment-photo pairing, photo annotation/drawing, fan coil workflow templates, custom "Otro" steps for all equipment types
+- [ ] **Phase 11: Photo Export & Device Save** - PLANNED - ZIP photo package download, save-to-device, PDF photo optimization
 
 ## Phase Details
 
@@ -230,9 +231,39 @@ Plans:
 - [x] 09-05-PLAN.md — Admin comments system
 - [x] 09-06-PLAN.md — Technician-side feedback visibility
 
-### Phase 10: Photo Export & Device Save (PLANNED)
+### Phase 10: Feature Expansion
+**Goal**: Add report revisions with audit trail, PDF comment-photo pairing, photo annotation/drawing tool, fan coil preventive maintenance workflows, and custom "Otro" steps for all equipment types
+**Depends on**: Phase 9 (admin editing, photo management, comments system)
+**Success Criteria** (what must be TRUE):
+  1. Admin can edit an approved report; each edit creates a revision entry with summary
+  2. Report header shows "Revisión X" when revision_actual > 0
+  3. Revision history panel shows timeline of all changes with author, date, and summary
+  4. PDF includes revision number in header and last revision info in footer
+  5. Step notes appear directly below step photos in PDF (not separated)
+  6. Admin comments appear in relevant equipment sections of PDF
+  7. Technician can open photo annotator from any photo
+  8. Annotator supports freehand drawing, text labels, arrows, and color selection
+  9. Annotated photo overwrites the original in storage — no duplicates, no extra rows
+  10. Fan coil appears as equipment type option with 10 preventive steps
+  11. Fan coil corrective issues work like existing equipment types
+  12. "Agregar paso personalizado" button appears on all equipment preventive workflows
+  13. Custom steps support full evidence capture (photos, notes)
+  14. Custom steps render in PDF under "Pasos adicionales"
+  15. All features work on mobile viewport
+**Plans:** 7 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — Database migration + types (reporte_revisiones, revision_actual, nombre_custom, etiqueta constraint)
+- [ ] 10-02-PLAN.md — Report revision system (server actions, UI, revision history panel)
+- [ ] 10-03-PLAN.md — PDF comment-photo pairing (notes below photos, admin comments in PDF)
+- [ ] 10-04-PLAN.md — Photo annotation component (canvas drawing, text labels, arrows, overwrite-in-place)
+- [ ] 10-05-PLAN.md — Fan coil equipment type + workflow seeds (10 preventive steps, 11 corrective issues)
+- [ ] 10-06-PLAN.md — Custom "Otro" step for all equipment types (nombre_custom, UI, PDF rendering)
+- [ ] 10-07-PLAN.md — Integration, testing & cleanup
+
+### Phase 11: Photo Export & Device Save (PLANNED)
 **Goal**: Enable photo package downloads as organized ZIP files and individual photo save-to-device, with PDF optimization for thumbnails vs full-res
-**Depends on**: Phase 9 (photo management infrastructure)
+**Depends on**: Phase 10 (photo management infrastructure)
 **Success Criteria** (what must be TRUE):
   1. Admin can download all photos for a report as an organized ZIP file
   2. Individual photos can be saved to device
@@ -245,7 +276,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 3.5 -> 4 -> 5 -> 5.5 -> 6 -> 7 -> 8 -> 9
+Phases execute in numeric order: 1 -> 2 -> 3 -> 3.5 -> 4 -> 5 -> 5.5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -260,7 +291,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 3.5 -> 4 -> 5 -> 5.5 -> 6 -> 7 -
 | 7. Deployment Guide & Seed Data | 0/2 | Pending | - |
 | 8. Arrival, Site Overview & Equipment Registration | 5/5 | Complete | 2026-03-02 |
 | 9. Admin Full Control | 6/6 | Complete | 2026-03-02 |
-| 10. Photo Export & Device Save | 0/TBD | Planned | - |
+| 10. Feature Expansion | 0/7 | Pending | - |
+| 11. Photo Export & Device Save | 0/TBD | Planned | - |
 
 ---
 *Roadmap created: 2026-02-23*
