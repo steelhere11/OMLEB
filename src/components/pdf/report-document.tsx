@@ -314,6 +314,19 @@ const s = StyleSheet.create({
     marginLeft: 16,
     marginTop: 2,
   },
+  stepNoteCallout: {
+    fontSize: 8,
+    fontStyle: "italic" as const,
+    color: GRAY_700,
+    marginLeft: 16,
+    marginTop: 4,
+    marginBottom: 4,
+    paddingLeft: 8,
+    paddingVertical: 3,
+    borderLeftWidth: 2,
+    borderLeftColor: BLUE,
+    backgroundColor: "#f0f4ff",
+  },
   // Readings table
   readingsTable: {
     marginLeft: 16,
@@ -797,14 +810,16 @@ function StepBlock({
         <ReadingsTable lecturas={step.lecturas} meta={step.lecturas_meta} />
       )}
 
-      {/* Notes */}
-      {step.notas && (
-        <Text style={s.stepNote}>Nota: {step.notas}</Text>
-      )}
-
       {/* Photos grouped by stage */}
       {step.photosBase64.length > 0 && (
         <StepPhotoGrid photos={step.photosBase64} />
+      )}
+
+      {/* Notes (below photos, callout style) */}
+      {step.notas && (
+        <View style={s.stepNoteCallout}>
+          <Text style={{ fontSize: 8, fontStyle: "italic", color: GRAY_700 }}>{step.notas}</Text>
+        </View>
       )}
     </View>
   );
