@@ -684,7 +684,10 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                   refrigerante: entry.equipos!.refrigerante,
                   voltaje: entry.equipos!.voltaje,
                   fase: entry.equipos!.fase,
-                }));
+                }))
+                .sort((a, b) =>
+                  a.numero_etiqueta.localeCompare(b.numero_etiqueta, "es", { numeric: true, sensitivity: "base" })
+                );
             })()}
             comments={comments.map((c) => ({
               contenido: c.contenido,
@@ -728,7 +731,15 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                   reporte_paso_id: foto.reporte_paso_id,
                 })
               ),
-            }))}
+            })).sort((a, b) => {
+              const cmp = a.equipo.numero_etiqueta.localeCompare(
+                b.equipo.numero_etiqueta, "es", { numeric: true, sensitivity: "base" }
+              );
+              if (cmp !== 0) return cmp;
+              if (a.tipo_trabajo === "preventivo" && b.tipo_trabajo === "correctivo") return -1;
+              if (a.tipo_trabajo === "correctivo" && b.tipo_trabajo === "preventivo") return 1;
+              return 0;
+            })}
             materials={reporte.reporte_materiales.map((m) => ({
               cantidad: m.cantidad,
               unidad: m.unidad,

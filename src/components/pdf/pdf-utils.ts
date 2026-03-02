@@ -76,6 +76,22 @@ export async function fetchAllPhotosAsBase64(
 }
 
 /**
+ * Fetch a single image URL and return it as a raw Blob (for ZIP packaging).
+ * Returns null on any failure.
+ */
+export async function fetchImageAsBlob(
+  url: string
+): Promise<Blob | null> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    return await response.blob();
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Trigger a browser download of a Blob with a given filename.
  */
 export function downloadBlob(blob: Blob, filename: string): void {

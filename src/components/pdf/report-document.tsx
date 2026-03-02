@@ -90,7 +90,7 @@ export interface PdfReportData {
 const BLUE = "#2563eb";
 const GREEN = "#059669";
 const RED = "#dc2626";
-const AMBER = "#d97706";
+
 const GRAY_50 = "#f9fafb";
 const GRAY_100 = "#f3f4f6";
 const GRAY_200 = "#e5e7eb";
@@ -166,7 +166,7 @@ const s = StyleSheet.create({
   infoCellProblem: {
     width: "100%",
     padding: 7,
-    backgroundColor: "#fffbeb",
+    backgroundColor: GRAY_50,
   },
   infoLabel: {
     fontSize: 7,
@@ -190,7 +190,7 @@ const s = StyleSheet.create({
     alignSelf: "flex-start" as const,
   },
   badgeEnProgreso: { backgroundColor: "#dbeafe", color: "#1d4ed8" },
-  badgeEnEspera: { backgroundColor: "#fef3c7", color: "#92400e" },
+  badgeEnEspera: { backgroundColor: GRAY_100, color: GRAY_700 },
   badgeCompletado: { backgroundColor: "#d1fae5", color: "#065f46" },
   // Summary bar
   summaryBar: {
@@ -263,7 +263,7 @@ const s = StyleSheet.create({
     letterSpacing: 0.5,
   },
   badgePreventivo: { backgroundColor: "#dbeafe", color: "#1d4ed8" },
-  badgeCorrectivo: { backgroundColor: "#ffedd5", color: "#c2410c" },
+  badgeCorrectivo: { backgroundColor: "#fee2e2", color: "#dc2626" },
   equipProgress: {
     fontSize: 8,
     color: GRAY_500,
@@ -391,7 +391,7 @@ const s = StyleSheet.create({
     alignSelf: "flex-start" as const,
   },
   stageLabelAntes: { backgroundColor: "#dbeafe", color: "#1d4ed8" },
-  stageLabelDurante: { backgroundColor: "#fef3c7", color: "#92400e" },
+  stageLabelDurante: { backgroundColor: GRAY_100, color: GRAY_700 },
   stageLabelDespues: { backgroundColor: "#d1fae5", color: "#065f46" },
   photoGrid: {
     flexDirection: "row",
@@ -401,14 +401,15 @@ const s = StyleSheet.create({
     marginBottom: 4,
   },
   photoBox: {
-    width: "47%",
+    width: "31%",
     marginBottom: 4,
   },
   photoImg: {
-    height: 120,
-    objectFit: "cover" as const,
+    height: 90,
+    objectFit: "contain" as const,
     borderRadius: 2,
     border: `1px solid ${GRAY_200}`,
+    backgroundColor: GRAY_50,
   },
   photoCaption: {
     fontSize: 6,
@@ -500,16 +501,18 @@ const s = StyleSheet.create({
     marginBottom: 8,
   },
   regImg: {
-    height: 150,
-    objectFit: "cover" as const,
+    height: 130,
+    objectFit: "contain" as const,
     borderRadius: 3,
     border: `1px solid ${GRAY_200}`,
+    backgroundColor: GRAY_50,
   },
   regImgSmall: {
-    height: 120,
-    objectFit: "cover" as const,
+    height: 100,
+    objectFit: "contain" as const,
     borderRadius: 3,
     border: `1px solid ${GRAY_200}`,
+    backgroundColor: GRAY_50,
   },
   regCaption: {
     fontSize: 7,
@@ -568,7 +571,7 @@ const s = StyleSheet.create({
     marginBottom: 4,
     paddingLeft: 8,
     borderLeftWidth: 2,
-    borderLeftColor: AMBER,
+    borderLeftColor: BLUE,
   },
   commentText: {
     fontSize: 8,
@@ -792,20 +795,12 @@ function StepPhotoGrid({ photos }: { photos: PhotoBase64[] }) {
 
 // ---------- Helper: Step Block ----------
 
-/** Check if a step has detailed content (photos, readings, or notes) */
-function stepHasContent(step: PdfStepData): boolean {
-  return (
-    step.photosBase64.length > 0 ||
-    (!!step.lecturas && Object.keys(step.lecturas).length > 0) ||
-    !!step.notas
-  );
-}
-
-/** Renders a completed step with detailed content (photos/readings/notes) */
+/** Renders a completed step with green checkmark, plus any content inline */
 function StepBlock({ step }: { step: PdfStepData }) {
   return (
     <View style={s.stepBlock} wrap={true}>
       <View style={s.stepHeaderRow}>
+        <Text style={[s.stepCheckIcon, { color: GREEN }]}>{"\u2713"}</Text>
         <Text style={s.stepNameText}>{step.nombre}</Text>
       </View>
 
@@ -825,45 +820,6 @@ function StepBlock({ step }: { step: PdfStepData }) {
           <Text style={{ fontSize: 8, color: GRAY_700 }}>{step.notas}</Text>
         </View>
       )}
-    </View>
-  );
-}
-
-/** Compact checklist summary for completed steps without detailed content */
-function ChecklistSummary({ steps }: { steps: PdfStepData[] }) {
-  if (steps.length === 0) return null;
-  return (
-    <View style={{ marginTop: 8, paddingHorizontal: 8 }} wrap={false}>
-      <Text
-        style={{
-          fontSize: 7,
-          fontWeight: 700,
-          color: GRAY_500,
-          marginBottom: 4,
-          textTransform: "uppercase",
-          letterSpacing: 0.5,
-        }}
-      >
-        Verificaciones completadas
-      </Text>
-      <View style={{ flexDirection: "column" }}>
-        {steps.map((step) => (
-          <View
-            key={step.id}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 4,
-              paddingVertical: 3,
-              borderBottomWidth: 1,
-              borderBottomColor: GRAY_100,
-            }}
-          >
-            <Text style={{ fontSize: 8, color: GREEN }}>{"\u2713"}</Text>
-            <Text style={{ fontSize: 8, color: GRAY_700 }}>{step.nombre}</Text>
-          </View>
-        ))}
-      </View>
     </View>
   );
 }
@@ -1234,30 +1190,44 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                     </>
                   )}
 
-                  {/* Steps — only completed, split into detailed vs checklist */}
+                  {/* Steps — all completed under unified section */}
                   {(() => {
                     const completed = entry.steps.filter((st) => st.completado).sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
-                    const templateDetailed = completed.filter((st) => !st.isCustom && stepHasContent(st));
-                    const templateChecklist = completed.filter((st) => !st.isCustom && !stepHasContent(st));
+                    const templateSteps = completed.filter((st) => !st.isCustom);
                     const customSteps = completed.filter((st) => st.isCustom);
 
                     return (
                       <>
-                        {/* Detailed template steps (with photos/readings/notes) */}
-                        {templateDetailed.map((step) => (
+                        {/* Section header for template steps */}
+                        {templateSteps.length > 0 && (
+                          <View style={{ marginTop: 4, paddingHorizontal: 8 }}>
+                            <Text
+                              style={{
+                                fontSize: 7,
+                                fontWeight: 700,
+                                color: GRAY_500,
+                                textTransform: "uppercase",
+                                letterSpacing: 0.5,
+                                marginBottom: 2,
+                              }}
+                            >
+                              Verificaciones completadas
+                            </Text>
+                          </View>
+                        )}
+
+                        {/* All template steps rendered uniformly */}
+                        {templateSteps.map((step) => (
                           <StepBlock key={step.id} step={step} />
                         ))}
 
-                        {/* Compact checklist for completed-no-content steps */}
-                        <ChecklistSummary steps={templateChecklist} />
-
-                        {/* Custom steps */}
+                        {/* Custom steps with blue ADICIONAL badge */}
                         {customSteps.length > 0 && (
                           <View style={{ marginTop: 8 }}>
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4, paddingHorizontal: 8 }}>
                               <View
                                 style={{
-                                  backgroundColor: "#ede9fe",
+                                  backgroundColor: "#dbeafe",
                                   paddingHorizontal: 5,
                                   paddingVertical: 2,
                                   borderRadius: 3,
@@ -1267,7 +1237,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                                   style={{
                                     fontSize: 7,
                                     fontWeight: 700,
-                                    color: "#7c3aed",
+                                    color: "#1d4ed8",
                                     textTransform: "uppercase",
                                   }}
                                 >
