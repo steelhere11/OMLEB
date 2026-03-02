@@ -85,25 +85,12 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 
 ### Pending Todos
 
-- User must create Supabase project and run SQL files before auth can be tested with real credentials
-- User must set env vars in .env.local with real Supabase credentials
-- User must create first admin account in Supabase Dashboard
-- User must run supabase/storage.sql in Supabase SQL Editor to create client logos bucket
-- User must run supabase/migration-03-reporting.sql in Supabase SQL Editor after schema.sql and rls.sql
-- User must run supabase/migration-workflows.sql in Supabase SQL Editor after schema.sql and rls.sql
-- User must run supabase/seed-workflows.sql in Supabase SQL Editor after migration-workflows.sql
-- User must run supabase/migration-04-photos.sql in Supabase SQL Editor after migration-workflows.sql
 - User must add company logo to public/logo.png for PDF branding
-- User must run supabase/migration-07-video-support.sql in Supabase SQL Editor after migration-04-photos.sql
-- User must run supabase/migration-08-registration.sql in Supabase SQL Editor after migration-07-video-support.sql
-- User must run supabase/migration-09-admin-control.sql in Supabase SQL Editor after migration-08-registration.sql
-- User must run supabase/migration-10-feature-expansion.sql in Supabase SQL Editor after migration-09-admin-control.sql
-- User must run supabase/seed-fan-coil-workflows.sql in Supabase SQL Editor after seed-workflows.sql
 
 ### Blockers/Concerns
 
 - [V1 Code]: ALL FEATURE PHASES COMPLETE (2-5.5, 8, 9, 10). Phase 1 has 2/3 plans done. Phase 6 pending.
-- [Infrastructure]: Supabase and Vercel projects not yet created.
+- [Infrastructure]: Supabase and Vercel deployed and connected. Production URL: https://omleb-hvac.vercel.app
 - [Phase 7]: Deployment guide will consolidate all pending todos above into a single playbook.
 - [Phase 8 Complete]: Arrival & Registration flow fully implemented end-to-end.
 - [Phase 9 Complete]: All 6 plans done -- migration, cascade deletes, photo management, inline editors, comments, technician feedback visibility.

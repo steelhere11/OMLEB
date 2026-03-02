@@ -1,14 +1,9 @@
 # HVAC Daily Report Generator — CLAUDE.md
 
 ## Infrastructure Status
-- **Vercel**: Project NOT created yet — must be set up before deploying
-- **Supabase**: Project NOT created yet — must be set up before connecting database, auth, and file storage
-- Once created, add credentials to `.env.local`:
-```
-NEXT_PUBLIC_SUPABASE_URL=your_url_here
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key_here
-SUPABASE_SERVICE_ROLE_KEY=your_service_key_here
-```
+- **Vercel**: Deployed at https://omleb-hvac.vercel.app — GitHub auto-deploy connected (repo: steelhere11/OMLEB)
+- **Supabase**: Project created and connected — database, auth, and file storage operational
+- Credentials configured in `.env.local`
 
 ---
 
