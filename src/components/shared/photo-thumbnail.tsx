@@ -19,6 +19,11 @@ const etapaColors: Record<string, { bg: string; text: string }> = {
   progreso: { bg: "bg-purple-500", text: "text-white" },
 };
 
+/** Detect whether a ReporteFoto is a video */
+function isVideoMedia(foto: ReporteFoto): boolean {
+  return foto.tipo_media === "video" || /\.(mp4|mov|webm)$/i.test(foto.url);
+}
+
 export function PhotoThumbnail({
   foto,
   onDelete,
@@ -29,6 +34,7 @@ export function PhotoThumbnail({
   const [isDeleting, setIsDeleting] = useState(false);
 
   const colors = etapaColors[foto.etiqueta ?? ""] ?? etapaColors.antes;
+  const isVideo = isVideoMedia(foto);
 
   const handleDelete = async () => {
     if (!onDelete) return;
@@ -47,13 +53,38 @@ export function PhotoThumbnail({
         className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg scroll-snap-align-start"
         style={{ scrollSnapAlign: "start" }}
       >
-        <Image
-          src={foto.url}
-          alt={foto.etiqueta ?? "Foto"}
-          fill
-          className="object-cover"
-          sizes="64px"
-        />
+        {isVideo ? (
+          <>
+            {/* Video thumbnail: show first frame via <video> */}
+            <video
+              src={foto.url}
+              preload="metadata"
+              muted
+              playsInline
+              className="h-16 w-16 object-cover rounded-lg"
+            />
+            {/* Play icon overlay */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-black/50">
+                <svg
+                  className="h-3 w-3 text-white"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            </div>
+          </>
+        ) : (
+          <Image
+            src={foto.url}
+            alt={foto.etiqueta ?? "Foto"}
+            fill
+            className="object-cover"
+            sizes="64px"
+          />
+        )}
         {/* Label badge */}
         {foto.etiqueta && (
           <span
@@ -112,16 +143,27 @@ export function PhotoThumbnail({
             </div>
           )}
 
-          {/* Full image */}
-          <div className="relative h-full w-full">
-            <Image
-              src={foto.url}
-              alt={foto.etiqueta ?? "Foto"}
-              fill
-              className="object-contain"
-              sizes="100vw"
-              priority
-            />
+          {/* Full media */}
+          <div className="relative h-full w-full flex items-center justify-center">
+            {isVideo ? (
+              <video
+                src={foto.url}
+                controls
+                autoPlay
+                playsInline
+                preload="auto"
+                className="max-h-full max-w-full object-contain"
+              />
+            ) : (
+              <Image
+                src={foto.url}
+                alt={foto.etiqueta ?? "Foto"}
+                fill
+                className="object-contain"
+                sizes="100vw"
+                priority
+              />
+            )}
           </div>
 
           {/* Delete button */}
@@ -146,7 +188,7 @@ export function PhotoThumbnail({
                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                   />
                 </svg>
-                Eliminar foto
+                Eliminar
               </button>
             </div>
           )}
@@ -156,7 +198,7 @@ export function PhotoThumbnail({
             <div className="absolute bottom-8 inset-x-4 flex flex-col items-center gap-3">
               <div className="rounded-xl bg-gray-900 px-5 py-4 text-center shadow-lg">
                 <p className="mb-3 text-sm font-medium text-white">
-                  Eliminar esta foto?
+                  {isVideo ? "Eliminar este video?" : "Eliminar esta foto?"}
                 </p>
                 <div className="flex items-center justify-center gap-3">
                   <button

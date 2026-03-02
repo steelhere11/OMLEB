@@ -65,7 +65,7 @@ export function EvidenceStageSection({
   return (
     <div className="space-y-3">
       <p className="text-xs font-medium text-gray-500">
-        Evidencia fotografica
+        Evidencia
       </p>
       {sortedStages.map((stage) => {
         const style = stageStyles[stage] ?? stageStyles.antes;
@@ -77,7 +77,7 @@ export function EvidenceStageSection({
         const stagePhotos = photos.filter(
           (p) => p.etiqueta === stage.toLowerCase()
         );
-        const photoCount = stagePhotos.length;
+        const mediaCount = stagePhotos.length;
 
         return (
           <div
@@ -145,11 +145,11 @@ export function EvidenceStageSection({
                       d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
                     />
                   </svg>
-                  Tomar foto
+                  Agregar evidencia
                 </button>
-                {photoCount > 0 && (
+                {mediaCount > 0 && (
                   <span className="text-xs font-medium text-gray-500">
-                    {photoCount} foto{photoCount !== 1 ? "s" : ""}
+                    {mediaCount} archivo{mediaCount !== 1 ? "s" : ""}
                   </span>
                 )}
                 {isUploading && activeStage === stage && (
@@ -159,7 +159,7 @@ export function EvidenceStageSection({
                 )}
               </div>
 
-              {/* Photo thumbnails for this stage */}
+              {/* Photo/video thumbnails for this stage */}
               <PhotoGalleryRow
                 photos={stagePhotos}
                 onDelete={onDeletePhoto}
