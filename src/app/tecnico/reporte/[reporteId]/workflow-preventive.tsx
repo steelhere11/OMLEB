@@ -7,6 +7,8 @@ import {
   saveStepProgress,
 } from "@/app/actions/workflows";
 import { WorkflowStepCard } from "./workflow-step-card";
+import { CustomStepCard } from "./custom-step-card";
+import { CustomStepForm } from "@/components/tecnico/custom-step-form";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import type { PlantillaPaso, ReportePaso } from "@/types";
@@ -28,6 +30,7 @@ export function WorkflowPreventive({
 }: WorkflowPreventiveProps) {
   const [steps, setSteps] = useState<PlantillaPaso[]>([]);
   const [progress, setProgress] = useState<Map<string, ReportePaso>>(new Map());
+  const [customSteps, setCustomSteps] = useState<ReportePaso[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,12 +47,16 @@ export function WorkflowPreventive({
       setSteps(templates);
 
       const progressMap = new Map<string, ReportePaso>();
+      const custom: ReportePaso[] = [];
       for (const s of saved) {
         if (s.plantilla_paso_id) {
           progressMap.set(s.plantilla_paso_id, s);
+        } else if (!s.falla_correctiva_id && s.nombre_custom) {
+          custom.push(s);
         }
       }
       setProgress(progressMap);
+      setCustomSteps(custom);
       setLoading(false);
     }
 
@@ -91,6 +98,20 @@ export function WorkflowPreventive({
     [reporteEquipoId]
   );
 
+  const handleCustomStepAdded = useCallback((step: ReportePaso) => {
+    setCustomSteps((prev) => [...prev, step]);
+  }, []);
+
+  const handleCustomStepDeleted = useCallback((stepId: string) => {
+    setCustomSteps((prev) => prev.filter((s) => s.id !== stepId));
+  }, []);
+
+  const handleCustomStepProgress = useCallback((updated: ReportePaso) => {
+    setCustomSteps((prev) =>
+      prev.map((s) => (s.id === updated.id ? updated : s))
+    );
+  }, []);
+
   // Loading skeleton
   if (loading) {
     return (
@@ -105,7 +126,7 @@ export function WorkflowPreventive({
     );
   }
 
-  // No templates found — fallback to free-text
+  // No templates found — fallback to free-text (still show custom step form)
   if (steps.length === 0) {
     return (
       <div className="space-y-4">
@@ -131,16 +152,47 @@ export function WorkflowPreventive({
             className="min-h-[80px]"
           />
         </div>
+
+        {/* Custom steps even when no templates */}
+        {customSteps.length > 0 && (
+          <div className="space-y-3">
+            {customSteps.map((cs, idx) => (
+              <CustomStepCard
+                key={cs.id}
+                step={cs}
+                stepNumber={idx + 1}
+                totalSteps={customSteps.length}
+                isCompleted={isCompleted}
+                autoExpand={false}
+                reporteId={reporteId}
+                equipoId={equipoId}
+                onDeleted={handleCustomStepDeleted}
+                onProgressChange={handleCustomStepProgress}
+              />
+            ))}
+          </div>
+        )}
+
+        <CustomStepForm
+          reporteEquipoId={reporteEquipoId}
+          onStepAdded={handleCustomStepAdded}
+          disabled={isCompleted}
+        />
       </div>
     );
   }
 
+  // Total steps = template steps + custom steps
+  const totalSteps = steps.length + customSteps.length;
+
   // Progress bar
-  const completedCount = steps.filter(
+  const templateCompleted = steps.filter(
     (s) => progress.get(s.id)?.completado
   ).length;
+  const customCompleted = customSteps.filter((s) => s.completado).length;
+  const completedCount = templateCompleted + customCompleted;
   const progressPercent =
-    steps.length > 0 ? (completedCount / steps.length) * 100 : 0;
+    totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0;
 
   // Find first incomplete step for auto-expand
   const firstIncompleteIndex = steps.findIndex(
@@ -156,7 +208,7 @@ export function WorkflowPreventive({
             Progreso del mantenimiento
           </p>
           <p className="text-xs font-medium text-gray-700">
-            {completedCount} de {steps.length} pasos
+            {completedCount} de {totalSteps} pasos
           </p>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
@@ -174,7 +226,7 @@ export function WorkflowPreventive({
             key={step.id}
             paso={step}
             stepNumber={index + 1}
-            totalSteps={steps.length}
+            totalSteps={totalSteps}
             savedProgress={progress.get(step.id) ?? null}
             onProgressChange={handleProgressChange}
             isCompleted={isCompleted}
@@ -183,7 +235,30 @@ export function WorkflowPreventive({
             equipoId={equipoId}
           />
         ))}
+
+        {/* Custom steps */}
+        {customSteps.map((cs, idx) => (
+          <CustomStepCard
+            key={cs.id}
+            step={cs}
+            stepNumber={steps.length + idx + 1}
+            totalSteps={totalSteps}
+            isCompleted={isCompleted}
+            autoExpand={false}
+            reporteId={reporteId}
+            equipoId={equipoId}
+            onDeleted={handleCustomStepDeleted}
+            onProgressChange={handleCustomStepProgress}
+          />
+        ))}
       </div>
+
+      {/* Add custom step button */}
+      <CustomStepForm
+        reporteEquipoId={reporteEquipoId}
+        onStepAdded={handleCustomStepAdded}
+        disabled={isCompleted}
+      />
     </div>
   );
 }
