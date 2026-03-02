@@ -10,6 +10,8 @@ import { getPhotosForStep } from "@/app/actions/fotos";
 import { deletePhotoAction } from "@/app/actions/fotos";
 import { compressAndUpload } from "@/lib/photo-uploader";
 import { CorrectiveIssuePicker } from "./corrective-issue-picker";
+import { CustomStepCard } from "./custom-step-card";
+import { CustomStepForm } from "@/components/tecnico/custom-step-form";
 import { PhotoSourcePicker } from "@/components/shared/photo-source-picker";
 import { CameraCapture } from "@/components/shared/camera-capture";
 import { VideoCapture } from "@/components/shared/video-capture";
@@ -43,6 +45,9 @@ export function WorkflowCorrective({
   // Step progress for getting reporte_paso IDs
   const [stepProgress, setStepProgress] = useState<ReportePaso[]>([]);
 
+  // Custom steps (no plantilla_paso_id and no falla_correctiva_id, with nombre_custom)
+  const [customSteps, setCustomSteps] = useState<ReportePaso[]>([]);
+
   // Photo state per issue (keyed by falla_correctiva_id)
   const [photosByIssue, setPhotosByIssue] = useState<
     Record<string, ReporteFoto[]>
@@ -71,12 +76,16 @@ export function WorkflowCorrective({
 
       // Pre-select issues from saved progress
       const savedIds = new Set<string>();
+      const custom: ReportePaso[] = [];
       for (const p of savedProgress) {
         if (p.falla_correctiva_id) {
           savedIds.add(p.falla_correctiva_id);
+        } else if (!p.plantilla_paso_id && p.nombre_custom) {
+          custom.push(p);
         }
       }
       setSelectedIds(savedIds);
+      setCustomSteps(custom);
 
       // Load photos for each saved corrective step
       const photosMap: Record<string, ReporteFoto[]> = {};
@@ -271,6 +280,21 @@ export function WorkflowCorrective({
     []
   );
 
+  // Custom step handlers
+  const handleCustomStepAdded = useCallback((step: ReportePaso) => {
+    setCustomSteps((prev) => [...prev, step]);
+  }, []);
+
+  const handleCustomStepDeleted = useCallback((stepId: string) => {
+    setCustomSteps((prev) => prev.filter((s) => s.id !== stepId));
+  }, []);
+
+  const handleCustomStepProgress = useCallback((updated: ReportePaso) => {
+    setCustomSteps((prev) =>
+      prev.map((s) => (s.id === updated.id ? updated : s))
+    );
+  }, []);
+
   // Loading skeleton
   if (loading) {
     return (
@@ -311,6 +335,32 @@ export function WorkflowCorrective({
             className="min-h-[80px]"
           />
         </div>
+
+        {/* Custom steps even when no predefined issues */}
+        {customSteps.length > 0 && (
+          <div className="space-y-3">
+            {customSteps.map((cs, idx) => (
+              <CustomStepCard
+                key={cs.id}
+                step={cs}
+                stepNumber={idx + 1}
+                totalSteps={customSteps.length}
+                isCompleted={isCompleted}
+                autoExpand={false}
+                reporteId={reporteId}
+                equipoId={equipoId}
+                onDeleted={handleCustomStepDeleted}
+                onProgressChange={handleCustomStepProgress}
+              />
+            ))}
+          </div>
+        )}
+
+        <CustomStepForm
+          reporteEquipoId={reporteEquipoId}
+          onStepAdded={handleCustomStepAdded}
+          disabled={isCompleted}
+        />
       </div>
     );
   }
@@ -422,6 +472,36 @@ export function WorkflowCorrective({
           </Button>
         </div>
       )}
+
+      {/* Custom steps */}
+      {customSteps.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-sm font-medium text-gray-700">
+            Pasos adicionales
+          </p>
+          {customSteps.map((cs, idx) => (
+            <CustomStepCard
+              key={cs.id}
+              step={cs}
+              stepNumber={idx + 1}
+              totalSteps={customSteps.length}
+              isCompleted={isCompleted}
+              autoExpand={false}
+              reporteId={reporteId}
+              equipoId={equipoId}
+              onDeleted={handleCustomStepDeleted}
+              onProgressChange={handleCustomStepProgress}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Add custom step */}
+      <CustomStepForm
+        reporteEquipoId={reporteEquipoId}
+        onStepAdded={handleCustomStepAdded}
+        disabled={isCompleted}
+      />
 
       {/* Hidden file input for gallery uploads */}
       <input
