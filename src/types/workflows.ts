@@ -18,6 +18,7 @@ export type TipoEquipoSlug =
   | "mini_split_interior"
   | "mini_split_exterior"
   | "mini_chiller"
+  | "fan_coil"
   | "otro"
   | string; // allows admin-created types
 
