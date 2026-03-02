@@ -68,11 +68,10 @@ interface AdminPhotoCardProps {
 // ── Component ──────────────────────────────────────────────────────────────
 
 export function AdminPhotoCard({ foto, onFlag, onDelete }: AdminPhotoCardProps) {
-  const config = statusConfig[foto.estatus_revision] ?? statusConfig.pendiente;
-
   const [selectedStatus, setSelectedStatus] = useState<FotoEstatusRevision>(
     foto.estatus_revision
   );
+  const config = statusConfig[selectedStatus] ?? statusConfig.pendiente;
   const [nota, setNota] = useState(foto.nota_admin ?? "");
   const [showNota, setShowNota] = useState(
     foto.estatus_revision === "rechazada" || foto.estatus_revision === "retomar"
@@ -270,7 +269,7 @@ export function AdminPhotoCard({ foto, onFlag, onDelete }: AdminPhotoCardProps) 
                 handleStatusChange(e.target.value as FotoEstatusRevision)
               }
               disabled={flagPending}
-              className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px]"
+              className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px] text-text-1"
             >
               {STATUS_OPTIONS.map((s) => (
                 <option key={s} value={s}>
@@ -288,7 +287,7 @@ export function AdminPhotoCard({ foto, onFlag, onDelete }: AdminPhotoCardProps) 
                 onChange={(e) => setNota(e.target.value)}
                 placeholder="Razon o instruccion para el tecnico..."
                 rows={2}
-                className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px]"
+                className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px] text-text-1"
               />
               <button
                 type="button"

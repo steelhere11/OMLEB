@@ -130,7 +130,7 @@ export function AdminStepEditor({
             type="text"
             value={nombreCustom}
             onChange={(e) => setNombreCustom(e.target.value)}
-            className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2.5 py-1 text-[13px]"
+            className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2.5 py-1 text-[13px] text-text-1"
             placeholder="Nombre del paso personalizado..."
           />
         </div>
@@ -200,7 +200,7 @@ export function AdminStepEditor({
                       onChange={(e) =>
                         updateLectura(def.nombre, e.target.value, def.unidad)
                       }
-                      className={`w-full rounded-[6px] border px-2.5 py-1 text-[13px] ${
+                      className={`w-full rounded-[6px] border px-2.5 py-1 text-[13px] text-text-1 ${
                         outOfRange
                           ? "border-amber-400 bg-amber-50"
                           : "border-admin-border bg-admin-surface"
@@ -229,7 +229,7 @@ export function AdminStepEditor({
           rows={2}
           value={notas}
           onChange={(e) => setNotas(e.target.value)}
-          className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2.5 py-1.5 text-[13px]"
+          className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2.5 py-1.5 text-[13px] text-text-1"
           placeholder="Notas del paso..."
         />
       </div>

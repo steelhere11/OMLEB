@@ -161,7 +161,7 @@ export function CommentSection({
               onChange={(e) => setContent(e.target.value)}
               placeholder="Escribe un comentario..."
               rows={2}
-              className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-3 py-2 text-[13px] placeholder:text-text-3 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30"
+              className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-3 py-2 text-[13px] text-text-1 placeholder:text-text-3 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent/30"
             />
 
             <div className="mt-2 flex items-center gap-2">

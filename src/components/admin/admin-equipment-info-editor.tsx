@@ -80,7 +80,7 @@ export function AdminEquipmentInfoEditor({
   }
 
   const inputClass =
-    "w-full rounded-[6px] border border-admin-border bg-admin-surface px-2.5 py-1 text-[13px]";
+    "w-full rounded-[6px] border border-admin-border bg-admin-surface px-2.5 py-1 text-[13px] text-text-1";
   const labelClass =
     "mb-0.5 block text-[11px] font-medium uppercase tracking-[0.04em] text-text-2";
 

@@ -188,7 +188,7 @@ export function AdminPhotoUpload({
           <select
             value={selectedEquipoId}
             onChange={(e) => setSelectedEquipoId(e.target.value)}
-            className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px]"
+            className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px] text-text-1"
           >
             <option value="">General</option>
             {equipos.map((eq) => (
@@ -208,7 +208,7 @@ export function AdminPhotoUpload({
         <select
           value={selectedEtiqueta}
           onChange={(e) => setSelectedEtiqueta(e.target.value as FotoEtiqueta)}
-          className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px]"
+          className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px] text-text-1"
         >
           {ETIQUETA_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -227,7 +227,7 @@ export function AdminPhotoUpload({
           <select
             value={selectedPasoId}
             onChange={(e) => setSelectedPasoId(e.target.value)}
-            className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px]"
+            className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px] text-text-1"
           >
             <option value="">Sin paso especifico</option>
             {pasos.map((p) => (
