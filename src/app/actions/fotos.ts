@@ -318,3 +318,62 @@ export async function adminUploadPhoto(
     data: { id: newRow.id, url: urlData.publicUrl },
   };
 }
+
+// ── Overwrite Annotated Photo ─────────────────────────────────────────
+
+export async function overwriteAnnotatedPhoto(
+  fotoId: string,
+  formData: FormData
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "No autorizado" };
+  }
+
+  // 1. Get the current photo record
+  const { data: foto, error: fetchError } = await supabase
+    .from("reporte_fotos")
+    .select("id, url")
+    .eq("id", fotoId)
+    .single();
+
+  if (fetchError || !foto) {
+    return { error: "Foto no encontrada" };
+  }
+
+  // 2. Extract storage path from the public URL
+  const storagePath = extractStoragePath(foto.url);
+  if (!storagePath) {
+    return { error: "No se pudo determinar la ruta de almacenamiento" };
+  }
+
+  // 3. Get the annotated image from FormData
+  const file = formData.get("file") as File;
+  if (!file || !(file instanceof File)) {
+    return { error: "Imagen anotada requerida" };
+  }
+
+  // 4. Overwrite the file at the SAME storage path using admin client
+  const admin = createAdminClient();
+  const { error: uploadError } = await admin.storage
+    .from("reportes")
+    .upload(storagePath, file, {
+      contentType: "image/jpeg",
+      upsert: true, // Overwrite existing file
+    });
+
+  if (uploadError) {
+    return { error: "Error al guardar anotacion: " + uploadError.message };
+  }
+
+  // 5. No DB row changes needed -- same URL, same row
+  // Revalidate both admin and technician pages
+  revalidatePath("/admin/reportes");
+  revalidatePath("/tecnico");
+
+  return { success: true, message: "Foto anotada guardada" };
+}
