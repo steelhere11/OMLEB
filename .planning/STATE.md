@@ -5,25 +5,25 @@
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Field technicians can quickly submit complete daily reports (with photos, equipment details, materials, and diagnostics) from their phone on-site -- no WhatsApp, no paper, no back-and-forth.
-**Current focus:** Phase 10 planned. All previous feature phases (2-5.5, 8, 9) done.
+**Current focus:** Phase 10 complete. All feature phases (2-5.5, 8, 9, 10) done.
 
 ## Current Position
 
-Phase: 10 (Feature Expansion) — in progress
-Plan: 6 of 7 in current phase (10-01, 10-02, 10-03, 10-04, 10-05, 10-06 complete)
-Status: 10-06 complete, ready for 10-07
-Last activity: 2026-03-02 -- Completed 10-06-PLAN.md
+Phase: 10 (Feature Expansion) -- COMPLETE
+Plan: 7 of 7 in current phase (all complete)
+Status: Phase 10 complete. All feature phases done.
+Last activity: 2026-03-02 -- Completed 10-07-PLAN.md (Integration, Testing & Cleanup)
 
-Progress: [██████████████████████████] 100% (30/30 plans complete)
+Progress: [███████████████████████████] 100% (31/31 feature plans complete)
 
-Note: All 30 feature plans complete across phases 2-5.5, 8, 9, 10 (partial). Phase 1 has 2/3 done. Phase 6 (deployment) and Phase 7 (deployment guide) pending.
+Note: All 31 feature plans complete across phases 2-5.5, 8, 9, 10. Phase 1 has 2/3 done. Phase 6 (deployment) and Phase 7 (deployment guide) pending.
 
 ## Performance Metrics
 
 **Velocity (from V1 build + Phase 5.5 + Phase 8 + Phase 9 + Phase 10):**
-- Total plans completed: 30
+- Total plans completed: 31
 - Average duration: ~6 min
-- Total execution time: ~3.0 hours
+- Total execution time: ~3.1 hours
 
 ## Accumulated Context
 
@@ -80,6 +80,8 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | custom-step-card-component | Created dedicated CustomStepCard component rather than modifying WorkflowStepCard to handle null plantilla | 10-06 |
 | default-evidence-stages | Custom steps get default antes/durante/despues evidence stages since there is no plantilla to define them | 10-06 |
 | purple-custom-badge | Custom steps visually distinguished with purple badge and purple-tinted styling | 10-06 |
+| annotation-no-auto-revision | Photo annotation does not auto-create a revision entry; admin manually summarizes changes via revision modal | 10-07 |
+| isCustom-type-propagation | Added isCustom to ReportPdfButtonProps step type for explicit type tracking through PDF data pipeline | 10-07 |
 
 ### Pending Todos
 
@@ -100,11 +102,12 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 
 ### Blockers/Concerns
 
-- [V1 Code]: ALL FEATURE PHASES COMPLETE (2-5.5, 8, 9). Phase 1 has 2/3 plans done. Phase 6 pending.
+- [V1 Code]: ALL FEATURE PHASES COMPLETE (2-5.5, 8, 9, 10). Phase 1 has 2/3 plans done. Phase 6 pending.
 - [Infrastructure]: Supabase and Vercel projects not yet created.
 - [Phase 7]: Deployment guide will consolidate all pending todos above into a single playbook.
 - [Phase 8 Complete]: Arrival & Registration flow fully implemented end-to-end.
 - [Phase 9 Complete]: All 6 plans done -- migration, cascade deletes, photo management, inline editors, comments, technician feedback visibility.
+- [Phase 10 Complete]: All 7 plans done -- revisions migration, admin revisions, PDF enhancements, photo annotation, fan coil equipment, custom steps, integration testing.
 
 ### Quick Tasks Completed
 
@@ -116,5 +119,5 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 10-06. Ready to execute 10-07.
-Resume file: .planning/phases/10-feature-expansion/10-PLAN.md
+Stopped at: Completed 10-07. Phase 10 complete. All feature phases done.
+Resume file: None
