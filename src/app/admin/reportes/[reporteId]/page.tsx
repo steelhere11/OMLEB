@@ -21,7 +21,7 @@ export default async function ReporteDetailPage({
       users:creado_por(nombre, rol),
       reporte_equipos(
         *,
-        equipos(numero_etiqueta, marca, modelo, numero_serie, tipo_equipo),
+        equipos(numero_etiqueta, marca, modelo, numero_serie, tipo_equipo, capacidad, refrigerante, voltaje, fase, ubicacion),
         reporte_pasos(*, plantillas_pasos(nombre, procedimiento, lecturas_requeridas), fallas_correctivas(nombre, diagnostico))
       ),
       reporte_fotos(*),

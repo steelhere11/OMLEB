@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { pdf } from "@react-pdf/renderer";
 import { ReportDocument } from "@/components/pdf/report-document";
-import type { PdfReportData } from "@/components/pdf/report-document";
+import type { PdfReportData, PdfRegistrationEntry } from "@/components/pdf/report-document";
 import {
   fetchImageAsBase64,
   fetchAllPhotosAsBase64,
@@ -34,6 +34,28 @@ interface ReportPdfButtonProps {
     logo_url: string | null;
   };
   teamMembers: { nombre: string; rol: string }[];
+  /** Registration-phase photos (etiqueta=llegada, sitio, equipo_general, placa) */
+  registrationPhotos: Array<{
+    url: string;
+    etiqueta: string | null;
+    equipo_id: string | null;
+    metadata_gps: string | null;
+    metadata_fecha: string | null;
+  }>;
+  /** Registration-phase equipment data (nameplate fields) */
+  registrationEquipment: Array<{
+    equipo_id: string;
+    numero_etiqueta: string;
+    tipo_equipo: string | null;
+    ubicacion: string | null;
+    marca: string | null;
+    modelo: string | null;
+    numero_serie: string | null;
+    capacidad: string | null;
+    refrigerante: string | null;
+    voltaje: string | null;
+    fase: string | null;
+  }>;
   equipmentEntries: Array<{
     equipo: {
       numero_etiqueta: string;
@@ -76,6 +98,8 @@ export default function ReportPdfButton({
   sucursal,
   cliente,
   teamMembers,
+  registrationPhotos,
+  registrationEquipment,
   equipmentEntries,
   materials,
 }: ReportPdfButtonProps) {
@@ -112,6 +136,58 @@ export default function ReportPdfButton({
         )
       );
 
+      // 3b. Pre-fetch registration photos (arrival, site, equipo_general, placa)
+      let arrivalPhotoData: { data: string; gps: string | null; fecha: string | null } | null = null;
+      let sitePhotoData: { data: string; gps: string | null; fecha: string | null } | null = null;
+      const regPhotoMap = new Map<string, { general: string | null; placa: string | null }>();
+
+      if (registrationPhotos && registrationPhotos.length > 0) {
+        const regFetched = await Promise.allSettled(
+          registrationPhotos.map(async (p) => {
+            const data = await fetchImageAsBase64(p.url);
+            return { ...p, data };
+          })
+        );
+
+        for (const result of regFetched) {
+          if (result.status !== "fulfilled" || !result.value.data) continue;
+          const p = result.value;
+          const imgData = p.data as string; // guaranteed non-null by check above
+          if (p.etiqueta === "llegada" && !arrivalPhotoData) {
+            arrivalPhotoData = { data: imgData, gps: p.metadata_gps, fecha: p.metadata_fecha };
+          } else if (p.etiqueta === "sitio" && !sitePhotoData) {
+            sitePhotoData = { data: imgData, gps: p.metadata_gps, fecha: p.metadata_fecha };
+          } else if (p.etiqueta === "equipo_general" && p.equipo_id) {
+            const existing = regPhotoMap.get(p.equipo_id) ?? { general: null, placa: null };
+            if (!existing.general) existing.general = imgData;
+            regPhotoMap.set(p.equipo_id, existing);
+          } else if (p.etiqueta === "placa" && p.equipo_id) {
+            const existing = regPhotoMap.get(p.equipo_id) ?? { general: null, placa: null };
+            if (!existing.placa) existing.placa = imgData;
+            regPhotoMap.set(p.equipo_id, existing);
+          }
+        }
+      }
+
+      // 3c. Build registration entries
+      const pdfRegistrationEntries: PdfRegistrationEntry[] = (registrationEquipment ?? []).map((eq) => {
+        const photos = regPhotoMap.get(eq.equipo_id);
+        return {
+          equipoTag: eq.numero_etiqueta,
+          tipoEquipo: eq.tipo_equipo,
+          ubicacion: eq.ubicacion,
+          marca: eq.marca,
+          modelo: eq.modelo,
+          numero_serie: eq.numero_serie,
+          capacidad: eq.capacidad,
+          refrigerante: eq.refrigerante,
+          voltaje: eq.voltaje,
+          fase: eq.fase,
+          photoGeneral: photos?.general ?? null,
+          photoPlaca: photos?.placa ?? null,
+        };
+      });
+
       // 4. Transform data into PdfReportData shape — distribute photos into steps
       const pdfData: PdfReportData = {
         folio,
@@ -124,6 +200,9 @@ export default function ReportPdfButton({
         fecha: reporte.fecha,
         estatus: reporte.estatus,
         teamMembers,
+        arrivalPhoto: arrivalPhotoData,
+        sitePhoto: sitePhotoData,
+        registrationEntries: pdfRegistrationEntries,
         equipmentEntries: equipmentEntries.map((entry, idx) => {
           const allPhotos = photosPerEntry[idx];
 

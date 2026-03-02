@@ -37,6 +37,11 @@ interface ReporteEquipoData {
     modelo: string | null;
     numero_serie: string | null;
     tipo_equipo: string | null;
+    capacidad: string | null;
+    refrigerante: string | null;
+    voltaje: string | null;
+    fase: string | null;
+    ubicacion: string | null;
   } | null;
   reporte_pasos: ReportePasoData[];
 }
@@ -417,6 +422,35 @@ export function ReportDetail({ reporte, teamMembers }: ReportDetailProps) {
               .map((m) => ({
                 nombre: m.users!.nombre,
                 rol: m.users!.rol,
+              }))}
+            registrationPhotos={reporte.reporte_fotos
+              .filter((f) =>
+                f.etiqueta === "llegada" ||
+                f.etiqueta === "sitio" ||
+                f.etiqueta === "equipo_general" ||
+                f.etiqueta === "placa"
+              )
+              .map((f) => ({
+                url: f.url,
+                etiqueta: f.etiqueta,
+                equipo_id: f.equipo_id,
+                metadata_gps: f.metadata_gps,
+                metadata_fecha: f.metadata_fecha,
+              }))}
+            registrationEquipment={reporte.reporte_equipos
+              .filter((entry) => entry.equipos)
+              .map((entry) => ({
+                equipo_id: entry.equipo_id,
+                numero_etiqueta: entry.equipos!.numero_etiqueta,
+                tipo_equipo: entry.equipos!.tipo_equipo,
+                ubicacion: entry.equipos!.ubicacion,
+                marca: entry.equipos!.marca,
+                modelo: entry.equipos!.modelo,
+                numero_serie: entry.equipos!.numero_serie,
+                capacidad: entry.equipos!.capacidad,
+                refrigerante: entry.equipos!.refrigerante,
+                voltaje: entry.equipos!.voltaje,
+                fase: entry.equipos!.fase,
               }))}
             equipmentEntries={reporte.reporte_equipos.map((entry) => ({
               equipo: {

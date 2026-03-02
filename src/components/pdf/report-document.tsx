@@ -28,6 +28,21 @@ export interface PdfStepData {
   photosBase64: PhotoBase64[];
 }
 
+export interface PdfRegistrationEntry {
+  equipoTag: string;
+  tipoEquipo: string | null;
+  ubicacion: string | null;
+  marca: string | null;
+  modelo: string | null;
+  numero_serie: string | null;
+  capacidad: string | null;
+  refrigerante: string | null;
+  voltaje: string | null;
+  fase: string | null;
+  photoGeneral: string | null; // base64 data URL
+  photoPlaca: string | null; // base64 data URL
+}
+
 export interface PdfReportData {
   folio: { numero_folio: string; descripcion_problema: string };
   sucursal: { nombre: string; numero: string; direccion: string };
@@ -36,6 +51,9 @@ export interface PdfReportData {
   fecha: string;
   estatus: string;
   teamMembers: { nombre: string; rol: string }[];
+  arrivalPhoto: { data: string; gps: string | null; fecha: string | null } | null;
+  sitePhoto: { data: string; gps: string | null; fecha: string | null } | null;
+  registrationEntries: PdfRegistrationEntry[];
   equipmentEntries: Array<{
     equipo: {
       numero_etiqueta: string;
@@ -445,6 +463,71 @@ const s = StyleSheet.create({
   },
   sigName: { fontSize: 9, fontWeight: 500, color: GRAY_900 },
   sigLabel: { fontSize: 7, color: GRAY_500, marginTop: 1 },
+  // Registration section
+  regPhotoRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 8,
+  },
+  regPhotoHalf: {
+    width: "48%",
+  },
+  regPhotoFull: {
+    width: "60%",
+    marginBottom: 8,
+  },
+  regImg: {
+    height: 150,
+    objectFit: "cover" as const,
+    borderRadius: 3,
+    border: `1px solid ${GRAY_200}`,
+  },
+  regImgSmall: {
+    height: 120,
+    objectFit: "cover" as const,
+    borderRadius: 3,
+    border: `1px solid ${GRAY_200}`,
+  },
+  regCaption: {
+    fontSize: 7,
+    color: GRAY_500,
+    marginTop: 2,
+  },
+  regCard: {
+    border: `1px solid ${GRAY_300}`,
+    borderRadius: 4,
+    marginBottom: 8,
+    overflow: "hidden" as const,
+  },
+  regCardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: GRAY_50,
+    padding: 7,
+    borderBottomWidth: 1,
+    borderBottomColor: GRAY_200,
+  },
+  regCardBody: {
+    padding: 8,
+  },
+  regFieldRow: {
+    flexDirection: "row",
+    marginBottom: 3,
+  },
+  regFieldLabel: {
+    fontSize: 7,
+    fontWeight: 700,
+    color: GRAY_500,
+    width: 80,
+    textTransform: "uppercase" as const,
+    letterSpacing: 0.3,
+  },
+  regFieldValue: {
+    fontSize: 8,
+    color: GRAY_700,
+    flex: 1,
+  },
   // Footer
   footer: {
     position: "absolute" as const,
@@ -895,6 +978,122 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
 
         {/* Summary Bar */}
         <SummaryBar data={data} />
+
+        {/* Evidencia de Llegada */}
+        {data.arrivalPhoto && (
+          <>
+            <Text style={s.sectionTitle}>Evidencia de Llegada</Text>
+            <View style={s.regPhotoFull}>
+              <Image src={data.arrivalPhoto.data} style={s.regImg} />
+              <Text style={s.regCaption}>
+                Foto de llegada
+                {data.arrivalPhoto.fecha
+                  ? ` - ${new Date(data.arrivalPhoto.fecha).toLocaleString("es-MX", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}`
+                  : ""}
+              </Text>
+              {data.arrivalPhoto.gps && (
+                <Text style={s.regCaption}>GPS: {data.arrivalPhoto.gps}</Text>
+              )}
+            </View>
+          </>
+        )}
+
+        {/* Panoramica del Sitio */}
+        {data.sitePhoto && (
+          <>
+            <Text style={s.sectionTitle}>Panoramica del Sitio</Text>
+            <View style={s.regPhotoFull}>
+              <Image src={data.sitePhoto.data} style={s.regImg} />
+              <Text style={s.regCaption}>
+                Foto panoramica del sitio
+                {data.sitePhoto.fecha
+                  ? ` - ${new Date(data.sitePhoto.fecha).toLocaleString("es-MX", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}`
+                  : ""}
+              </Text>
+              {data.sitePhoto.gps && (
+                <Text style={s.regCaption}>GPS: {data.sitePhoto.gps}</Text>
+              )}
+            </View>
+          </>
+        )}
+
+        {/* Registro de Equipos */}
+        {data.registrationEntries.length > 0 && (
+          <>
+            <Text style={s.sectionTitle}>
+              Registro de Equipos ({data.registrationEntries.length})
+            </Text>
+            {data.registrationEntries.map((reg, rIdx) => {
+              const nameplateFields = [
+                { label: "Marca", value: reg.marca },
+                { label: "Modelo", value: reg.modelo },
+                { label: "No. Serie", value: reg.numero_serie },
+                { label: "Capacidad", value: reg.capacidad },
+                { label: "Refrigerante", value: reg.refrigerante },
+                { label: "Voltaje", value: reg.voltaje },
+                { label: "Fase", value: reg.fase },
+                { label: "Ubicacion", value: reg.ubicacion },
+              ].filter((f) => f.value);
+
+              return (
+                <View key={rIdx} style={s.regCard} wrap={true}>
+                  <View style={s.regCardHeader}>
+                    <Text style={s.equipName}>{reg.equipoTag}</Text>
+                    {reg.tipoEquipo && (
+                      <Text style={[s.badge, s.badgePreventivo]}>
+                        {reg.tipoEquipo}
+                      </Text>
+                    )}
+                  </View>
+                  <View style={s.regCardBody}>
+                    {/* Photos side by side */}
+                    {(reg.photoGeneral || reg.photoPlaca) && (
+                      <View style={s.regPhotoRow}>
+                        {reg.photoGeneral && (
+                          <View style={s.regPhotoHalf}>
+                            <Image src={reg.photoGeneral} style={s.regImgSmall} />
+                            <Text style={s.regCaption}>Vista general</Text>
+                          </View>
+                        )}
+                        {reg.photoPlaca && (
+                          <View style={s.regPhotoHalf}>
+                            <Image src={reg.photoPlaca} style={s.regImgSmall} />
+                            <Text style={s.regCaption}>Placa de datos</Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
+                    {/* Nameplate fields */}
+                    {nameplateFields.length > 0 &&
+                      nameplateFields.map((field, fIdx) => (
+                        <View key={fIdx} style={s.regFieldRow}>
+                          <Text style={s.regFieldLabel}>{field.label}</Text>
+                          <Text style={s.regFieldValue}>{field.value}</Text>
+                        </View>
+                      ))}
+                    {nameplateFields.length === 0 &&
+                      !reg.photoGeneral &&
+                      !reg.photoPlaca && (
+                        <Text style={s.emptyText}>Sin datos de registro</Text>
+                      )}
+                  </View>
+                </View>
+              );
+            })}
+          </>
+        )}
 
         {/* Equipment Sections */}
         {data.equipmentEntries.length > 0 && (
