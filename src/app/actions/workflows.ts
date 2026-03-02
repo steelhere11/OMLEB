@@ -207,6 +207,113 @@ export async function saveCorrectiveSelection(
   return { success: true, message: "Seleccion guardada" };
 }
 
+// ── Add Custom Step ─────────────────────────────────────────────────────
+
+export async function addCustomStep(
+  reporteEquipoId: string,
+  nombre: string,
+  procedimiento?: string
+): Promise<{ data: ReportePaso | null; error: string | null }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { data: null, error: "No autorizado" };
+  }
+
+  if (!nombre.trim()) {
+    return { data: null, error: "El nombre del paso es requerido" };
+  }
+
+  // Insert custom step (plantilla_paso_id and falla_correctiva_id both NULL)
+  const { data, error } = await supabase
+    .from("reporte_pasos")
+    .insert({
+      reporte_equipo_id: reporteEquipoId,
+      plantilla_paso_id: null,
+      falla_correctiva_id: null,
+      nombre_custom: nombre.trim(),
+      notas: procedimiento?.trim() || null,
+      completado: false,
+      lecturas: {},
+    })
+    .select("*")
+    .single();
+
+  if (error) {
+    return { data: null, error: "Error al agregar paso: " + error.message };
+  }
+
+  revalidatePath("/tecnico");
+  return { data: data as ReportePaso, error: null };
+}
+
+// ── Save Custom Step Progress ───────────────────────────────────────────
+
+export async function saveCustomStepProgress(
+  reportePasoId: string,
+  data: {
+    completado: boolean;
+    notas?: string;
+    lecturas?: Record<string, number | string>;
+  }
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "No autorizado" };
+  }
+
+  const { error } = await supabase
+    .from("reporte_pasos")
+    .update({
+      completado: data.completado,
+      notas: data.notas || null,
+      lecturas: data.lecturas ?? {},
+      completed_at: data.completado ? new Date().toISOString() : null,
+    })
+    .eq("id", reportePasoId);
+
+  if (error) {
+    return { error: "Error al guardar progreso: " + error.message };
+  }
+
+  revalidatePath("/tecnico");
+  return { success: true, message: "Progreso guardado" };
+}
+
+// ── Delete Custom Step ──────────────────────────────────────────────────
+
+export async function deleteCustomStep(
+  reportePasoId: string
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "No autorizado" };
+  }
+
+  const { error } = await supabase
+    .from("reporte_pasos")
+    .delete()
+    .eq("id", reportePasoId);
+
+  if (error) {
+    return { error: "Error al eliminar paso: " + error.message };
+  }
+
+  revalidatePath("/tecnico");
+  return { success: true, message: "Paso eliminado" };
+}
+
 // ── Get Valores Referencia ──────────────────────────────────────────────
 
 export async function getValoresReferencia(): Promise<ValorReferencia[]> {
