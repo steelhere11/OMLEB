@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Field technicians can quickly submit complete daily reports (with photos, equipment details, materials, and diagnostics) from their phone on-site -- no WhatsApp, no paper, no back-and-forth.
-**Current focus:** Phase 9 executing. Plans 09-01 through 09-04 complete. Plans 09-05 through 09-06 remaining.
+**Current focus:** Phase 9 executing. Plans 09-01 through 09-05 complete. Plan 09-06 remaining.
 
 ## Current Position
 
 Phase: 9 (Admin Full Control) — in progress
-Plan: 4 of 6 in current phase
+Plan: 5 of 6 in current phase
 Status: In progress
-Last activity: 2026-03-02 -- Completed 09-04-PLAN.md
+Last activity: 2026-03-02 -- Completed 09-05-PLAN.md
 
-Progress: [████████████████████████] 100% (24/27 plans complete)
+Progress: [█████████████████████████] 100% (25/27 plans complete)
 
-Note: 24/27 total plans across all phases. Phase 1 has 2/3 done. Phase 9 has 4/6 done.
+Note: 25/27 total plans across all phases. Phase 1 has 2/3 done. Phase 9 has 5/6 done.
 
 ## Performance Metrics
 
 **Velocity (from V1 build + Phase 5.5 + Phase 8 + Phase 9):**
-- Total plans completed: 24
+- Total plans completed: 25
 - Average duration: ~6 min
 - Total execution time: ~2.5 hours
 
@@ -64,6 +64,7 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | step-editor-inline-toggle | Step editor replaces read-only StepRow content when editing, not a modal | 09-04 |
 | equipo-editor-below-header | Equipment info editor appears inline below the equipment card header | 09-04 |
 | out-of-range-warning-only | Out-of-range reading values show yellow warning but do not block save | 09-04 |
+| general-comments-primary | General comment section at bottom of report detail as primary area; scope selector for equipment targeting | 09-05 |
 
 ### Pending Todos
 
@@ -86,7 +87,7 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 - [Infrastructure]: Supabase and Vercel projects not yet created.
 - [Phase 7]: Deployment guide will consolidate all pending todos above into a single playbook.
 - [Phase 8 Complete]: Arrival & Registration flow fully implemented end-to-end.
-- [Phase 9 In Progress]: 09-01 through 09-04 done (migration, actions, delete UI, photo management, inline editors). Plans 09-05 through 09-06 remain.
+- [Phase 9 In Progress]: 09-01 through 09-05 done (migration, actions, delete UI, photo management, inline editors, comments). Plan 09-06 remains.
 
 ### Quick Tasks Completed
 
@@ -98,5 +99,5 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 09-04-PLAN.md. Ready for 09-05.
-Resume file: .planning/phases/09-admin-full-control/09-05-PLAN.md
+Stopped at: Completed 09-05-PLAN.md. Ready for 09-06.
+Resume file: .planning/phases/09-admin-full-control/09-06-PLAN.md
