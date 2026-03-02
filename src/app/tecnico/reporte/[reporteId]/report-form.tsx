@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { PhaseGate } from "@/components/shared/phase-gate";
+import { ArrivalSection } from "./arrival-section";
+import { SiteOverviewSection } from "./site-overview-section";
+import { EquipmentRegistrationSection } from "./equipment-registration-section";
 import { EquipmentSection } from "./equipment-section";
 import { MaterialsSection } from "./materials-section";
 import { StatusSection } from "./status-section";
@@ -13,7 +17,9 @@ import type {
   ReporteMaterial,
   ReporteEstatus,
   TipoEquipo,
+  ReporteFoto,
 } from "@/types";
+import type { RegistrationEntry } from "./page";
 
 interface ReportFormProps {
   reporteId: string;
@@ -30,6 +36,21 @@ interface ReportFormProps {
   teamMembers: { nombre: string; rol: string }[];
   currentStatus: ReporteEstatus;
   isCompleted: boolean;
+  // Registration flow props
+  llegadaCompletada: boolean;
+  sitioCompletado: boolean;
+  arrivalPhoto: {
+    url: string;
+    metadata_fecha: string | null;
+    metadata_gps: string | null;
+  } | null;
+  sitePhoto: {
+    url: string;
+    metadata_fecha: string | null;
+    metadata_gps: string | null;
+  } | null;
+  existingFolioSitePhoto: { url: string } | null;
+  registrationEntries: RegistrationEntry[];
 }
 
 const rolLabels: Record<string, string> = {
@@ -53,11 +74,28 @@ export function ReportForm({
   teamMembers,
   currentStatus,
   isCompleted,
+  llegadaCompletada,
+  sitioCompletado,
+  arrivalPhoto,
+  sitePhoto,
+  existingFolioSitePhoto,
+  registrationEntries,
 }: ReportFormProps) {
   const router = useRouter();
   const [showRefreshBanner, setShowRefreshBanner] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [equipmentCount, setEquipmentCount] = useState(initialEntries.length);
+
+  // Phase completion state
+  const [arrivalDone, setArrivalDone] = useState(llegadaCompletada);
+  const [siteDone, setSiteDone] = useState(sitioCompletado);
+  const [registrationDone, setRegistrationDone] = useState(
+    registrationEntries.length > 0 &&
+      registrationEntries.every((e) => e.isComplete)
+  );
+
+  // Completed reports bypass all gating
+  const showAllPhases = isCompleted;
 
   const todayFormatted = new Date().toLocaleDateString("es-MX", {
     weekday: "long",
@@ -65,6 +103,19 @@ export function ReportForm({
     month: "long",
     year: "numeric",
   });
+
+  // Phase completion callbacks
+  const handleArrivalComplete = useCallback(() => {
+    setArrivalDone(true);
+  }, []);
+
+  const handleSiteComplete = useCallback(() => {
+    setSiteDone(true);
+  }, []);
+
+  const handleRegistrationComplete = useCallback(() => {
+    setRegistrationDone(true);
+  }, []);
 
   // Realtime subscription for cuadrilla sync
   useEffect(() => {
@@ -237,40 +288,98 @@ export function ReportForm({
         </div>
       </div>
 
-      {/* Equipment Section */}
-      <EquipmentSection
-        reporteId={reporteId}
-        folioId={folioId}
-        initialEntries={initialEntries}
-        availableEquipment={availableEquipment}
-        tiposEquipo={tiposEquipo}
-        sucursalId={sucursalId}
-        isCompleted={isCompleted}
-        onUnsavedChange={setHasUnsavedChanges}
-        onEntriesChange={setEquipmentCount}
-      />
+      {/* ======== PHASE 0: Llegada (always unlocked) ======== */}
+      <PhaseGate
+        isLocked={false}
+        lockMessage=""
+        title="Llegada"
+        phaseNumber={1}
+        isComplete={showAllPhases ? true : arrivalDone}
+      >
+        <ArrivalSection
+          reporteId={reporteId}
+          isComplete={arrivalDone}
+          existingPhoto={arrivalPhoto}
+          onComplete={handleArrivalComplete}
+        />
+      </PhaseGate>
 
-      {/* Divider */}
-      <hr className="border-gray-200" />
+      {/* ======== PHASE 1: Panoramica del Sitio (locked until arrival) ======== */}
+      <PhaseGate
+        isLocked={!showAllPhases && !arrivalDone}
+        lockMessage="Completa la foto de llegada primero"
+        title="Panoramica del Sitio"
+        phaseNumber={2}
+        isComplete={showAllPhases ? true : siteDone}
+      >
+        <SiteOverviewSection
+          reporteId={reporteId}
+          folioId={folioId}
+          isComplete={siteDone}
+          existingFolioPhoto={existingFolioSitePhoto}
+          existingPhoto={sitePhoto}
+          onComplete={handleSiteComplete}
+        />
+      </PhaseGate>
 
-      {/* Materials Section */}
-      <MaterialsSection
-        reporteId={reporteId}
-        initialMaterials={initialMaterials}
-        isCompleted={isCompleted}
-        onUnsavedChange={setHasUnsavedChanges}
-      />
+      {/* ======== PHASE 2: Registro de Equipos (locked until site) ======== */}
+      <PhaseGate
+        isLocked={!showAllPhases && !siteDone}
+        lockMessage="Completa la foto panoramica primero"
+        title="Registro de Equipos"
+        phaseNumber={3}
+        isComplete={showAllPhases ? true : registrationDone}
+      >
+        <EquipmentRegistrationSection
+          reporteId={reporteId}
+          entries={registrationEntries}
+          onAllComplete={handleRegistrationComplete}
+        />
+      </PhaseGate>
 
-      {/* Divider */}
-      <hr className="border-gray-200" />
+      {/* ======== PHASE 3: Mantenimiento (locked until all equipment registered) ======== */}
+      <PhaseGate
+        isLocked={!showAllPhases && !registrationDone}
+        lockMessage="Completa el registro de todos los equipos primero"
+        title="Mantenimiento"
+        phaseNumber={4}
+        isComplete={showAllPhases ? true : false}
+      >
+        {/* Equipment Section */}
+        <EquipmentSection
+          reporteId={reporteId}
+          folioId={folioId}
+          initialEntries={initialEntries}
+          availableEquipment={availableEquipment}
+          tiposEquipo={tiposEquipo}
+          sucursalId={sucursalId}
+          isCompleted={isCompleted}
+          onUnsavedChange={setHasUnsavedChanges}
+          onEntriesChange={setEquipmentCount}
+        />
 
-      {/* Status and Submit Section */}
-      <StatusSection
-        reporteId={reporteId}
-        currentStatus={currentStatus}
-        hasEquipmentEntries={equipmentCount > 0}
-        isCompleted={isCompleted}
-      />
+        {/* Divider */}
+        <hr className="my-4 border-gray-200" />
+
+        {/* Materials Section */}
+        <MaterialsSection
+          reporteId={reporteId}
+          initialMaterials={initialMaterials}
+          isCompleted={isCompleted}
+          onUnsavedChange={setHasUnsavedChanges}
+        />
+
+        {/* Divider */}
+        <hr className="my-4 border-gray-200" />
+
+        {/* Status and Submit Section */}
+        <StatusSection
+          reporteId={reporteId}
+          currentStatus={currentStatus}
+          hasEquipmentEntries={equipmentCount > 0}
+          isCompleted={isCompleted}
+        />
+      </PhaseGate>
     </div>
   );
 }
