@@ -161,7 +161,7 @@ INSERT INTO public.plantillas_pasos (tipo_equipo_slug, tipo_mantenimiento, orden
  true);
 
 -- ============================================================================
--- PREVENTIVE: MINI CHILLER (14 steps)
+-- PREVENTIVE: MINI CHILLER (13 steps)
 -- ============================================================================
 
 INSERT INTO public.plantillas_pasos (tipo_equipo_slug, tipo_mantenimiento, orden, nombre, procedimiento, evidencia_requerida, lecturas_requeridas, es_obligatorio) VALUES
@@ -172,80 +172,73 @@ INSERT INTO public.plantillas_pasos (tipo_equipo_slug, tipo_mantenimiento, orden
  '[{"nombre":"Voltaje verificado","unidad":"V","rango_min":0,"rango_max":0}]'::jsonb,
  true),
 
--- Updated for Phase 8: placa/nameplate data moved to registration phase
-('mini_chiller', 'preventivo', 2, 'Inspección visual general del chiller',
- 'Examinar gabinete exterior por daños, corrosión, fugas de agua o aceite. Verificar que la base esté nivelada. Inspeccionar conexiones de tubería de agua (entrada y salida). Verificar estado de aislamiento de tuberías.',
- '[{"etapa":"antes","descripcion":"Foto panorámica del equipo"},{"etapa":"antes","descripcion":"Fotos de cada lado del equipo"},{"etapa":"antes","descripcion":"Foto de cualquier daño, corrosión o fuga"}]'::jsonb,
- '[]'::jsonb,
- true),
-
-('mini_chiller', 'preventivo', 3, 'Inspección y limpieza de serpentines del condensador',
+('mini_chiller', 'preventivo', 2, 'Inspección y limpieza de serpentines del condensador',
  'Inspeccionar serpentines por acumulación de polvo, tierra, hojas. Verificar aletas por deformación o corrosión. Aplicar limpiador especializado para serpentines. Enjuagar con manguera a presión moderada. Peinar aletas dobladas con peine de aletas. En chillers con múltiples secciones, limpiar TODAS.',
  '[{"etapa":"antes","descripcion":"Foto de cada sección de serpentín (sucio)"},{"etapa":"durante","descripcion":"Foto de aplicación de limpiador"},{"etapa":"despues","descripcion":"Foto de cada sección limpia con aletas rectas"}]'::jsonb,
  '[]'::jsonb,
  true),
 
-('mini_chiller', 'preventivo', 4, 'Inspección y limpieza de ventiladores del condensador',
+('mini_chiller', 'preventivo', 3, 'Inspección y limpieza de ventiladores del condensador',
  'Inspeccionar cada ventilador por daño en aspas, suciedad. Verificar rodamientos por desgaste (ruido, juego). Limpiar aspas con paño y limpiador. Verificar que giren libremente. Medir amperaje de cada motor de ventilador.',
  '[{"etapa":"antes","descripcion":"Foto de cada ventilador"},{"etapa":"despues","descripcion":"Foto de ventiladores limpios"},{"etapa":"durante","descripcion":"Foto de lectura de amperaje por motor"}]'::jsonb,
  '[{"nombre":"Amperaje ventilador 1","unidad":"A","rango_min":null,"rango_max":null},{"nombre":"Amperaje ventilador 2","unidad":"A","rango_min":null,"rango_max":null},{"nombre":"RLA ventiladores","unidad":"A","rango_min":null,"rango_max":null}]'::jsonb,
  true),
 
-('mini_chiller', 'preventivo', 5, 'Inspección del circuito de agua (evaporador/intercambiador)',
+('mini_chiller', 'preventivo', 4, 'Inspección del circuito de agua (evaporador/intercambiador)',
  'Verificar temperatura de entrada y salida del agua. El diferencial debe estar entre 5-7°C (10-12°F). Inspeccionar tubería por fugas, corrosión, aislamiento dañado. Verificar presión del agua en el sistema. Verificar operación de la bomba de agua (si es parte del sistema). Verificar flujo de agua.',
  '[{"etapa":"durante","descripcion":"Foto de las conexiones de tubería de agua"},{"etapa":"durante","descripcion":"Foto de manómetros de presión de agua"},{"etapa":"durante","descripcion":"Foto de termómetros de entrada/salida de agua"},{"etapa":"durante","descripcion":"Foto de cualquier fuga detectada"}]'::jsonb,
  '[{"nombre":"Temp. entrada agua","unidad":"°F","rango_min":null,"rango_max":null},{"nombre":"Temp. salida agua","unidad":"°F","rango_min":null,"rango_max":null},{"nombre":"Delta T agua","unidad":"°F","rango_min":10,"rango_max":12},{"nombre":"Presión agua","unidad":"PSI","rango_min":null,"rango_max":null},{"nombre":"Flujo agua","unidad":"GPM","rango_min":null,"rango_max":null}]'::jsonb,
  true),
 
-('mini_chiller', 'preventivo', 6, 'Inspección eléctrica completa',
+('mini_chiller', 'preventivo', 5, 'Inspección eléctrica completa',
  'Abrir panel eléctrico principal. Inspeccionar y apretar TODAS las conexiones. Verificar estado de contactores (sin picaduras/quemaduras). Medir capacitores (run y start) de cada compresor. Verificar voltaje en las tres fases (trifásico: L1-L2, L2-L3, L1-L3). Verificar desbalance de voltaje (<2%). Inspeccionar cableado por daño o deterioro.',
  '[{"etapa":"durante","descripcion":"Foto del panel eléctrico abierto"},{"etapa":"durante","descripcion":"Foto de contactores"},{"etapa":"durante","descripcion":"Foto de lectura de capacitores"},{"etapa":"durante","descripcion":"Foto de lecturas de voltaje trifásico"}]'::jsonb,
  '[{"nombre":"Voltaje L1-L2","unidad":"V","rango_min":187,"rango_max":253},{"nombre":"Voltaje L2-L3","unidad":"V","rango_min":187,"rango_max":253},{"nombre":"Voltaje L1-L3","unidad":"V","rango_min":187,"rango_max":253},{"nombre":"Desbalance voltaje","unidad":"%","rango_min":0,"rango_max":2},{"nombre":"Capacitor 1 µF medido","unidad":"µF","rango_min":null,"rango_max":null},{"nombre":"Capacitor 1 µF nominal","unidad":"µF","rango_min":null,"rango_max":null}]'::jsonb,
  true),
 
-('mini_chiller', 'preventivo', 7, 'Verificación de compresores',
+('mini_chiller', 'preventivo', 6, 'Verificación de compresores',
  'Medir amperaje de operación de cada compresor. Comparar con RLA de placa. Medir temperatura del cuerpo de cada compresor. Verificar vibración (no excesiva). Escuchar por ruidos anormales. Verificar que el calentador de cárter (crankcase heater) funcione (si aplica).',
  '[{"etapa":"durante","descripcion":"Foto de lectura de amperaje por compresor"},{"etapa":"durante","descripcion":"Foto de temperatura del cuerpo de cada compresor"},{"etapa":"durante","descripcion":"Video corto de compresores en operación (sonido)"}]'::jsonb,
  '[{"nombre":"Amperaje compresor 1","unidad":"A","rango_min":null,"rango_max":null},{"nombre":"RLA compresor 1","unidad":"A","rango_min":null,"rango_max":null},{"nombre":"Amperaje compresor 2","unidad":"A","rango_min":null,"rango_max":null},{"nombre":"RLA compresor 2","unidad":"A","rango_min":null,"rango_max":null},{"nombre":"Temp. cuerpo compresor 1","unidad":"°C","rango_min":null,"rango_max":90},{"nombre":"Temp. cuerpo compresor 2","unidad":"°C","rango_min":null,"rango_max":90}]'::jsonb,
  true),
 
-('mini_chiller', 'preventivo', 8, 'Verificación de carga de refrigerante por circuito',
+('mini_chiller', 'preventivo', 7, 'Verificación de carga de refrigerante por circuito',
  'Conectar manómetros a cada circuito de refrigerante. Estabilizar sistema 15-20 min. Medir presiones de alta y baja por circuito. Calcular superheat y subcooling por circuito. Comparar con especificaciones del fabricante. Registrar tipo y cantidad de refrigerante.',
  '[{"etapa":"durante","descripcion":"Foto de manómetros por cada circuito"},{"etapa":"durante","descripcion":"Foto de lecturas de temperatura"},{"etapa":"durante","descripcion":"Foto de cálculos de superheat/subcooling"}]'::jsonb,
  '[{"nombre":"Presión succión circuito 1","unidad":"PSI","rango_min":110,"rango_max":130},{"nombre":"Presión descarga circuito 1","unidad":"PSI","rango_min":275,"rango_max":400},{"nombre":"Superheat circuito 1","unidad":"°F","rango_min":5,"rango_max":15},{"nombre":"Subcooling circuito 1","unidad":"°F","rango_min":8,"rango_max":14},{"nombre":"Presión succión circuito 2","unidad":"PSI","rango_min":110,"rango_max":130},{"nombre":"Presión descarga circuito 2","unidad":"PSI","rango_min":275,"rango_max":400},{"nombre":"Superheat circuito 2","unidad":"°F","rango_min":5,"rango_max":15},{"nombre":"Subcooling circuito 2","unidad":"°F","rango_min":8,"rango_max":14}]'::jsonb,
  true),
 
-('mini_chiller', 'preventivo', 9, 'Detección de fugas de refrigerante',
+('mini_chiller', 'preventivo', 8, 'Detección de fugas de refrigerante',
  'Utilizar detector electrónico en todas las conexiones y soldaduras. Aplicar solución de burbujas en puntos sospechosos. Inspeccionar por manchas de aceite (indicador de fuga). Verificar nivel de aceite del compresor (si tiene visor).',
  '[{"etapa":"durante","descripcion":"Foto del proceso de detección"},{"etapa":"durante","descripcion":"Foto de cualquier fuga encontrada"},{"etapa":"durante","descripcion":"Foto del nivel de aceite (si tiene visor)"}]'::jsonb,
  '[{"nombre":"Fuga circuito 1","unidad":"Sí/No","rango_min":null,"rango_max":null},{"nombre":"Fuga circuito 2","unidad":"Sí/No","rango_min":null,"rango_max":null},{"nombre":"Ubicación fuga","unidad":"texto","rango_min":null,"rango_max":null}]'::jsonb,
  true),
 
-('mini_chiller', 'preventivo', 10, 'Verificación de controles de seguridad',
+('mini_chiller', 'preventivo', 9, 'Verificación de controles de seguridad',
  'Verificar operación del presostato de alta presión. Verificar operación del presostato de baja presión. Verificar sensor de temperatura de descarga. Verificar sensor de temperatura de agua. Verificar protecciones contra sobrecarga del compresor. Revisar códigos de error en el controlador.',
  '[{"etapa":"durante","descripcion":"Foto del controlador/display mostrando estado normal"},{"etapa":"durante","descripcion":"Foto de cualquier código de error"},{"etapa":"durante","descripcion":"Foto de los presostatos"}]'::jsonb,
  '[{"nombre":"Set point presostato alta","unidad":"PSI","rango_min":null,"rango_max":null},{"nombre":"Set point presostato baja","unidad":"PSI","rango_min":null,"rango_max":null},{"nombre":"Códigos error activos","unidad":"texto","rango_min":null,"rango_max":null}]'::jsonb,
  true),
 
-('mini_chiller', 'preventivo', 11, 'Inspección de válvula de expansión (TXV/EEV)',
+('mini_chiller', 'preventivo', 10, 'Inspección de válvula de expansión (TXV/EEV)',
  'Verificar operación correcta de la válvula de expansión. Inspeccionar por congelamiento o escarcha en la válvula. Verificar que el bulbo sensor esté bien sujeto y aislado. En válvulas electrónicas (EEV), verificar señal de control.',
  '[{"etapa":"durante","descripcion":"Foto de la válvula de expansión"},{"etapa":"durante","descripcion":"Foto de cualquier congelamiento o anomalía"}]'::jsonb,
  '[{"nombre":"Superheat evaporador","unidad":"°F","rango_min":5,"rango_max":15}]'::jsonb,
  true),
 
-('mini_chiller', 'preventivo', 12, 'Limpieza del filtro de agua (si aplica)',
+('mini_chiller', 'preventivo', 11, 'Limpieza del filtro de agua (si aplica)',
  'Cerrar válvulas de aislamiento. Retirar y limpiar el filtro/colador de agua. Inspeccionar malla por daños o obstrucciones. Reinstalar y abrir válvulas. Verificar ausencia de fugas.',
  '[{"etapa":"antes","descripcion":"Foto del filtro sucio"},{"etapa":"despues","descripcion":"Foto del filtro limpio reinstalado"}]'::jsonb,
  '[]'::jsonb,
  false),
 
-('mini_chiller', 'preventivo', 13, 'Verificación de operación del controlador/BMS',
+('mini_chiller', 'preventivo', 12, 'Verificación de operación del controlador/BMS',
  'Verificar set points de temperatura en el controlador. Verificar horarios de encendido/apagado. Verificar comunicación con BMS (si aplica). Registrar todos los parámetros de operación. Verificar historial de alarmas.',
  '[{"etapa":"durante","descripcion":"Foto de la pantalla del controlador con set points"},{"etapa":"durante","descripcion":"Foto del historial de alarmas"}]'::jsonb,
  '[{"nombre":"Set point temperatura","unidad":"°C","rango_min":null,"rango_max":null},{"nombre":"Temperatura actual agua","unidad":"°C","rango_min":null,"rango_max":null},{"nombre":"Alarmas en historial","unidad":"texto","rango_min":null,"rango_max":null}]'::jsonb,
  true),
 
-('mini_chiller', 'preventivo', 14, 'Prueba de operación completa y cierre',
+('mini_chiller', 'preventivo', 13, 'Prueba de operación completa y cierre',
  'Energizar el equipo. Arrancar sistema y verificar secuencia de arranque. Monitorear presiones y temperaturas durante 20 minutos. Verificar que el diferencial de temperatura del agua sea estable. Verificar que no haya fugas de agua ni refrigerante. Cerrar todos los paneles. Entregar equipo en operación normal.',
  '[{"etapa":"despues","descripcion":"Video de 30 segundos del equipo en operación"},{"etapa":"despues","descripcion":"Foto de presiones estabilizadas"},{"etapa":"despues","descripcion":"Foto de temperaturas de agua estables"},{"etapa":"despues","descripcion":"Foto final del equipo cerrado y operando"}]'::jsonb,
  '[{"nombre":"Presión succión final","unidad":"PSI","rango_min":110,"rango_max":130},{"nombre":"Presión descarga final","unidad":"PSI","rango_min":275,"rango_max":400},{"nombre":"Temp. agua entrada final","unidad":"°F","rango_min":null,"rango_max":null},{"nombre":"Temp. agua salida final","unidad":"°F","rango_min":null,"rango_max":null},{"nombre":"Amperaje compresor(es) final","unidad":"A","rango_min":null,"rango_max":null}]'::jsonb,
@@ -396,7 +389,12 @@ INSERT INTO public.fallas_correctivas (tipo_equipo_slug, nombre, diagnostico, ev
 ('mini_chiller', 'Desbalance de fases / Problema de voltaje',
  'Desbalance de voltaje >2% entre fases. Voltaje fuera de rango (±10%). Compresor se sobrecalienta. Protección térmica se activa.',
  '[{"etapa":"antes","descripcion":"Foto de lecturas de voltaje en las tres fases"},{"etapa":"antes","descripcion":"Foto de la alarma de protección"},{"etapa":"durante","descripcion":"Foto del registro de mediciones"},{"etapa":"despues","descripcion":"Foto de voltaje estabilizado"}]'::jsonb,
- '["Verificar con la compañía eléctrica","Regulador de voltaje (si aplica)","Protector de fases"]'::jsonb);
+ '["Verificar con la compañía eléctrica","Regulador de voltaje (si aplica)","Protector de fases"]'::jsonb),
+
+('mini_chiller', 'Falla de intercambiador',
+ 'Diferencial de temperatura de agua fuera de rango. Pérdida de eficiencia de enfriamiento. Posible fuga interna entre circuitos de agua y refrigerante. Presiones de operación anormales. Contaminación de aceite en circuito de agua o agua en circuito de refrigerante.',
+ '[{"etapa":"antes","descripcion":"Foto del intercambiador con daño visible o fuga"},{"etapa":"antes","descripcion":"Foto de lecturas de temperatura entrada/salida de agua"},{"etapa":"durante","descripcion":"Foto de presiones de operación"},{"etapa":"durante","descripcion":"Foto del proceso de reparación o reemplazo"},{"etapa":"despues","descripcion":"Foto del intercambiador reparado/nuevo instalado"},{"etapa":"despues","descripcion":"Foto del equipo en operación normal"}]'::jsonb,
+ '["Intercambiador de reemplazo (si el daño es severo)","Empaques y sellos","Kit de limpieza química","Herramienta de plomería","Refrigerante para recarga (si se abrió circuito)"]'::jsonb);
 
 -- ============================================================================
 -- VERIFICATION
@@ -407,7 +405,7 @@ INSERT INTO public.fallas_correctivas (tipo_equipo_slug, nombre, diagnostico, ev
 -- Expected: mini_split_interior/preventivo: 13, mini_split_exterior/preventivo: 10, mini_chiller/preventivo: 14
 --
 -- SELECT tipo_equipo_slug, count(*) FROM fallas_correctivas GROUP BY 1 ORDER BY 1;
--- Expected: mini_split_interior: 10, mini_split_exterior: 5, mini_chiller: 12
+-- Expected: mini_split_interior: 10, mini_split_exterior: 5, mini_chiller: 13
 -- (Note: some mini split issues are assigned to interior, some to exterior based on where the component is)
 --
 -- SELECT count(*) FROM valores_referencia;
