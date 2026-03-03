@@ -17,6 +17,7 @@ import { ReporteDeleteButton } from "@/components/admin/reporte-delete-button";
 import { AdminPhotoCard } from "@/components/admin/admin-photo-card";
 import { AdminPhotoUpload } from "@/components/admin/admin-photo-upload";
 import { AdminStepEditor } from "@/components/admin/admin-step-editor";
+import { AdminCustomStepForm } from "@/components/admin/admin-custom-step-form";
 import { AdminEquipmentInfoEditor } from "@/components/admin/admin-equipment-info-editor";
 import { CommentSection } from "@/components/admin/comment-section";
 import { RevisionHistoryPanel } from "@/components/admin/revision-history-panel";
@@ -1252,6 +1253,10 @@ function EquipmentCard({
                   equipoId={entry.equipo_id}
                 />
               ))}
+              <AdminCustomStepForm
+                reporteEquipoId={entry.id}
+                onStepAdded={onStepSaved}
+              />
             </div>
 
             {/* Orphan photos (not linked to any step) */}
@@ -1275,6 +1280,16 @@ function EquipmentCard({
           </div>
         );
       })()}
+
+      {/* Add custom step when no workflow steps exist yet */}
+      {entry.reporte_pasos.length === 0 && (
+        <div className="mt-3">
+          <AdminCustomStepForm
+            reporteEquipoId={entry.id}
+            onStepAdded={onStepSaved}
+          />
+        </div>
+      )}
 
       {/* Photos for equipment without workflow steps */}
       {entry.reporte_pasos.length === 0 && photos.length > 0 && (
@@ -1301,12 +1316,13 @@ function EquipmentCard({
           reporteId={reporteId}
           equipoId={entry.equipo_id}
           pasos={entry.reporte_pasos
-            .filter((p) => p.plantillas_pasos || p.fallas_correctivas)
+            .filter((p) => p.plantillas_pasos || p.fallas_correctivas || p.nombre_custom)
             .map((p) => ({
               id: p.id,
               nombre:
                 p.plantillas_pasos?.nombre ??
                 p.fallas_correctivas?.nombre ??
+                p.nombre_custom ??
                 "Paso",
             }))}
         />

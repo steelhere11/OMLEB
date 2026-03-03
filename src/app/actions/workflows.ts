@@ -247,6 +247,7 @@ export async function addCustomStep(
   }
 
   revalidatePath("/tecnico");
+  revalidatePath("/admin");
   return { data: data as ReportePaso, error: null };
 }
 
