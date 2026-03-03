@@ -320,13 +320,14 @@ export function ReportForm({
         />
       </PhaseGate>
 
-      {/* ======== PHASE 1: Panoramica del Sitio (unlocked after arrival) ======== */}
+      {/* ======== PHASE 1: Panoramica del Sitio ======== */}
       <PhaseGate
-        isLocked={!showAllPhases && !arrivalDone}
-        lockMessage="Completa la foto de llegada primero"
+        isLocked={false}
+        lockMessage=""
         title="Panoramica del Sitio"
         phaseNumber={2}
         isComplete={showAllPhases ? true : siteDone}
+        softWarning={!arrivalDone ? "Recomendado: completa la foto de llegada" : undefined}
       >
         <SiteOverviewSection
           reporteId={reporteId}
@@ -338,14 +339,14 @@ export function ReportForm({
         />
       </PhaseGate>
 
-      {/* ======== PHASE 2: Registro de Equipos (soft — unlocked after arrival) ======== */}
+      {/* ======== PHASE 2: Registro de Equipos ======== */}
       <PhaseGate
-        isLocked={!showAllPhases && !arrivalDone}
-        lockMessage="Completa la foto de llegada primero"
+        isLocked={false}
+        lockMessage=""
         title="Registro de Equipos"
         phaseNumber={3}
         isComplete={showAllPhases ? true : registrationDone}
-        softWarning={!siteDone ? "Recomendado: toma la foto panoramica del sitio" : undefined}
+        softWarning={!arrivalDone ? "Recomendado: completa la foto de llegada" : !siteDone ? "Recomendado: toma la foto panoramica del sitio" : undefined}
       >
         <EquipmentRegistrationSection
           reporteId={reporteId}
@@ -354,14 +355,14 @@ export function ReportForm({
         />
       </PhaseGate>
 
-      {/* ======== PHASE 3: Mantenimiento (soft — unlocked after arrival) ======== */}
+      {/* ======== PHASE 3: Mantenimiento ======== */}
       <PhaseGate
-        isLocked={!showAllPhases && !arrivalDone}
-        lockMessage="Completa la foto de llegada primero"
+        isLocked={false}
+        lockMessage=""
         title="Mantenimiento"
         phaseNumber={4}
         isComplete={showAllPhases ? true : false}
-        softWarning={!registrationDone ? "Recomendado: completa el registro de equipos" : undefined}
+        softWarning={!arrivalDone ? "Recomendado: completa la foto de llegada" : !registrationDone ? "Recomendado: completa el registro de equipos" : undefined}
       >
         {/* Equipment Section */}
         <EquipmentSection

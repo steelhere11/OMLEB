@@ -65,6 +65,17 @@ export async function getOrCreateTodayReport(
     return { error: "Folio no encontrado" };
   }
 
+  // Check if any previous report on this folio already completed site overview
+  const { data: prevSiteCheck } = await supabase
+    .from("reportes")
+    .select("sitio_completado")
+    .eq("folio_id", folioId)
+    .eq("sitio_completado", true)
+    .limit(1)
+    .maybeSingle();
+
+  const carryForwardSite = !!prevSiteCheck;
+
   // Insert new report
   const { data: newReport, error: insertError } = await supabase
     .from("reportes")
@@ -74,6 +85,7 @@ export async function getOrCreateTodayReport(
       sucursal_id: folio.sucursal_id,
       fecha: today,
       estatus: "en_progreso",
+      sitio_completado: carryForwardSite,
     })
     .select("id")
     .single();
@@ -108,7 +120,7 @@ export async function getOrCreateTodayReport(
   return {
     reporteId: newReport.id,
     llegada_completada: false,
-    sitio_completado: false,
+    sitio_completado: carryForwardSite,
   };
 }
 

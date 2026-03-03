@@ -144,10 +144,15 @@ export default async function ReportePage({
   // Step 1: Get all report IDs for this folio
   const { data: folioReports } = await supabase
     .from("reportes")
-    .select("id")
+    .select("id, sitio_completado")
     .eq("folio_id", folioId);
 
   const folioReportIds = (folioReports ?? []).map((r) => r.id);
+
+  // Check if ANY report on this folio already completed the site overview
+  const folioSiteAlreadyDone = (folioReports ?? []).some(
+    (r) => (r as unknown as { sitio_completado: boolean }).sitio_completado
+  );
 
   let existingFolioSitePhoto: { url: string } | null = null;
   if (folioReportIds.length > 0) {
@@ -186,10 +191,22 @@ export default async function ReportePage({
     registro_completado: boolean;
   })[]) ?? [];
 
+  const REQUIRED_REG_FIELDS = ["marca", "modelo", "numero_serie", "capacidad", "refrigerante", "voltaje", "fase", "ubicacion"] as const;
+
   const registrationEntries: RegistrationEntry[] = typedEntries.map((entry) => {
     const equipoPhotos = registrationPhotos.filter(
       (p) => p.equipo_id === entry.equipo_id
     );
+
+    const hasGeneralPhoto = equipoPhotos.some((p) => p.etiqueta === "equipo_general");
+    const hasPlacaPhoto = equipoPhotos.some((p) => p.etiqueta === "placa");
+
+    // Compute effective completeness from actual data (photos + fields from any report on the folio)
+    const allFieldsFilled = REQUIRED_REG_FIELDS.every((field) => {
+      const value = (entry.equipos as unknown as Record<string, string | null>)?.[field];
+      return value !== null && value !== undefined && value.trim() !== "";
+    });
+    const effectivelyComplete = hasGeneralPhoto && hasPlacaPhoto && allFieldsFilled;
 
     return {
       reporteEquipoId: entry.id,
@@ -200,7 +217,7 @@ export default async function ReportePage({
           equipoPhotos.find((p) => p.etiqueta === "equipo_general") ?? null,
         placa: equipoPhotos.find((p) => p.etiqueta === "placa") ?? null,
       },
-      isComplete: entry.registro_completado,
+      isComplete: entry.registro_completado || effectivelyComplete,
     };
   });
 
@@ -323,7 +340,7 @@ export default async function ReportePage({
       currentStatus={typedReport.estatus}
       isCompleted={isCompleted}
       llegadaCompletada={typedReport.llegada_completada}
-      sitioCompletado={typedReport.sitio_completado}
+      sitioCompletado={typedReport.sitio_completado || folioSiteAlreadyDone}
       arrivalPhoto={
         arrivalPhoto
           ? {
