@@ -296,6 +296,7 @@ export async function adminUploadPhoto(
     url: urlData.publicUrl,
   };
 
+  insertData.tipo_media = tipoMedia;
   if (equipoId) insertData.equipo_id = equipoId;
   if (etiqueta) insertData.etiqueta = etiqueta;
   if (reportePasoId) insertData.reporte_paso_id = reportePasoId;

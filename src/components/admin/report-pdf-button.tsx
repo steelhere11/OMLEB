@@ -48,6 +48,7 @@ interface ReportPdfButtonProps {
     equipo_id: string | null;
     metadata_gps: string | null;
     metadata_fecha: string | null;
+    tipo_media?: string;
   }>;
   /** Registration-phase equipment data (nameplate fields) */
   registrationEquipment: Array<{
@@ -101,6 +102,7 @@ interface ReportPdfButtonProps {
       metadata_gps: string | null;
       metadata_fecha: string | null;
       reporte_paso_id?: string | null;
+      tipo_media?: string;
     }>;
   }>;
   materials: Array<{ cantidad: number; unidad: string; descripcion: string }>;
@@ -130,10 +132,35 @@ function stepNamePrefix(stepName: string): string {
   return selected.join("_").replace(/[<>:"/\\|?*]+/g, "") || "Paso";
 }
 
-/** Determine file extension from blob MIME type */
-function extFromBlob(blob: Blob): string {
-  if (blob.type.includes("png")) return ".png";
-  if (blob.type.includes("webp")) return ".webp";
+/** Determine file extension from blob MIME type, with optional fallbacks */
+function extFromBlob(blob: Blob, tipoMedia?: string, url?: string): string {
+  const mime = blob.type;
+  // Video MIME types
+  if (mime.includes("video/mp4") || mime.includes("video/quicktime")) return ".mp4";
+  if (mime.includes("video/webm")) return ".webm";
+  if (mime.includes("video/")) return ".mp4";
+  // Image MIME types
+  if (mime.includes("png")) return ".png";
+  if (mime.includes("webp")) return ".webp";
+  if (mime.includes("jpeg") || mime.includes("jpg")) return ".jpg";
+  // Fallback: check tipo_media field from DB
+  if (tipoMedia === "video") {
+    if (url) {
+      const lower = url.toLowerCase();
+      if (lower.includes(".webm")) return ".webm";
+      if (lower.includes(".mov")) return ".mp4";
+    }
+    return ".mp4";
+  }
+  // Fallback: check URL extension
+  if (url) {
+    const lower = url.toLowerCase();
+    if (lower.includes(".mp4")) return ".mp4";
+    if (lower.includes(".webm")) return ".webm";
+    if (lower.includes(".mov")) return ".mp4";
+    if (lower.includes(".png")) return ".png";
+    if (lower.includes(".webp")) return ".webp";
+  }
   return ".jpg";
 }
 
@@ -349,6 +376,7 @@ export default function ReportPdfButton({
         folder: string;
         name: string;
         url: string;
+        tipoMedia?: string;
       }> = [];
 
       // General folder: arrival + site photos
@@ -358,12 +386,14 @@ export default function ReportPdfButton({
             folder: "General",
             name: `llegada${photoFetchTasks.filter((t) => t.folder === "General" && t.name.startsWith("llegada")).length + 1}`,
             url: rp.url,
+            tipoMedia: rp.tipo_media,
           });
         } else if (rp.etiqueta === "sitio") {
           photoFetchTasks.push({
             folder: "General",
             name: `sitio${photoFetchTasks.filter((t) => t.folder === "General" && t.name.startsWith("sitio")).length + 1}`,
             url: rp.url,
+            tipoMedia: rp.tipo_media,
           });
         }
       }
@@ -403,6 +433,7 @@ export default function ReportPdfButton({
             folder: folderName,
             name: fileName,
             url: photo.url,
+            tipoMedia: photo.tipo_media,
           });
         }
       }
@@ -419,6 +450,7 @@ export default function ReportPdfButton({
             folder: folderName,
             name: sanitize(rp.etiqueta),
             url: rp.url,
+            tipoMedia: rp.tipo_media,
           });
         }
       }
@@ -434,8 +466,8 @@ export default function ReportPdfButton({
       // 5. Add to ZIP
       for (const result of fetchResults) {
         if (result.status !== "fulfilled" || !result.value.blob) continue;
-        const { folder, name, blob } = result.value;
-        const ext = extFromBlob(blob);
+        const { folder, name, blob, tipoMedia, url } = result.value;
+        const ext = extFromBlob(blob, tipoMedia, url);
         zip.file(`${folder}/${name}${ext}`, blob);
       }
 

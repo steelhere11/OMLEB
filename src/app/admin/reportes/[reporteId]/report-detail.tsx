@@ -756,6 +756,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                 equipo_id: f.equipo_id,
                 metadata_gps: f.metadata_gps,
                 metadata_fecha: f.metadata_fecha,
+                tipo_media: f.tipo_media ?? "foto",
               }))}
             registrationEquipment={(() => {
               const seen = new Set<string>();
@@ -823,6 +824,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                   metadata_gps: foto.metadata_gps,
                   metadata_fecha: foto.metadata_fecha,
                   reporte_paso_id: foto.reporte_paso_id,
+                  tipo_media: foto.tipo_media ?? "foto",
                 })
               ),
             })).sort((a, b) => {
