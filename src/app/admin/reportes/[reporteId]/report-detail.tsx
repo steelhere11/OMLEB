@@ -14,12 +14,13 @@ import {
   adminRemoveEquipmentEntry,
   adminUpdateSignature,
 } from "@/app/actions/reportes";
-import { adminFlagPhoto, adminDeletePhoto, adminUploadPhoto } from "@/app/actions/fotos";
+import { adminFlagPhoto, adminDeletePhoto, adminUploadPhoto, adminUpdateEtiqueta } from "@/app/actions/fotos";
 import { ReporteDeleteButton } from "@/components/admin/reporte-delete-button";
 import { AdminPhotoCard } from "@/components/admin/admin-photo-card";
 import { AdminPhotoUpload } from "@/components/admin/admin-photo-upload";
 import { AdminStepEditor } from "@/components/admin/admin-step-editor";
 import { AdminCustomStepForm } from "@/components/admin/admin-custom-step-form";
+import { deleteCustomStep } from "@/app/actions/workflows";
 import { AdminEquipmentInfoEditor } from "@/components/admin/admin-equipment-info-editor";
 import { CommentSection } from "@/components/admin/comment-section";
 import { RevisionHistoryPanel } from "@/components/admin/revision-history-panel";
@@ -256,6 +257,17 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
     router.refresh();
   }
 
+  async function handleUpdateEtiqueta(fotoId: string, etiqueta: string | null) {
+    await adminUpdateEtiqueta(fotoId, etiqueta);
+    router.refresh();
+  }
+
+  async function handleDeleteStep(stepId: string) {
+    const result = await deleteCustomStep(stepId);
+    if (result.error) return;
+    router.refresh();
+  }
+
   // Equipment removal handler
   function handleRemoveEquipment(entryId: string) {
     const confirmed = window.confirm(
@@ -479,11 +491,13 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                 isEditing={editingEntryId === entry.id}
                 onEdit={() => setEditingEntryId(entry.id)}
                 onCancelEdit={() => setEditingEntryId(null)}
-                onSaved={() => setEditingEntryId(null)}
+                onSaved={() => { setEditingEntryId(null); router.refresh(); }}
                 onRemove={handleRemoveEquipment}
                 removePending={removePending}
                 onFlagPhoto={handleFlagPhoto}
                 onDeletePhoto={handleDeletePhoto}
+                onUpdateEtiqueta={handleUpdateEtiqueta}
+                onDeleteStep={handleDeleteStep}
                 reporteId={reporte.id}
                 editingStepId={editingStepId}
                 onEditStep={(stepId) => setEditingStepId(stepId)}
@@ -543,6 +557,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                   foto={foto}
                   onFlag={handleFlagPhoto}
                   onDelete={handleDeletePhoto}
+                  onUpdateEtiqueta={handleUpdateEtiqueta}
                 />
               ))}
             </div>
@@ -567,7 +582,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
         isEditing={editingMaterials}
         onEdit={() => setEditingMaterials(true)}
         onCancelEdit={() => setEditingMaterials(false)}
-        onSaved={() => setEditingMaterials(false)}
+        onSaved={() => { setEditingMaterials(false); router.refresh(); }}
       />
 
       {/* Signature */}
@@ -1187,6 +1202,8 @@ function EquipmentCard({
   removePending,
   onFlagPhoto,
   onDeletePhoto,
+  onUpdateEtiqueta,
+  onDeleteStep,
   reporteId,
   editingStepId,
   onEditStep,
@@ -1208,6 +1225,8 @@ function EquipmentCard({
   removePending: boolean;
   onFlagPhoto: (fotoId: string, estatus: FotoEstatusRevision, nota?: string) => Promise<void>;
   onDeletePhoto: (fotoId: string) => Promise<void>;
+  onUpdateEtiqueta: (fotoId: string, etiqueta: string | null) => Promise<void>;
+  onDeleteStep: (stepId: string) => Promise<void>;
   reporteId: string;
   editingStepId: string | null;
   onEditStep: (stepId: string) => void;
@@ -1357,6 +1376,8 @@ function EquipmentCard({
                   stagePhotos={photosByStep.get(paso.id) ?? []}
                   onFlagPhoto={onFlagPhoto}
                   onDeletePhoto={onDeletePhoto}
+                  onUpdateEtiqueta={onUpdateEtiqueta}
+                  onDeleteStep={onDeleteStep}
                   isEditing={editingStepId === paso.id}
                   onEdit={() => onEditStep(paso.id)}
                   onCancelEdit={onCancelEditStep}
@@ -1384,6 +1405,7 @@ function EquipmentCard({
                       foto={foto}
                       onFlag={onFlagPhoto}
                       onDelete={onDeletePhoto}
+                      onUpdateEtiqueta={onUpdateEtiqueta}
                     />
                   ))}
                 </div>
@@ -1416,6 +1438,7 @@ function EquipmentCard({
                 foto={foto}
                 onFlag={onFlagPhoto}
                 onDelete={onDeletePhoto}
+                onUpdateEtiqueta={onUpdateEtiqueta}
               />
             ))}
           </div>
@@ -1613,6 +1636,8 @@ function StepRow({
   stagePhotos = [],
   onFlagPhoto,
   onDeletePhoto,
+  onUpdateEtiqueta,
+  onDeleteStep,
   isEditing,
   onEdit,
   onCancelEdit,
@@ -1624,6 +1649,8 @@ function StepRow({
   stagePhotos?: ReporteFotoData[];
   onFlagPhoto: (fotoId: string, estatus: FotoEstatusRevision, nota?: string) => Promise<void>;
   onDeletePhoto: (fotoId: string) => Promise<void>;
+  onUpdateEtiqueta: (fotoId: string, etiqueta: string | null) => Promise<void>;
+  onDeleteStep: (stepId: string) => Promise<void>;
   isEditing: boolean;
   onEdit: () => void;
   onCancelEdit: () => void;
@@ -1634,6 +1661,8 @@ function StepRow({
   const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [showDeleteStepConfirm, setShowDeleteStepConfirm] = useState(false);
+  const [deletingStep, startDeleteStepTransition] = useTransition();
   const isCustom = !paso.plantillas_pasos && !paso.fallas_correctivas && !!paso.nombre_custom;
   const name =
     paso.plantillas_pasos?.nombre ??
@@ -1715,7 +1744,51 @@ function StepRow({
               </svg>
               Agregar foto
             </button>
+            {isCustom && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteStepConfirm(true)}
+                disabled={deletingStep}
+                className="shrink-0 text-[11px] font-medium text-red-500 transition-colors duration-[80ms] hover:text-red-700 flex items-center gap-0.5"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Eliminar
+              </button>
+            )}
           </div>
+
+          {/* Delete step confirmation */}
+          {showDeleteStepConfirm && (
+            <div className="mt-2 rounded border border-red-300 bg-red-50 px-3 py-2">
+              <p className="mb-2 text-[12px] font-medium text-red-800">
+                Eliminar este paso personalizado y todas sus fotos?
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    startDeleteStepTransition(async () => {
+                      await onDeleteStep(paso.id);
+                      setShowDeleteStepConfirm(false);
+                    });
+                  }}
+                  disabled={deletingStep}
+                  className="rounded-[6px] bg-red-600 px-2.5 py-1 text-[11px] font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+                >
+                  {deletingStep ? "Eliminando..." : "Confirmar"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteStepConfirm(false)}
+                  className="text-[11px] font-medium text-text-2 transition-colors hover:text-text-0"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Inline photo upload form */}
           {showUpload && (
@@ -1821,6 +1894,7 @@ function StepRow({
                       foto={foto}
                       onFlag={onFlagPhoto}
                       onDelete={onDeletePhoto}
+                      onUpdateEtiqueta={onUpdateEtiqueta}
                     />
                   ))}
                 </div>

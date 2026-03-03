@@ -312,6 +312,7 @@ export async function deleteCustomStep(
   }
 
   revalidatePath("/tecnico");
+  revalidatePath("/admin/reportes");
   return { success: true, message: "Paso eliminado" };
 }
 

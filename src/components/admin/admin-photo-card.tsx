@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Image from "next/image";
-import type { ReporteFoto, FotoEstatusRevision } from "@/types";
+import type { ReporteFoto, FotoEstatusRevision, FotoEtiqueta } from "@/types";
 import { PhotoAnnotator } from "@/components/shared/photo-annotator";
 import { overwriteAnnotatedPhoto } from "@/app/actions/fotos";
 
@@ -53,6 +53,18 @@ const STATUS_OPTIONS: FotoEstatusRevision[] = [
   "retomar",
 ];
 
+const ETIQUETA_OPTIONS: { value: FotoEtiqueta; label: string }[] = [
+  { value: "antes", label: "Antes" },
+  { value: "durante", label: "Durante" },
+  { value: "despues", label: "Despues" },
+  { value: "dano", label: "Dano" },
+  { value: "placa", label: "Placa" },
+  { value: "progreso", label: "Progreso" },
+  { value: "llegada", label: "Llegada" },
+  { value: "sitio", label: "Sitio" },
+  { value: "equipo_general", label: "Equipo General" },
+];
+
 // ── Props ──────────────────────────────────────────────────────────────────
 
 interface AdminPhotoCardProps {
@@ -63,11 +75,12 @@ interface AdminPhotoCardProps {
     nota?: string
   ) => Promise<void>;
   onDelete: (fotoId: string) => Promise<void>;
+  onUpdateEtiqueta: (fotoId: string, etiqueta: string | null) => Promise<void>;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function AdminPhotoCard({ foto, onFlag, onDelete }: AdminPhotoCardProps) {
+export function AdminPhotoCard({ foto, onFlag, onDelete, onUpdateEtiqueta }: AdminPhotoCardProps) {
   const [selectedStatus, setSelectedStatus] = useState<FotoEstatusRevision>(
     foto.estatus_revision
   );
@@ -76,6 +89,7 @@ export function AdminPhotoCard({ foto, onFlag, onDelete }: AdminPhotoCardProps) 
   const [showNota, setShowNota] = useState(
     foto.estatus_revision === "rechazada" || foto.estatus_revision === "retomar"
   );
+  const [selectedEtiqueta, setSelectedEtiqueta] = useState<string>(foto.etiqueta ?? "");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [lightbox, setLightbox] = useState(false);
 
@@ -84,6 +98,7 @@ export function AdminPhotoCard({ foto, onFlag, onDelete }: AdminPhotoCardProps) 
   const [flagPending, startFlagTransition] = useTransition();
   const [deletePending, startDeleteTransition] = useTransition();
   const [annotatePending, startAnnotateTransition] = useTransition();
+  const [etiquetaPending, startEtiquetaTransition] = useTransition();
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
   const isVideo = foto.tipo_media === "video" || /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(foto.url);
@@ -131,6 +146,15 @@ export function AdminPhotoCard({ foto, onFlag, onDelete }: AdminPhotoCardProps) 
         setFeedbackMsg(result.error ?? "Error al guardar");
         setTimeout(() => setFeedbackMsg(null), 3000);
       }
+    });
+  }
+
+  function handleEtiquetaChange(value: string) {
+    setSelectedEtiqueta(value);
+    startEtiquetaTransition(async () => {
+      await onUpdateEtiqueta(foto.id, value || null);
+      setFeedbackMsg("Etiqueta actualizada");
+      setTimeout(() => setFeedbackMsg(null), 2000);
     });
   }
 
@@ -228,24 +252,37 @@ export function AdminPhotoCard({ foto, onFlag, onDelete }: AdminPhotoCardProps) 
 
         {/* Info & controls */}
         <div className="space-y-2 p-2.5">
-          {/* Etiqueta + metadata */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            {foto.etiqueta && (
-              <span className="inline-flex rounded bg-admin-surface-elevated px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-[0.04em] text-text-2">
-                {etiquetaLabels[foto.etiqueta] ?? foto.etiqueta}
-              </span>
-            )}
-            {foto.metadata_fecha && (
-              <span className="text-[10px] text-text-3">
-                {new Date(foto.metadata_fecha).toLocaleString("es-MX", {
-                  day: "2-digit",
-                  month: "short",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            )}
+          {/* Etiqueta selector */}
+          <div>
+            <label className="mb-0.5 block text-[10px] font-medium uppercase tracking-[0.04em] text-text-2">
+              Etiqueta
+            </label>
+            <select
+              value={selectedEtiqueta}
+              onChange={(e) => handleEtiquetaChange(e.target.value)}
+              disabled={etiquetaPending}
+              className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px] text-text-1"
+            >
+              <option value="">Sin etiqueta</option>
+              {ETIQUETA_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           </div>
+
+          {/* Metadata */}
+          {foto.metadata_fecha && (
+            <span className="text-[10px] text-text-3">
+              {new Date(foto.metadata_fecha).toLocaleString("es-MX", {
+                day: "2-digit",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          )}
 
           {foto.metadata_gps && (
             <span className="block text-[10px] text-text-3">

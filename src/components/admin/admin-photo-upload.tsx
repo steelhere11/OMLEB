@@ -42,7 +42,7 @@ export function AdminPhotoUpload({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isVideo, setIsVideo] = useState(false);
   const [selectedEquipoId, setSelectedEquipoId] = useState(fixedEquipoId ?? "");
-  const [selectedEtiqueta, setSelectedEtiqueta] = useState<FotoEtiqueta>("progreso");
+  const [selectedEtiqueta, setSelectedEtiqueta] = useState<string>("");
   const [selectedPasoId, setSelectedPasoId] = useState("");
   const [isPending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<{
@@ -207,9 +207,10 @@ export function AdminPhotoUpload({
         </label>
         <select
           value={selectedEtiqueta}
-          onChange={(e) => setSelectedEtiqueta(e.target.value as FotoEtiqueta)}
+          onChange={(e) => setSelectedEtiqueta(e.target.value)}
           className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px] text-text-1"
         >
+          <option value="">Sin etiqueta</option>
           {ETIQUETA_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}

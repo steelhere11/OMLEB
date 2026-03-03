@@ -189,6 +189,34 @@ export async function adminFlagPhoto(
   return { success: true, message: "Foto actualizada" };
 }
 
+// ── Admin: Update Photo Etiqueta ─────────────────────────────────────────
+
+export async function adminUpdateEtiqueta(
+  fotoId: string,
+  etiqueta: string | null
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  const { error } = await supabase
+    .from("reporte_fotos")
+    .update({ etiqueta: etiqueta || null })
+    .eq("id", fotoId);
+
+  if (error) {
+    return { error: "Error al actualizar etiqueta: " + error.message };
+  }
+
+  revalidatePath("/admin/reportes");
+  return { success: true, message: "Etiqueta actualizada" };
+}
+
 // ── Admin: Delete Photo ──────────────────────────────────────────────────
 
 export async function adminDeletePhoto(
