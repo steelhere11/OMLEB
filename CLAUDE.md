@@ -46,7 +46,7 @@
 - Creates and manages branches (name, number, address)
 - Creates and manages equipment per branch (number/tag, brand, model, serial number, type)
 - Creates and manages clients (name, logo)
-- Creates work orders/folios (assigns to branch, client, team of users, description of reported problem)
+- Creates work orders / ordenes de servicio (assigns to branch, client, team of users, description of reported problem)
 - Creates technician/helper accounts (admin-managed, no self-signup)
 - Views reports submitted by technicians
 - **Can edit and overwrite any field** in a report
@@ -57,7 +57,7 @@
 
 ### Technician
 - Logs into the PWA from their phone (admin-created account)
-- Views assigned work orders/folios
+- Views assigned work orders / ordenes de servicio
 - Fills in daily report per equipment
 - **Can add new equipment from the field** (admin reviews/cleans up later)
 - Takes photos with in-app camera — auto-stamps visible metadata overlay (location, time, date)
@@ -73,7 +73,7 @@
 
 Work is done in teams — typically one technician + one helper. Sometimes multiple technicians.
 
-**V1 approach:** Admin assigns multiple users directly to a folio. All assigned users can view and contribute to **one shared daily report** per folio. No formal "cuadrilla" entity — just multi-assignment.
+**V1 approach:** Admin assigns multiple users directly to an orden de servicio. All assigned users can view and contribute to **one shared daily report** per orden. No formal "cuadrilla" entity — just multi-assignment.
 
 **V2+:** Add a reusable "cuadrilla" entity — saved groups that can be quickly assigned with one click.
 
@@ -100,8 +100,8 @@ Work is done in teams — typically one technician + one helper. Sometimes multi
    - Review tech-added equipment (flagged for review)
 5. **User Management**
    - Create technician/helper accounts (admin-created, no self-signup)
-6. **Work Order / Folio Management**
-   - Create folio: assign to branch, client, team of users, description of reported problem
+6. **Work Order / Orden de Servicio Management**
+   - Create orden de servicio: assign to branch, client, team of users, description of reported problem
 7. **Report Viewer**
    - View all reports submitted by technicians
    - Open any report and **edit/overwrite any field**
@@ -115,7 +115,7 @@ Work is done in teams — typically one technician + one helper. Sometimes multi
 
 ### Technician Side (PWA, mobile-first)
 1. **Authentication** — login with technician role
-2. **View assigned folios** — list of pending work orders
+2. **View assigned ordenes de servicio** — list of pending work orders
 3. **Fill in daily report**:
    - Equipment auto-loaded from branch; can add new equipment on-the-fly
    - Per equipment: work type (Preventivo / Correctivo toggle), diagnostico, trabajo realizado, observaciones
@@ -134,7 +134,7 @@ Work is done in teams — typically one technician + one helper. Sometimes multi
 
 | Version | Feature | Description |
 |---|---|---|
-| **V1** | Core Prototype | Admin manages branches/equipment/clients/folios. Technician fills reports with in-app camera. PDF export. |
+| **V1** | Core Prototype | Admin manages branches/equipment/clients/ordenes de servicio. Technician fills reports with in-app camera. PDF export. |
 | **V2** | Multi-day Linking + Cuadrillas | Multi-day jobs connected. Daily reports auto-pull previous context. Reusable cuadrilla entity. Combined report export. |
 | **V3** | GPS Stamping + Time Tracking | Arrival/departure slide buttons with auto-timestamp and GPS coordinates. Location data in reports and PDF. |
 | **V4** | Offline Mode | Full offline capability for technicians. Local storage on device. Auto-sync when connection returns. |
@@ -183,25 +183,25 @@ All table and column names are in Spanish since they represent domain-specific d
 - created_at
 - updated_at
 
-**folios**
+**ordenes_servicio**
 - id (uuid, PK)
 - sucursal_id (FK → sucursales)
 - cliente_id (FK → clientes)
-- numero_folio (auto-generated)
+- numero_orden (auto-generated, prefix ODS-)
 - descripcion_problema
 - estatus (abierto | en_progreso | completado | en_espera)
 - created_at
 - updated_at
 
-**folio_asignados** (multi-assign: team members per folio)
+**orden_asignados** (multi-assign: team members per orden)
 - id (uuid, PK)
-- folio_id (FK → folios)
+- orden_servicio_id (FK → ordenes_servicio)
 - usuario_id (FK → users)
 - created_at
 
 **reportes**
 - id (uuid, PK)
-- folio_id (FK → folios)
+- orden_servicio_id (FK → ordenes_servicio)
 - creado_por (FK → users — who created the report)
 - sucursal_id (FK → sucursales)
 - fecha
@@ -293,7 +293,7 @@ Seed Data (run supabase/seed-workflows.sql AFTER migration-workflows.sql)
 4 system equipment types (mini_split_interior, mini_split_exterior, mini_chiller, otro)
 13 indoor mini split preventive steps
 10 outdoor mini split preventive steps
-14 mini chiller preventive steps
+13 mini chiller preventive steps
 15 mini split corrective issues (split between interior and exterior)
 12 mini chiller corrective issues
 15 reference values for reading validation
@@ -303,8 +303,8 @@ TypeScript Types
 New types in src/types/workflows.ts: TipoEquipo, PlantillaPaso, FallaCorrectiva, ReportePaso, ValorReferencia, EvidenciaRequerida, LecturaRequerida
 
 Technician Workflow Change
-Current flow: Select folio → select equipment → free-text fields → attach photos → submit
-New flow: Select folio → select equipment → choose preventivo/correctivo:
+Current flow: Select orden de servicio → select equipment → free-text fields → attach photos → submit
+New flow: Select orden de servicio → select equipment → choose preventivo/correctivo:
 
 Preventivo: App detects tipo_equipo from equipos table, loads matching plantillas_pasos in order. Each step = swipeable card with: step name, procedure, labeled camera buttons (📷 ANTES / 📷 DURANTE / 📷 DESPUÉS), numeric reading inputs with real-time range validation.
 Correctivo: App shows picker with fallas_correctivas matching equipment type. Tech selects issue(s), app loads required evidence and materials list. Multiple issues selectable per equipment.
@@ -356,12 +356,12 @@ lecturas with unidad="Sí/No" should render as a toggle, not a text field.
 │   │   │   ├── clientes/
 │   │   │   ├── sucursales/
 │   │   │   ├── equipos/
-│   │   │   ├── folios/
+│   │   │   ├── ordenes-servicio/
 │   │   │   ├── usuarios/
 │   │   │   └── reportes/
 │   │   └── tecnico/
 │   │       ├── layout.tsx
-│   │       ├── folios/
+│   │       ├── ordenes-servicio/
 │   │       └── reporte/
 │   ├── components/
 │   │   ├── ui/                # Buttons, inputs, modals, etc.
@@ -394,7 +394,7 @@ lecturas with unidad="Sí/No" should render as a toggle, not a text field.
 - **Gallery upload too**: Flexibility for photos already taken
 - **Visible status**: Always clear what state a report is in (en progreso, en espera, completado)
 - **Admin is king**: The administrator can overwrite any field at any time
-- **One shared report per cuadrilla**: Team contributes to a single daily report per folio
+- **One shared report per cuadrilla**: Team contributes to a single daily report per orden de servicio
 - **Techs can add equipment on-site**: Unblocks field work; admin reviews later
 - **Client flexibility**: Reports can be directed to any client (subcontractor or direct contractor relationship)
 

@@ -86,7 +86,7 @@ export function AdminPhotoCard({ foto, onFlag, onDelete }: AdminPhotoCardProps) 
   const [annotatePending, startAnnotateTransition] = useTransition();
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
-  const isVideo = foto.tipo_media === "video";
+  const isVideo = foto.tipo_media === "video" || /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(foto.url);
 
   function handleStatusChange(newStatus: FotoEstatusRevision) {
     setSelectedStatus(newStatus);
@@ -148,9 +148,11 @@ export function AdminPhotoCard({ foto, onFlag, onDelete }: AdminPhotoCardProps) 
             {isVideo ? (
               /* eslint-disable-next-line jsx-a11y/media-has-caption */
               <video
-                src={foto.url}
+                src={`${foto.url}#t=0.5`}
                 className="h-full w-full object-cover"
                 preload="metadata"
+                muted
+                playsInline
               />
             ) : (
               <Image

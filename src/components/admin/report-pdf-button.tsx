@@ -423,8 +423,14 @@ export default function ReportPdfButton({
             const key = `${prefix}_${etiqueta}`;
             nameCounts[key] = (nameCounts[key] ?? 0) + 1;
             fileName = `${key}_${nameCounts[key]}`;
+          } else if (entry.steps.length === 1) {
+            // Orphan photo but only 1 step — infer step ownership
+            const prefix = stepNamePrefix(entry.steps[0].nombre);
+            const key = `${prefix}_${etiqueta}`;
+            nameCounts[key] = (nameCounts[key] ?? 0) + 1;
+            fileName = `${key}_${nameCounts[key]}`;
           } else {
-            // Orphan photo — keep simple etiqueta naming
+            // Orphan photo with multiple/no steps — keep simple etiqueta naming
             nameCounts[etiqueta] = (nameCounts[etiqueta] ?? 0) + 1;
             fileName = `${etiqueta}_${nameCounts[etiqueta]}`;
           }
