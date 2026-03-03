@@ -742,3 +742,84 @@ export async function adminUpdateEquipmentInfo(
   revalidatePath("/admin/reportes");
   return { success: true, message: "Equipo actualizado" };
 }
+
+// ── Admin: Remove Equipment Entry from Report ────────────────────────────
+
+export async function adminRemoveEquipmentEntry(
+  entryId: string
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  // Get the entry to find equipo_id and reporte_id for photo cleanup
+  const { data: entry, error: fetchError } = await supabase
+    .from("reporte_equipos")
+    .select("equipo_id, reporte_id")
+    .eq("id", entryId)
+    .single();
+
+  if (fetchError || !entry) {
+    return { error: "Entrada de equipo no encontrada" };
+  }
+
+  // Delete equipment-specific photos for this report
+  // (reporte_fotos.equipo_id references equipos directly, not reporte_equipos)
+  const { error: photoDeleteError } = await supabase
+    .from("reporte_fotos")
+    .delete()
+    .eq("reporte_id", entry.reporte_id)
+    .eq("equipo_id", entry.equipo_id);
+
+  if (photoDeleteError) {
+    return { error: "Error al eliminar fotos del equipo: " + photoDeleteError.message };
+  }
+
+  // Delete the reporte_equipos row (CASCADE handles reporte_pasos,
+  // and reporte_fotos.reporte_paso_id gets SET NULL for any remaining photos)
+  const { error: deleteError } = await supabase
+    .from("reporte_equipos")
+    .delete()
+    .eq("id", entryId);
+
+  if (deleteError) {
+    return { error: "Error al eliminar entrada de equipo: " + deleteError.message };
+  }
+
+  revalidatePath("/admin/reportes");
+  return { success: true, message: "Equipo eliminado del reporte" };
+}
+
+// ── Admin: Update Signature (add or remove) ──────────────────────────────
+
+export async function adminUpdateSignature(
+  reporteId: string,
+  firma_encargado: string | null,
+  nombre_encargado: string | null
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  const { error } = await supabase
+    .from("reportes")
+    .update({ firma_encargado, nombre_encargado })
+    .eq("id", reporteId);
+
+  if (error) {
+    return { error: "Error al actualizar firma: " + error.message };
+  }
+
+  revalidatePath("/admin/reportes");
+  return { success: true, message: firma_encargado ? "Firma guardada" : "Firma eliminada" };
+}
