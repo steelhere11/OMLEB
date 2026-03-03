@@ -11,6 +11,8 @@ import {
   approveReport,
   adminUpdateStep,
   adminUpdateEquipmentInfo,
+  adminRemoveEquipmentEntry,
+  adminUpdateSignature,
 } from "@/app/actions/reportes";
 import { adminFlagPhoto, adminDeletePhoto, adminUploadPhoto } from "@/app/actions/fotos";
 import { ReporteDeleteButton } from "@/components/admin/reporte-delete-button";
@@ -31,6 +33,16 @@ const ReportPdfButton = dynamic(
     ssr: false,
     loading: () => (
       <span className="text-[13px] text-text-3">Cargando...</span>
+    ),
+  }
+);
+
+const SignaturePad = dynamic(
+  () => import("@/components/shared/signature-pad").then((m) => m.SignaturePad),
+  {
+    ssr: false,
+    loading: () => (
+      <span className="text-[13px] text-text-3">Cargando firma...</span>
     ),
   }
 );
@@ -225,6 +237,13 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
   const [revisionPending, startRevisionTransition] = useTransition();
   const [revisionError, setRevisionError] = useState<string | null>(null);
 
+  // Signature state
+  const [showSignaturePad, setShowSignaturePad] = useState(false);
+  const [signaturePending, startSignatureTransition] = useTransition();
+
+  // Equipment removal state
+  const [removePending, startRemoveTransition] = useTransition();
+
   // Photo management handlers
   async function handleFlagPhoto(fotoId: string, estatus: FotoEstatusRevision, nota?: string) {
     await adminFlagPhoto(fotoId, estatus, nota);
@@ -234,6 +253,50 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
   async function handleDeletePhoto(fotoId: string) {
     await adminDeletePhoto(fotoId);
     router.refresh();
+  }
+
+  // Equipment removal handler
+  function handleRemoveEquipment(entryId: string) {
+    const confirmed = window.confirm(
+      "Eliminar este equipo del reporte? Se eliminaran sus pasos y fotos asociadas."
+    );
+    if (!confirmed) return;
+
+    startRemoveTransition(async () => {
+      const result = await adminRemoveEquipmentEntry(entryId);
+      if (result.error) {
+        alert(result.error);
+      } else {
+        router.refresh();
+      }
+    });
+  }
+
+  // Signature handlers
+  function handleRemoveSignature() {
+    const confirmed = window.confirm("Eliminar la firma del encargado?");
+    if (!confirmed) return;
+
+    startSignatureTransition(async () => {
+      const result = await adminUpdateSignature(reporte.id, null, null);
+      if (result.error) {
+        alert(result.error);
+      } else {
+        router.refresh();
+      }
+    });
+  }
+
+  function handleSaveSignature(data: { nombre: string; firma: string }) {
+    setShowSignaturePad(false);
+    startSignatureTransition(async () => {
+      const result = await adminUpdateSignature(reporte.id, data.firma, data.nombre);
+      if (result.error) {
+        alert(result.error);
+      } else {
+        router.refresh();
+      }
+    });
   }
 
   // Group photos by equipo_id
@@ -413,6 +476,8 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                 onEdit={() => setEditingEntryId(entry.id)}
                 onCancelEdit={() => setEditingEntryId(null)}
                 onSaved={() => setEditingEntryId(null)}
+                onRemove={handleRemoveEquipment}
+                removePending={removePending}
                 onFlagPhoto={handleFlagPhoto}
                 onDeletePhoto={handleDeletePhoto}
                 reporteId={reporte.id}
@@ -520,12 +585,40 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                   {reporte.nombre_encargado}
                 </p>
               )}
+              <button
+                type="button"
+                onClick={handleRemoveSignature}
+                disabled={signaturePending}
+                className="text-[12px] font-medium text-red-500 transition-colors duration-[80ms] hover:text-red-700 disabled:opacity-50"
+              >
+                {signaturePending ? "Eliminando..." : "Eliminar firma"}
+              </button>
             </div>
           ) : (
-            <p className="text-[13px] text-text-3">Sin firma</p>
+            <div className="space-y-3">
+              <p className="text-[13px] text-text-3">Sin firma</p>
+              {!showSignaturePad && (
+                <button
+                  type="button"
+                  onClick={() => setShowSignaturePad(true)}
+                  disabled={signaturePending}
+                  className="text-[12px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0 disabled:opacity-50"
+                >
+                  {signaturePending ? "Guardando..." : "Agregar firma"}
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>
+
+      {/* Signature Pad (fullscreen overlay) */}
+      {showSignaturePad && (
+        <SignaturePad
+          onSave={handleSaveSignature}
+          onCancel={() => setShowSignaturePad(false)}
+        />
+      )}
 
       {/* Comments */}
       <CommentSection
@@ -1083,6 +1176,8 @@ function EquipmentCard({
   onEdit,
   onCancelEdit,
   onSaved,
+  onRemove,
+  removePending,
   onFlagPhoto,
   onDeletePhoto,
   reporteId,
@@ -1102,6 +1197,8 @@ function EquipmentCard({
   onEdit: () => void;
   onCancelEdit: () => void;
   onSaved: () => void;
+  onRemove: (entryId: string) => void;
+  removePending: boolean;
   onFlagPhoto: (fotoId: string, estatus: FotoEstatusRevision, nota?: string) => Promise<void>;
   onDeletePhoto: (fotoId: string) => Promise<void>;
   reporteId: string;
@@ -1154,6 +1251,14 @@ function EquipmentCard({
               className="text-[12px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
             >
               Editar
+            </button>
+            <button
+              type="button"
+              onClick={() => onRemove(entry.id)}
+              disabled={removePending}
+              className="text-[12px] font-medium text-red-500 transition-colors duration-[80ms] hover:text-red-700 disabled:opacity-50"
+            >
+              Eliminar
             </button>
           </div>
         )}
