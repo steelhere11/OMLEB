@@ -102,9 +102,10 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 |---|-------------|------|--------|-----------|
 | 001 | Video support on technician side with same legend layout as photos | 2026-03-01 | bd71c83 | [001-video-support-technician-photo-layout](./quick/001-video-support-technician-photo-layout/) |
 | 002 | Live GPS/date/time overlay on video recording screen | 2026-03-02 | 045ee4f | [002-video-location-datetime-legend-overlay](./quick/002-video-location-datetime-legend-overlay/) |
+| 003 | Admin full control: equipment removal + signature management on reports | 2026-03-03 | b6c7f91 | [003-admin-full-control-reports-equipment-signature](./quick/003-admin-full-control-reports-equipment-signature/) |
 
 ## Session Continuity
 
-Last session: 2026-03-02
-Stopped at: Completed 10-07. Phase 10 complete. All feature phases done.
+Last session: 2026-03-03
+Stopped at: Completed quick-003. Admin full control over reports (equipment removal + signature management).
 Resume file: None
