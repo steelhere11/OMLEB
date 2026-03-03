@@ -7,6 +7,8 @@ import {
   View,
   Image,
   StyleSheet,
+  Svg,
+  Path,
 } from "@react-pdf/renderer";
 import "./pdf-fonts"; // Side-effect: registers Inter font family
 import type { PhotoBase64 } from "./pdf-utils";
@@ -91,6 +93,10 @@ const BLUE = "#2563eb";
 const GREEN = "#059669";
 const RED = "#dc2626";
 const BRAND_NAVY = "#1e3a6e";
+const AMBER_DARK = "#92400e";
+const AMBER_LIGHT = "#fef3c7";
+const AMBER_BG = "#fffbeb";
+const CHECK_BLUE = "#5a7394";
 
 const GRAY_50 = "#f9fafb";
 const GRAY_100 = "#f3f4f6";
@@ -167,7 +173,7 @@ const s = StyleSheet.create({
   infoCellProblem: {
     width: "100%",
     padding: 7,
-    backgroundColor: GRAY_50,
+    backgroundColor: AMBER_BG,
   },
   infoLabel: {
     fontSize: 7,
@@ -264,7 +270,7 @@ const s = StyleSheet.create({
     letterSpacing: 0.5,
   },
   badgePreventivo: { backgroundColor: "#dbeafe", color: "#1d4ed8" },
-  badgeCorrectivo: { backgroundColor: "#fee2e2", color: "#dc2626" },
+  badgeCorrectivo: { backgroundColor: AMBER_LIGHT, color: AMBER_DARK },
   equipProgress: {
     fontSize: 8,
     color: GRAY_500,
@@ -301,11 +307,9 @@ const s = StyleSheet.create({
     alignItems: "flex-start",
   },
   stepCheckIcon: {
-    fontSize: 10,
-    color: BRAND_NAVY,
     width: 14,
     marginRight: 3,
-    marginTop: 0.5,
+    marginTop: 1,
   },
   stepNameText: {
     fontSize: 9.5,
@@ -332,10 +336,10 @@ const s = StyleSheet.create({
     marginTop: 4,
     marginBottom: 4,
     paddingLeft: 8,
-    paddingVertical: 3,
-    borderLeftWidth: 2,
+    paddingVertical: 4,
+    borderLeftWidth: 3,
     borderLeftColor: BLUE,
-    backgroundColor: "#f0f4ff",
+    backgroundColor: "#e0eaff",
   },
   // Readings table
   readingsTable: {
@@ -393,7 +397,7 @@ const s = StyleSheet.create({
     alignSelf: "flex-start" as const,
   },
   stageLabelAntes: { backgroundColor: "#dbeafe", color: "#1d4ed8" },
-  stageLabelDurante: { backgroundColor: GRAY_100, color: GRAY_700 },
+  stageLabelDurante: { backgroundColor: AMBER_LIGHT, color: AMBER_DARK },
   stageLabelDespues: { backgroundColor: "#d1fae5", color: "#065f46" },
   photoGrid: {
     flexDirection: "row",
@@ -403,15 +407,14 @@ const s = StyleSheet.create({
     marginBottom: 4,
   },
   photoBox: {
-    width: "31%",
+    width: "48%",
     marginBottom: 4,
   },
   photoImg: {
-    height: 90,
-    objectFit: "contain" as const,
-    borderRadius: 2,
+    height: 130,
+    objectFit: "cover" as const,
+    borderRadius: 3,
     border: `1px solid ${GRAY_200}`,
-    backgroundColor: GRAY_50,
   },
   photoCaption: {
     fontSize: 6,
@@ -721,11 +724,13 @@ function ReadingsTable({
             {anyHasRange && (
               <View style={s.rCellStatus}>
                 {hasRange ? (
-                  <Text style={isOutOfRange ? s.statusWarn : s.statusOk}>
-                    {isOutOfRange ? "\u26A0" : "\u2713"}
-                  </Text>
+                  isOutOfRange ? (
+                    <WarnIcon color={RED} size={9} />
+                  ) : (
+                    <CheckIcon color={GREEN} size={9} />
+                  )
                 ) : (
-                  <Text style={s.statusNa}>{"\u2014"}</Text>
+                  <Text style={s.statusNa}>--</Text>
                 )}
               </View>
             )}
@@ -759,7 +764,7 @@ function StepPhotoGrid({ photos }: { photos: PhotoBase64[] }) {
   return (
     <>
       {stages.map((stage) => (
-        <View key={stage}>
+        <View key={stage} wrap={false}>
           <Text
             style={[
               s.stageLabel,
@@ -797,12 +802,44 @@ function StepPhotoGrid({ photos }: { photos: PhotoBase64[] }) {
 
 // ---------- Helper: Step Block ----------
 
-/** Renders a completed step with green checkmark, plus any content inline */
+/** SVG checkmark — renders reliably in react-pdf (Inter lacks Unicode glyphs) */
+function CheckIcon({ color = CHECK_BLUE, size = 10 }: { color?: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M20 6L9 17l-5-5"
+        stroke={color}
+        strokeWidth={3}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/** SVG warning triangle */
+function WarnIcon({ color = RED, size = 10 }: { color?: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+/** Renders a completed step with SVG checkmark, plus any content inline */
 function StepBlock({ step }: { step: PdfStepData }) {
   return (
     <View style={s.stepBlock} wrap={true}>
       <View style={s.stepHeaderRow}>
-        <Text style={s.stepCheckIcon}>{"\u2713"}</Text>
+        <View style={s.stepCheckIcon}>
+          <CheckIcon />
+        </View>
         <Text style={s.stepNameText}>{step.nombre}</Text>
       </View>
 
@@ -981,7 +1018,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
           </View>
           <View style={s.infoRow}>
             <View style={s.infoCellProblem}>
-              <Text style={s.infoLabel}>Problema Reportado</Text>
+              <Text style={[s.infoLabel, { color: AMBER_DARK }]}>Problema Reportado</Text>
               <Text style={[s.infoValue, { fontSize: 10 }]}>
                 {data.orden.descripcion_problema}
               </Text>
@@ -1239,7 +1276,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                             <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4, paddingHorizontal: 8 }}>
                               <View
                                 style={{
-                                  backgroundColor: "#dbeafe",
+                                  backgroundColor: GRAY_200,
                                   paddingHorizontal: 5,
                                   paddingVertical: 2,
                                   borderRadius: 3,
@@ -1249,7 +1286,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                                   style={{
                                     fontSize: 7,
                                     fontWeight: 700,
-                                    color: "#1d4ed8",
+                                    color: GRAY_700,
                                     textTransform: "uppercase",
                                   }}
                                 >
