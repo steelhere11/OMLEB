@@ -176,10 +176,10 @@ INSERT INTO public.valores_referencia (nombre, unidad, rango_min, rango_max, not
   ('resistencia_aislamiento',     'MΩ',   1,      NULL,   '>1 MΩ. <1 MΩ indica falla'),
   ('presion_succion_r410a',       'PSI',  110,    130,    'Típico enfriamiento. Varía según temp. ambiente'),
   ('presion_descarga_r410a',      'PSI',  275,    400,    'Típico enfriamiento. Varía según temp. ambiente'),
-  ('superheat',                   '°F',   5,      15,     'TXV: 10-15°F. Orificio fijo: tabla del fabricante'),
-  ('subcooling',                  '°F',   8,      14,     'Indicador primario de carga correcta con TXV'),
-  ('delta_t_aire',                '°F',   14,     22,     'Diferencia retorno vs. suministro'),
-  ('delta_t_agua',                '°F',   10,     12,     'Diferencia entrada vs. salida evaporador'),
+  ('superheat',                   '°C',   3,      8,      'TXV: 6-8°C. Orificio fijo: tabla del fabricante'),
+  ('subcooling',                  '°C',   4,      8,      'Indicador primario de carga correcta con TXV'),
+  ('delta_t_aire',                '°C',   8,      12,     'Diferencia retorno vs. suministro'),
+  ('delta_t_agua',                '°C',   5,      7,      'Diferencia entrada vs. salida evaporador'),
   ('temp_cuerpo_compresor',       '°C',   NULL,   90,     'Temperaturas mayores indican problema'),
   ('temp_descarga',               '°C',   NULL,   100,    'Excesiva = baja carga o restricción');
 

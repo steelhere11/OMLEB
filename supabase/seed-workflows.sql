@@ -139,7 +139,7 @@ INSERT INTO public.plantillas_pasos (tipo_equipo_slug, tipo_mantenimiento, orden
 ('mini_split_exterior', 'preventivo', 7, 'Verificación de carga de refrigerante (superheat/subcooling)',
  'Conectar manómetros al servicio de alta y baja presión. Dejar el sistema estabilizar 15-20 minutos en operación. Medir presión de succión (baja) y presión de descarga (alta). Medir temperatura de línea de succión con pinza de temperatura. Calcular sobrecalentamiento (superheat). Medir temperatura de línea de líquido. Calcular subenfriamiento (subcooling). Comparar valores con especificaciones del fabricante.',
  '[{"etapa":"durante","descripcion":"Foto de manómetros mostrando presiones"},{"etapa":"durante","descripcion":"Foto de las lecturas de temperatura de líneas"},{"etapa":"durante","descripcion":"Foto de la tabla de cálculo o app con valores de superheat/subcooling"}]'::jsonb,
- '[{"nombre":"Presión succión","unidad":"PSI","rango_min":110,"rango_max":130},{"nombre":"Presión descarga","unidad":"PSI","rango_min":275,"rango_max":400},{"nombre":"Temp. línea succión","unidad":"°F","rango_min":null,"rango_max":null},{"nombre":"Temp. línea líquido","unidad":"°F","rango_min":null,"rango_max":null},{"nombre":"Superheat calculado","unidad":"°F","rango_min":5,"rango_max":15},{"nombre":"Subcooling calculado","unidad":"°F","rango_min":8,"rango_max":14}]'::jsonb,
+ '[{"nombre":"Presión succión","unidad":"PSI","rango_min":110,"rango_max":130},{"nombre":"Presión descarga","unidad":"PSI","rango_min":275,"rango_max":400},{"nombre":"Temp. línea succión","unidad":"°C","rango_min":null,"rango_max":null},{"nombre":"Temp. línea líquido","unidad":"°C","rango_min":null,"rango_max":null},{"nombre":"Superheat calculado","unidad":"°C","rango_min":3,"rango_max":8},{"nombre":"Subcooling calculado","unidad":"°C","rango_min":4,"rango_max":8}]'::jsonb,
  true),
 
 ('mini_split_exterior', 'preventivo', 8, 'Detección de fugas de refrigerante',
@@ -149,9 +149,9 @@ INSERT INTO public.plantillas_pasos (tipo_equipo_slug, tipo_mantenimiento, orden
  true),
 
 ('mini_split_exterior', 'preventivo', 9, 'Medición de temperaturas de operación (delta T)',
- 'Medir temperatura del aire de suministro (salida del evaporador). Medir temperatura del aire de retorno (entrada del evaporador). Calcular diferencial de temperatura (delta T). El delta T debe estar entre 8-12°C (14-22°F) para enfriamiento.',
+ 'Medir temperatura del aire de suministro (salida del evaporador). Medir temperatura del aire de retorno (entrada del evaporador). Calcular diferencial de temperatura (delta T). El delta T debe estar entre 8-12°C para enfriamiento.',
  '[{"etapa":"durante","descripcion":"Foto de la lectura de temperatura de suministro"},{"etapa":"durante","descripcion":"Foto de la lectura de temperatura de retorno"}]'::jsonb,
- '[{"nombre":"Temp. suministro","unidad":"°F","rango_min":null,"rango_max":null},{"nombre":"Temp. retorno","unidad":"°F","rango_min":null,"rango_max":null},{"nombre":"Delta T","unidad":"°F","rango_min":14,"rango_max":22}]'::jsonb,
+ '[{"nombre":"Temp. suministro","unidad":"°C","rango_min":null,"rango_max":null},{"nombre":"Temp. retorno","unidad":"°C","rango_min":null,"rango_max":null},{"nombre":"Delta T","unidad":"°C","rango_min":8,"rango_max":12}]'::jsonb,
  true),
 
 ('mini_split_exterior', 'preventivo', 10, 'Prueba completa de operación y cierre',
@@ -185,9 +185,9 @@ INSERT INTO public.plantillas_pasos (tipo_equipo_slug, tipo_mantenimiento, orden
  true),
 
 ('mini_chiller', 'preventivo', 4, 'Inspección del circuito de agua (evaporador/intercambiador)',
- 'Verificar temperatura de entrada y salida del agua. El diferencial debe estar entre 5-7°C (10-12°F). Inspeccionar tubería por fugas, corrosión, aislamiento dañado. Verificar presión del agua en el sistema. Verificar operación de la bomba de agua (si es parte del sistema). Verificar flujo de agua.',
+ 'Verificar temperatura de entrada y salida del agua. El diferencial debe estar entre 5-7°C. Inspeccionar tubería por fugas, corrosión, aislamiento dañado. Verificar presión del agua en el sistema. Verificar operación de la bomba de agua (si es parte del sistema). Verificar flujo de agua.',
  '[{"etapa":"durante","descripcion":"Foto de las conexiones de tubería de agua"},{"etapa":"durante","descripcion":"Foto de manómetros de presión de agua"},{"etapa":"durante","descripcion":"Foto de termómetros de entrada/salida de agua"},{"etapa":"durante","descripcion":"Foto de cualquier fuga detectada"}]'::jsonb,
- '[{"nombre":"Temp. entrada agua","unidad":"°F","rango_min":null,"rango_max":null},{"nombre":"Temp. salida agua","unidad":"°F","rango_min":null,"rango_max":null},{"nombre":"Delta T agua","unidad":"°F","rango_min":10,"rango_max":12},{"nombre":"Presión agua","unidad":"PSI","rango_min":null,"rango_max":null},{"nombre":"Flujo agua","unidad":"GPM","rango_min":null,"rango_max":null}]'::jsonb,
+ '[{"nombre":"Temp. entrada agua","unidad":"°C","rango_min":null,"rango_max":null},{"nombre":"Temp. salida agua","unidad":"°C","rango_min":null,"rango_max":null},{"nombre":"Delta T agua","unidad":"°C","rango_min":5,"rango_max":7},{"nombre":"Presión agua","unidad":"PSI","rango_min":null,"rango_max":null},{"nombre":"Flujo agua","unidad":"GPM","rango_min":null,"rango_max":null}]'::jsonb,
  true),
 
 ('mini_chiller', 'preventivo', 5, 'Inspección eléctrica completa',
@@ -205,7 +205,7 @@ INSERT INTO public.plantillas_pasos (tipo_equipo_slug, tipo_mantenimiento, orden
 ('mini_chiller', 'preventivo', 7, 'Verificación de carga de refrigerante por circuito',
  'Conectar manómetros a cada circuito de refrigerante. Estabilizar sistema 15-20 min. Medir presiones de alta y baja por circuito. Calcular superheat y subcooling por circuito. Comparar con especificaciones del fabricante. Registrar tipo y cantidad de refrigerante.',
  '[{"etapa":"durante","descripcion":"Foto de manómetros por cada circuito"},{"etapa":"durante","descripcion":"Foto de lecturas de temperatura"},{"etapa":"durante","descripcion":"Foto de cálculos de superheat/subcooling"}]'::jsonb,
- '[{"nombre":"Presión succión circuito 1","unidad":"PSI","rango_min":110,"rango_max":130},{"nombre":"Presión descarga circuito 1","unidad":"PSI","rango_min":275,"rango_max":400},{"nombre":"Superheat circuito 1","unidad":"°F","rango_min":5,"rango_max":15},{"nombre":"Subcooling circuito 1","unidad":"°F","rango_min":8,"rango_max":14},{"nombre":"Presión succión circuito 2","unidad":"PSI","rango_min":110,"rango_max":130},{"nombre":"Presión descarga circuito 2","unidad":"PSI","rango_min":275,"rango_max":400},{"nombre":"Superheat circuito 2","unidad":"°F","rango_min":5,"rango_max":15},{"nombre":"Subcooling circuito 2","unidad":"°F","rango_min":8,"rango_max":14}]'::jsonb,
+ '[{"nombre":"Presión succión circuito 1","unidad":"PSI","rango_min":110,"rango_max":130},{"nombre":"Presión descarga circuito 1","unidad":"PSI","rango_min":275,"rango_max":400},{"nombre":"Superheat circuito 1","unidad":"°C","rango_min":3,"rango_max":8},{"nombre":"Subcooling circuito 1","unidad":"°C","rango_min":4,"rango_max":8},{"nombre":"Presión succión circuito 2","unidad":"PSI","rango_min":110,"rango_max":130},{"nombre":"Presión descarga circuito 2","unidad":"PSI","rango_min":275,"rango_max":400},{"nombre":"Superheat circuito 2","unidad":"°C","rango_min":3,"rango_max":8},{"nombre":"Subcooling circuito 2","unidad":"°C","rango_min":4,"rango_max":8}]'::jsonb,
  true),
 
 ('mini_chiller', 'preventivo', 8, 'Detección de fugas de refrigerante',
@@ -223,7 +223,7 @@ INSERT INTO public.plantillas_pasos (tipo_equipo_slug, tipo_mantenimiento, orden
 ('mini_chiller', 'preventivo', 10, 'Inspección de válvula de expansión (TXV/EEV)',
  'Verificar operación correcta de la válvula de expansión. Inspeccionar por congelamiento o escarcha en la válvula. Verificar que el bulbo sensor esté bien sujeto y aislado. En válvulas electrónicas (EEV), verificar señal de control.',
  '[{"etapa":"durante","descripcion":"Foto de la válvula de expansión"},{"etapa":"durante","descripcion":"Foto de cualquier congelamiento o anomalía"}]'::jsonb,
- '[{"nombre":"Superheat evaporador","unidad":"°F","rango_min":5,"rango_max":15}]'::jsonb,
+ '[{"nombre":"Superheat evaporador","unidad":"°C","rango_min":3,"rango_max":8}]'::jsonb,
  true),
 
 ('mini_chiller', 'preventivo', 11, 'Limpieza del filtro de agua (si aplica)',
@@ -241,7 +241,7 @@ INSERT INTO public.plantillas_pasos (tipo_equipo_slug, tipo_mantenimiento, orden
 ('mini_chiller', 'preventivo', 13, 'Prueba de operación completa y cierre',
  'Energizar el equipo. Arrancar sistema y verificar secuencia de arranque. Monitorear presiones y temperaturas durante 20 minutos. Verificar que el diferencial de temperatura del agua sea estable. Verificar que no haya fugas de agua ni refrigerante. Cerrar todos los paneles. Entregar equipo en operación normal.',
  '[{"etapa":"despues","descripcion":"Video de 30 segundos del equipo en operación"},{"etapa":"despues","descripcion":"Foto de presiones estabilizadas"},{"etapa":"despues","descripcion":"Foto de temperaturas de agua estables"},{"etapa":"despues","descripcion":"Foto final del equipo cerrado y operando"}]'::jsonb,
- '[{"nombre":"Presión succión final","unidad":"PSI","rango_min":110,"rango_max":130},{"nombre":"Presión descarga final","unidad":"PSI","rango_min":275,"rango_max":400},{"nombre":"Temp. agua entrada final","unidad":"°F","rango_min":null,"rango_max":null},{"nombre":"Temp. agua salida final","unidad":"°F","rango_min":null,"rango_max":null},{"nombre":"Amperaje compresor(es) final","unidad":"A","rango_min":null,"rango_max":null}]'::jsonb,
+ '[{"nombre":"Presión succión final","unidad":"PSI","rango_min":110,"rango_max":130},{"nombre":"Presión descarga final","unidad":"PSI","rango_min":275,"rango_max":400},{"nombre":"Temp. agua entrada final","unidad":"°C","rango_min":null,"rango_max":null},{"nombre":"Temp. agua salida final","unidad":"°C","rango_min":null,"rango_max":null},{"nombre":"Amperaje compresor(es) final","unidad":"A","rango_min":null,"rango_max":null}]'::jsonb,
  true);
 
 -- ============================================================================
