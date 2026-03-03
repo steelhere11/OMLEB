@@ -78,7 +78,7 @@ CREATE POLICY "reporte_comentarios_tech_select"
   USING (
     reporte_id IN (
       SELECT r.id FROM public.reportes r
-      WHERE r.folio_id IN (SELECT private.get_my_folio_ids())
+      WHERE r.orden_servicio_id IN (SELECT private.get_my_orden_ids())
     )
   );
 

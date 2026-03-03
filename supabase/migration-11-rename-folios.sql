@@ -86,8 +86,71 @@ ALTER INDEX idx_folio_equipos_folio RENAME TO idx_orden_equipos_orden;
 ALTER INDEX idx_folio_equipos_equipo RENAME TO idx_orden_equipos_equipo;
 
 -- ============================================================================
--- 7. DROP AND RECREATE RLS HELPER FUNCTION
+-- 7. DROP ALL EXISTING RLS POLICIES (must happen before dropping old function)
 -- ============================================================================
+-- Drop all policies that reference private.get_my_folio_ids() FIRST,
+-- so the function can be replaced cleanly.
+
+-- 7a. ordenes_servicio (formerly folios)
+DROP POLICY IF EXISTS "folios_admin_all" ON public.ordenes_servicio;
+DROP POLICY IF EXISTS "folios_tech_select" ON public.ordenes_servicio;
+
+-- 7b. orden_asignados (formerly folio_asignados)
+DROP POLICY IF EXISTS "folio_asignados_admin_all" ON public.orden_asignados;
+DROP POLICY IF EXISTS "folio_asignados_tech_select" ON public.orden_asignados;
+
+-- 7c. orden_equipos (formerly folio_equipos)
+DROP POLICY IF EXISTS "folio_equipos_admin_all" ON public.orden_equipos;
+DROP POLICY IF EXISTS "folio_equipos_tech_select" ON public.orden_equipos;
+DROP POLICY IF EXISTS "folio_equipos_tech_insert" ON public.orden_equipos;
+
+-- 7d. reportes
+DROP POLICY IF EXISTS "reportes_admin_all" ON public.reportes;
+DROP POLICY IF EXISTS "reportes_tech_select" ON public.reportes;
+DROP POLICY IF EXISTS "reportes_tech_insert" ON public.reportes;
+DROP POLICY IF EXISTS "reportes_tech_update" ON public.reportes;
+DROP POLICY IF EXISTS "reportes_tech_delete" ON public.reportes;
+
+-- 7e. reporte_equipos
+DROP POLICY IF EXISTS "reporte_equipos_admin_all" ON public.reporte_equipos;
+DROP POLICY IF EXISTS "reporte_equipos_tech_select" ON public.reporte_equipos;
+DROP POLICY IF EXISTS "reporte_equipos_tech_insert" ON public.reporte_equipos;
+DROP POLICY IF EXISTS "reporte_equipos_tech_update" ON public.reporte_equipos;
+DROP POLICY IF EXISTS "reporte_equipos_tech_delete" ON public.reporte_equipos;
+
+-- 7f. reporte_fotos
+DROP POLICY IF EXISTS "reporte_fotos_admin_all" ON public.reporte_fotos;
+DROP POLICY IF EXISTS "reporte_fotos_tech_select" ON public.reporte_fotos;
+DROP POLICY IF EXISTS "reporte_fotos_tech_insert" ON public.reporte_fotos;
+DROP POLICY IF EXISTS "reporte_fotos_tech_update" ON public.reporte_fotos;
+DROP POLICY IF EXISTS "reporte_fotos_tech_delete" ON public.reporte_fotos;
+
+-- 7g. reporte_materiales
+DROP POLICY IF EXISTS "reporte_materiales_admin_all" ON public.reporte_materiales;
+DROP POLICY IF EXISTS "reporte_materiales_tech_select" ON public.reporte_materiales;
+DROP POLICY IF EXISTS "reporte_materiales_tech_insert" ON public.reporte_materiales;
+DROP POLICY IF EXISTS "reporte_materiales_tech_update" ON public.reporte_materiales;
+DROP POLICY IF EXISTS "reporte_materiales_tech_delete" ON public.reporte_materiales;
+
+-- 7h. reporte_revisiones (may not exist if migration-10 was not run)
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "reporte_revisiones_admin_all" ON public.reporte_revisiones;
+  DROP POLICY IF EXISTS "reporte_revisiones_tech_select" ON public.reporte_revisiones;
+EXCEPTION WHEN undefined_table THEN NULL;
+END $$;
+
+-- 7i. reporte_comentarios (may not exist if migration-09 was not run)
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "reporte_comentarios_admin_all" ON public.reporte_comentarios;
+  DROP POLICY IF EXISTS "reporte_comentarios_tech_select" ON public.reporte_comentarios;
+EXCEPTION WHEN undefined_table THEN NULL;
+END $$;
+
+-- ============================================================================
+-- 7.1 DROP AND RECREATE RLS HELPER FUNCTION
+-- ============================================================================
+-- Now that all policies depending on get_my_folio_ids() are dropped, we can
+-- safely drop the old function and create the new one.
 
 DROP FUNCTION IF EXISTS private.get_my_folio_ids();
 
@@ -104,15 +167,12 @@ AS $$
 $$;
 
 -- ============================================================================
--- 8. DROP ALL EXISTING RLS POLICIES AND RECREATE WITH NEW NAMES
+-- 8. RECREATE ALL RLS POLICIES WITH NEW NAMES AND FUNCTION REFERENCES
 -- ============================================================================
 
 -- --------------------------------------------------------------------------
--- 8a. ordenes_servicio (formerly folios)
+-- 8a. ordenes_servicio
 -- --------------------------------------------------------------------------
-
-DROP POLICY IF EXISTS "folios_admin_all" ON public.ordenes_servicio;
-DROP POLICY IF EXISTS "folios_tech_select" ON public.ordenes_servicio;
 
 CREATE POLICY "ordenes_servicio_admin_all"
   ON public.ordenes_servicio FOR ALL
@@ -125,11 +185,8 @@ CREATE POLICY "ordenes_servicio_tech_select"
   USING (id IN (SELECT private.get_my_orden_ids()));
 
 -- --------------------------------------------------------------------------
--- 8b. orden_asignados (formerly folio_asignados)
+-- 8b. orden_asignados
 -- --------------------------------------------------------------------------
-
-DROP POLICY IF EXISTS "folio_asignados_admin_all" ON public.orden_asignados;
-DROP POLICY IF EXISTS "folio_asignados_tech_select" ON public.orden_asignados;
 
 CREATE POLICY "orden_asignados_admin_all"
   ON public.orden_asignados FOR ALL
@@ -142,12 +199,8 @@ CREATE POLICY "orden_asignados_tech_select"
   USING (orden_servicio_id IN (SELECT private.get_my_orden_ids()));
 
 -- --------------------------------------------------------------------------
--- 8c. orden_equipos (formerly folio_equipos)
+-- 8c. orden_equipos
 -- --------------------------------------------------------------------------
-
-DROP POLICY IF EXISTS "folio_equipos_admin_all" ON public.orden_equipos;
-DROP POLICY IF EXISTS "folio_equipos_tech_select" ON public.orden_equipos;
-DROP POLICY IF EXISTS "folio_equipos_tech_insert" ON public.orden_equipos;
 
 CREATE POLICY "orden_equipos_admin_all"
   ON public.orden_equipos FOR ALL
@@ -165,14 +218,8 @@ CREATE POLICY "orden_equipos_tech_insert"
   WITH CHECK (orden_servicio_id IN (SELECT private.get_my_orden_ids()));
 
 -- --------------------------------------------------------------------------
--- 8d. reportes — drop and recreate all policies that referenced folio_id
+-- 8d. reportes
 -- --------------------------------------------------------------------------
-
-DROP POLICY IF EXISTS "reportes_admin_all" ON public.reportes;
-DROP POLICY IF EXISTS "reportes_tech_select" ON public.reportes;
-DROP POLICY IF EXISTS "reportes_tech_insert" ON public.reportes;
-DROP POLICY IF EXISTS "reportes_tech_update" ON public.reportes;
-DROP POLICY IF EXISTS "reportes_tech_delete" ON public.reportes;
 
 CREATE POLICY "reportes_admin_all"
   ON public.reportes FOR ALL
@@ -206,14 +253,8 @@ CREATE POLICY "reportes_tech_delete"
   );
 
 -- --------------------------------------------------------------------------
--- 8e. reporte_equipos — policies join through reportes.orden_servicio_id
+-- 8e. reporte_equipos
 -- --------------------------------------------------------------------------
-
-DROP POLICY IF EXISTS "reporte_equipos_admin_all" ON public.reporte_equipos;
-DROP POLICY IF EXISTS "reporte_equipos_tech_select" ON public.reporte_equipos;
-DROP POLICY IF EXISTS "reporte_equipos_tech_insert" ON public.reporte_equipos;
-DROP POLICY IF EXISTS "reporte_equipos_tech_update" ON public.reporte_equipos;
-DROP POLICY IF EXISTS "reporte_equipos_tech_delete" ON public.reporte_equipos;
 
 CREATE POLICY "reporte_equipos_admin_all"
   ON public.reporte_equipos FOR ALL
@@ -261,14 +302,8 @@ CREATE POLICY "reporte_equipos_tech_delete"
   );
 
 -- --------------------------------------------------------------------------
--- 8f. reporte_fotos — policies join through reportes.orden_servicio_id
+-- 8f. reporte_fotos
 -- --------------------------------------------------------------------------
-
-DROP POLICY IF EXISTS "reporte_fotos_admin_all" ON public.reporte_fotos;
-DROP POLICY IF EXISTS "reporte_fotos_tech_select" ON public.reporte_fotos;
-DROP POLICY IF EXISTS "reporte_fotos_tech_insert" ON public.reporte_fotos;
-DROP POLICY IF EXISTS "reporte_fotos_tech_update" ON public.reporte_fotos;
-DROP POLICY IF EXISTS "reporte_fotos_tech_delete" ON public.reporte_fotos;
 
 CREATE POLICY "reporte_fotos_admin_all"
   ON public.reporte_fotos FOR ALL
@@ -316,14 +351,8 @@ CREATE POLICY "reporte_fotos_tech_delete"
   );
 
 -- --------------------------------------------------------------------------
--- 8g. reporte_materiales — policies join through reportes.orden_servicio_id
+-- 8g. reporte_materiales
 -- --------------------------------------------------------------------------
-
-DROP POLICY IF EXISTS "reporte_materiales_admin_all" ON public.reporte_materiales;
-DROP POLICY IF EXISTS "reporte_materiales_tech_select" ON public.reporte_materiales;
-DROP POLICY IF EXISTS "reporte_materiales_tech_insert" ON public.reporte_materiales;
-DROP POLICY IF EXISTS "reporte_materiales_tech_update" ON public.reporte_materiales;
-DROP POLICY IF EXISTS "reporte_materiales_tech_delete" ON public.reporte_materiales;
 
 CREATE POLICY "reporte_materiales_admin_all"
   ON public.reporte_materiales FOR ALL
@@ -371,62 +400,62 @@ CREATE POLICY "reporte_materiales_tech_delete"
   );
 
 -- --------------------------------------------------------------------------
--- 8h. reporte_pasos — policies from migration-workflows.sql
---     These don't reference folio_id directly but the helper function changed
--- --------------------------------------------------------------------------
--- reporte_pasos policies use creado_por join, not get_my_folio_ids, so they
--- do NOT need to be recreated. They are unaffected by this rename.
-
--- --------------------------------------------------------------------------
--- 8i. reporte_revisiones — policy from migration-10 references folio_id
+-- 8h. reporte_pasos — unaffected (uses creado_por join, not get_my_folio_ids)
 -- --------------------------------------------------------------------------
 
-DROP POLICY IF EXISTS "reporte_revisiones_admin_all" ON public.reporte_revisiones;
-DROP POLICY IF EXISTS "reporte_revisiones_tech_select" ON public.reporte_revisiones;
-
-CREATE POLICY "reporte_revisiones_admin_all"
-  ON public.reporte_revisiones
-  FOR ALL
-  USING ((SELECT private.is_admin()))
-  WITH CHECK ((SELECT private.is_admin()));
-
-CREATE POLICY "reporte_revisiones_tech_select"
-  ON public.reporte_revisiones
-  FOR SELECT
-  USING (
-    reporte_id IN (
-      SELECT r.id FROM public.reportes r
-      WHERE r.orden_servicio_id IN (SELECT private.get_my_orden_ids())
-    )
-  );
-
 -- --------------------------------------------------------------------------
--- 8j. reporte_comentarios — policy from migration-09 references folio_id
+-- 8i. reporte_revisiones (only if table exists)
 -- --------------------------------------------------------------------------
 
-DROP POLICY IF EXISTS "reporte_comentarios_admin_all" ON public.reporte_comentarios;
-DROP POLICY IF EXISTS "reporte_comentarios_tech_select" ON public.reporte_comentarios;
+DO $$ BEGIN
+  CREATE POLICY "reporte_revisiones_admin_all"
+    ON public.reporte_revisiones
+    FOR ALL
+    USING ((SELECT private.is_admin()))
+    WITH CHECK ((SELECT private.is_admin()));
 
-CREATE POLICY "reporte_comentarios_admin_all"
-  ON public.reporte_comentarios FOR ALL
-  TO authenticated
-  USING ((SELECT private.is_admin()));
+  CREATE POLICY "reporte_revisiones_tech_select"
+    ON public.reporte_revisiones
+    FOR SELECT
+    USING (
+      reporte_id IN (
+        SELECT r.id FROM public.reportes r
+        WHERE r.orden_servicio_id IN (SELECT private.get_my_orden_ids())
+      )
+    );
+EXCEPTION WHEN undefined_table THEN NULL;
+END $$;
 
-CREATE POLICY "reporte_comentarios_tech_select"
-  ON public.reporte_comentarios FOR SELECT
-  TO authenticated
-  USING (
-    reporte_id IN (
-      SELECT r.id FROM public.reportes r
-      WHERE r.orden_servicio_id IN (SELECT private.get_my_orden_ids())
-    )
-  );
+-- --------------------------------------------------------------------------
+-- 8j. reporte_comentarios (only if table exists)
+-- --------------------------------------------------------------------------
+
+DO $$ BEGIN
+  CREATE POLICY "reporte_comentarios_admin_all"
+    ON public.reporte_comentarios FOR ALL
+    TO authenticated
+    USING ((SELECT private.is_admin()));
+
+  CREATE POLICY "reporte_comentarios_tech_select"
+    ON public.reporte_comentarios FOR SELECT
+    TO authenticated
+    USING (
+      reporte_id IN (
+        SELECT r.id FROM public.reportes r
+        WHERE r.orden_servicio_id IN (SELECT private.get_my_orden_ids())
+      )
+    );
+EXCEPTION WHEN undefined_table THEN NULL;
+END $$;
 
 -- ============================================================================
 -- 9. RENAME UNIQUE CONSTRAINT ON reportes
 -- ============================================================================
 
-ALTER TABLE public.reportes RENAME CONSTRAINT unique_folio_fecha TO unique_orden_fecha;
+DO $$ BEGIN
+  ALTER TABLE public.reportes RENAME CONSTRAINT unique_folio_fecha TO unique_orden_fecha;
+EXCEPTION WHEN undefined_object THEN NULL;
+END $$;
 
 -- ============================================================================
 -- 10. UPDATE REALTIME PUBLICATION
@@ -436,7 +465,14 @@ ALTER TABLE public.reportes RENAME CONSTRAINT unique_folio_fecha TO unique_orden
 -- reportes, reporte_equipos, reporte_materiales were added in migration-03
 -- but their table names haven't changed, so they don't need updating.
 
-ALTER PUBLICATION supabase_realtime DROP TABLE IF EXISTS public.folio_equipos;
+-- The table was already renamed to orden_equipos in step 1, so drop by new name.
+-- Use DO block because ALTER PUBLICATION doesn't support IF EXISTS.
+DO $$
+BEGIN
+  ALTER PUBLICATION supabase_realtime DROP TABLE public.orden_equipos;
+EXCEPTION WHEN undefined_object THEN
+  NULL; -- table wasn't in publication, ignore
+END $$;
 ALTER PUBLICATION supabase_realtime ADD TABLE public.orden_equipos;
 
 -- ============================================================================
