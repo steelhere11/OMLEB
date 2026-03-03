@@ -113,6 +113,23 @@ function sanitize(name: string): string {
   return name.replace(/[<>:"/\\|?*]+/g, "_").replace(/\s+/g, " ").trim();
 }
 
+/** Create a short, descriptive filename prefix from a step name.
+ *  e.g. "Inspección y limpieza de ventiladores del condensador" → "Inspeccion_Limpieza_Ventiladores"
+ */
+function stepNamePrefix(stepName: string): string {
+  // Remove accents
+  const normalized = stepName.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  // Split into words, drop filler words, capitalize each
+  const filler = new Set(["de", "del", "la", "el", "los", "las", "y", "en", "a", "con", "por", "al", "e"]);
+  const words = normalized
+    .split(/\s+/)
+    .filter((w) => !filler.has(w.toLowerCase()))
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+  // Take up to 3 meaningful words to keep it short but descriptive
+  const selected = words.slice(0, 3);
+  return selected.join("_").replace(/[<>:"/\\|?*]+/g, "") || "Paso";
+}
+
 /** Determine file extension from blob MIME type */
 function extFromBlob(blob: Blob): string {
   if (blob.type.includes("png")) return ".png";
@@ -357,15 +374,34 @@ export default function ReportPdfButton({
         const tipo = entry.tipo_trabajo === "correctivo" ? "Correctivo" : "Preventivo";
         const folderName = `${tag}_${tipo}`;
 
-        // Count per etiqueta to name files
-        const etiquetaCounts: Record<string, number> = {};
+        // Build step ID → step name map for this entry
+        const stepNameMap = new Map<string, string>();
+        for (const step of entry.steps ?? []) {
+          stepNameMap.set(step.id, step.nombre);
+        }
+
+        // Count per composite key (stepPrefix+etiqueta) to number files
+        const nameCounts: Record<string, number> = {};
 
         for (const photo of entry.photos ?? []) {
           const etiqueta = sanitize(photo.etiqueta || "foto");
-          etiquetaCounts[etiqueta] = (etiquetaCounts[etiqueta] ?? 0) + 1;
+          let fileName: string;
+
+          if (photo.reporte_paso_id && stepNameMap.has(photo.reporte_paso_id)) {
+            // Photo linked to a step — use step name prefix + etiqueta
+            const prefix = stepNamePrefix(stepNameMap.get(photo.reporte_paso_id)!);
+            const key = `${prefix}_${etiqueta}`;
+            nameCounts[key] = (nameCounts[key] ?? 0) + 1;
+            fileName = `${key}_${nameCounts[key]}`;
+          } else {
+            // Orphan photo — keep simple etiqueta naming
+            nameCounts[etiqueta] = (nameCounts[etiqueta] ?? 0) + 1;
+            fileName = `${etiqueta}_${nameCounts[etiqueta]}`;
+          }
+
           photoFetchTasks.push({
             folder: folderName,
-            name: `${etiqueta}_${etiquetaCounts[etiqueta]}`,
+            name: fileName,
             url: photo.url,
           });
         }
