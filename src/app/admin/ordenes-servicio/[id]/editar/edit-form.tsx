@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useCallback } from "react";
 import Link from "next/link";
-import { updateFolio } from "@/app/actions/folios";
+import { updateOrdenServicio } from "@/app/actions/ordenes-servicio";
 import { createEquipo } from "@/app/actions/equipos";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
@@ -11,10 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
 import type { ActionState } from "@/types/actions";
-import type { Folio, Sucursal, Cliente, User, Equipo, FolioEstatus, TipoEquipo } from "@/types";
+import type { OrdenServicio, Sucursal, Cliente, User, Equipo, OrdenServicioEstatus, TipoEquipo } from "@/types";
 
-interface EditFolioFormProps {
-  folio: Folio;
+interface EditOrdenFormProps {
+  orden: OrdenServicio;
   branches: Sucursal[];
   clientes: Cliente[];
   users: User[];
@@ -25,7 +25,7 @@ interface EditFolioFormProps {
 }
 
 const statusConfig: Record<
-  FolioEstatus,
+  OrdenServicioEstatus,
   { label: string; className: string }
 > = {
   abierto: {
@@ -46,8 +46,8 @@ const statusConfig: Record<
   },
 };
 
-export function EditFolioForm({
-  folio,
+export function EditOrdenForm({
+  orden,
   branches,
   clientes,
   users,
@@ -55,17 +55,17 @@ export function EditFolioForm({
   branchEquipment: initialBranchEquipment,
   currentEquipoIds,
   tiposEquipo,
-}: EditFolioFormProps) {
-  const updateWithId = updateFolio.bind(null, folio.id);
+}: EditOrdenFormProps) {
+  const updateWithId = updateOrdenServicio.bind(null, orden.id);
   const [state, formAction, isPending] = useActionState<
     ActionState | null,
     FormData
   >(updateWithId, null);
 
-  const status = statusConfig[folio.estatus] ?? statusConfig.abierto;
+  const status = statusConfig[orden.estatus] ?? statusConfig.abierto;
 
   const [selectedSucursalId, setSelectedSucursalId] = useState(
-    folio.sucursal_id
+    orden.sucursal_id
   );
   const [branchEquipment, setBranchEquipment] =
     useState<Equipo[]>(initialBranchEquipment);
@@ -147,7 +147,7 @@ export function EditFolioForm({
     <div className="mx-auto max-w-[480px]">
       {/* Back link */}
       <Link
-        href={`/admin/folios/${folio.id}`}
+        href={`/admin/ordenes-servicio/${orden.id}`}
         className="mb-6 inline-flex items-center gap-1 text-[13px] text-text-2 transition-colors duration-[80ms] hover:text-text-1"
       >
         <svg
@@ -164,11 +164,11 @@ export function EditFolioForm({
             d="M15 19l-7-7 7-7"
           />
         </svg>
-        Volver al folio
+        Volver a la orden
       </Link>
 
       <h1 className="mb-6 text-[22px] font-bold tracking-[-0.025em] text-text-0">
-        Editar Folio
+        Editar Orden de Servicio
       </h1>
 
       <div className="rounded-[10px] border border-admin-border bg-admin-surface p-6">
@@ -176,10 +176,10 @@ export function EditFolioForm({
         <div className="mb-6 flex items-center justify-between rounded-[6px] border border-admin-border bg-admin-surface-elevated px-4 py-3">
           <div>
             <p className="text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
-              Numero de folio
+              Numero de orden
             </p>
             <p className="mt-0.5 font-mono text-[15px] font-bold text-text-0">
-              {folio.numero_folio}
+              {orden.numero_orden}
             </p>
           </div>
           <div className="text-right">
@@ -235,7 +235,7 @@ export function EditFolioForm({
               id="cliente_id"
               name="cliente_id"
               required
-              defaultValue={folio.cliente_id}
+              defaultValue={orden.cliente_id}
               error={state?.fieldErrors?.cliente_id?.[0]}
               className="mt-1.5 admin-select"
             >
@@ -262,7 +262,7 @@ export function EditFolioForm({
               name="descripcion_problema"
               placeholder="Describa el problema reportado..."
               required
-              defaultValue={folio.descripcion_problema}
+              defaultValue={orden.descripcion_problema}
               error={state?.fieldErrors?.descripcion_problema?.[0]}
               className="mt-1.5 admin-textarea"
             />
@@ -326,10 +326,10 @@ export function EditFolioForm({
           {/* Equipment Assignment */}
           <div>
             <Label className="text-[13px] text-text-1">
-              Equipos del Folio
+              Equipos de la Orden
             </Label>
             <p className="mt-0.5 text-[12px] text-text-3">
-              Seleccione los equipos que se trabajaran en este folio
+              Seleccione los equipos que se trabajaran en esta orden
             </p>
 
             {loadingEquipment ? (

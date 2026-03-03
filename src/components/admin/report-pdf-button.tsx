@@ -27,8 +27,8 @@ interface ReportPdfButtonProps {
     fecha: string;
     autor: string;
   };
-  folio: {
-    numero_folio: string;
+  orden: {
+    numero_orden: string;
     descripcion_problema: string;
   };
   sucursal: {
@@ -125,7 +125,7 @@ function extFromBlob(blob: Blob): string {
 export default function ReportPdfButton({
   reporte,
   lastRevision,
-  folio,
+  orden,
   sucursal,
   cliente,
   teamMembers,
@@ -221,7 +221,7 @@ export default function ReportPdfButton({
 
     // 4. Transform data into PdfReportData shape — distribute photos into steps
     return {
-      folio,
+      orden,
       sucursal,
       cliente: {
         nombre: cliente.nombre,
@@ -299,7 +299,7 @@ export default function ReportPdfButton({
       const blob = await generatePdfBlob();
       downloadBlob(
         blob,
-        `Reporte_${folio.numero_folio}_${reporte.fecha}.pdf`
+        `Reporte_${orden.numero_orden}_${reporte.fecha}.pdf`
       );
     } catch (err) {
       console.error("PDF generation error:", err);
@@ -322,7 +322,7 @@ export default function ReportPdfButton({
 
       // 2. Create ZIP
       const zip = new JSZip();
-      const baseName = `Reporte_${folio.numero_folio}_${reporte.fecha}`;
+      const baseName = `Reporte_${orden.numero_orden}_${reporte.fecha}`;
 
       // Add PDF to root
       zip.file(`${baseName}.pdf`, pdfBlob);

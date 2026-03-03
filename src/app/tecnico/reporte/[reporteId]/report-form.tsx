@@ -25,9 +25,9 @@ import type { RegistrationEntry, CommentWithAuthor, FlaggedPhotoSummary } from "
 
 interface ReportFormProps {
   reporteId: string;
-  folioId: string;
-  folioNumero: string;
-  folioDescripcion: string;
+  ordenServicioId: string;
+  ordenNumero: string;
+  ordenDescripcion: string;
   sucursalNombre: string;
   sucursalId: string;
   clienteNombre: string;
@@ -51,7 +51,7 @@ interface ReportFormProps {
     metadata_fecha: string | null;
     metadata_gps: string | null;
   } | null;
-  existingFolioSitePhoto: { url: string } | null;
+  existingOrdenSitePhoto: { url: string } | null;
   registrationEntries: RegistrationEntry[];
   // Admin feedback props
   adminComments: CommentWithAuthor[];
@@ -67,9 +67,9 @@ const rolLabels: Record<string, string> = {
 
 export function ReportForm({
   reporteId,
-  folioId,
-  folioNumero,
-  folioDescripcion,
+  ordenServicioId,
+  ordenNumero,
+  ordenDescripcion,
   sucursalNombre,
   sucursalId,
   clienteNombre,
@@ -84,7 +84,7 @@ export function ReportForm({
   sitioCompletado,
   arrivalPhoto,
   sitePhoto,
-  existingFolioSitePhoto,
+  existingOrdenSitePhoto,
   registrationEntries,
   adminComments,
   flaggedPhotos,
@@ -215,7 +215,7 @@ export function ReportForm({
           </svg>
         </Link>
         <div className="flex-1">
-          <h1 className="text-lg font-bold text-gray-900">{folioNumero}</h1>
+          <h1 className="text-lg font-bold text-gray-900">{ordenNumero}</h1>
           <p className="text-sm text-gray-500">
             {sucursalNombre}
             {clienteNombre && ` - ${clienteNombre}`}
@@ -261,13 +261,13 @@ export function ReportForm({
           {todayFormatted}
         </p>
 
-        {/* Folio description */}
-        {folioDescripcion && (
+        {/* Orden description */}
+        {ordenDescripcion && (
           <div className="rounded-lg bg-gray-50 p-3">
             <p className="text-xs font-medium text-gray-500 mb-1">
               Problema reportado
             </p>
-            <p className="text-sm text-gray-700">{folioDescripcion}</p>
+            <p className="text-sm text-gray-700">{ordenDescripcion}</p>
           </div>
         )}
 
@@ -331,9 +331,9 @@ export function ReportForm({
       >
         <SiteOverviewSection
           reporteId={reporteId}
-          folioId={folioId}
+          ordenServicioId={ordenServicioId}
           isComplete={siteDone}
-          existingFolioPhoto={existingFolioSitePhoto}
+          existingOrdenPhoto={existingOrdenSitePhoto}
           existingPhoto={sitePhoto}
           onComplete={handleSiteComplete}
         />
@@ -367,7 +367,7 @@ export function ReportForm({
         {/* Equipment Section */}
         <EquipmentSection
           reporteId={reporteId}
-          folioId={folioId}
+          ordenServicioId={ordenServicioId}
           initialEntries={initialEntries}
           availableEquipment={availableEquipment}
           tiposEquipo={tiposEquipo}

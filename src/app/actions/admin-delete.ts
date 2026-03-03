@@ -90,30 +90,31 @@ export async function adminDeleteReport(
   }
 
   revalidatePath("/admin/reportes");
-  revalidatePath("/admin/folios");
+  revalidatePath("/admin/ordenes-servicio");
   return { success: true, message: "Reporte eliminado exitosamente" };
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-// 2. Admin Delete Folio
+// 2. Admin Delete Orden de Servicio
 // ══════════════════════════════════════════════════════════════════════════
-// Deletes a folio and all its reports. Storage files cleaned up for every
-// report. CASCADE on folios handles: folio_asignados, folio_equipos.
-// Reports use ON DELETE RESTRICT on folio_id, so we delete them explicitly.
+// Deletes an orden de servicio and all its reports. Storage files cleaned up
+// for every report. CASCADE on ordenes_servicio handles: orden_asignados,
+// orden_equipos. Reports use ON DELETE RESTRICT on orden_servicio_id, so we
+// delete them explicitly.
 
-export async function adminDeleteFolio(
-  folioId: string
+export async function adminDeleteOrdenServicio(
+  ordenId: string
 ): Promise<ActionState> {
   const auth = await verifyAdmin();
   if (auth.error) return { error: auth.error };
 
   const admin = createAdminClient();
 
-  // 1. Fetch all reports for this folio
+  // 1. Fetch all reports for this orden
   const { data: reportes } = await admin
     .from("reportes")
     .select("id")
-    .eq("folio_id", folioId);
+    .eq("orden_servicio_id", ordenId);
 
   // 2. For each report, fetch photo URLs and delete storage files
   if (reportes && reportes.length > 0) {
@@ -132,33 +133,33 @@ export async function adminDeleteFolio(
     if (reporteError) {
       return {
         error:
-          "Error al eliminar reportes del folio: " + reporteError.message,
+          "Error al eliminar reportes de la orden: " + reporteError.message,
       };
     }
   }
 
-  // 4. Delete the folio itself (CASCADE: folio_asignados, folio_equipos)
+  // 4. Delete the orden itself (CASCADE: orden_asignados, orden_equipos)
   const { error } = await admin
-    .from("folios")
+    .from("ordenes_servicio")
     .delete()
-    .eq("id", folioId);
+    .eq("id", ordenId);
 
   if (error) {
-    return { error: "Error al eliminar folio: " + error.message };
+    return { error: "Error al eliminar orden de servicio: " + error.message };
   }
 
-  revalidatePath("/admin/folios");
+  revalidatePath("/admin/ordenes-servicio");
   revalidatePath("/admin/reportes");
-  return { success: true, message: "Folio eliminado exitosamente" };
+  return { success: true, message: "Orden de servicio eliminada exitosamente" };
 }
 
 // ══════════════════════════════════════════════════════════════════════════
 // 3. Admin Delete Equipo
 // ══════════════════════════════════════════════════════════════════════════
-// Detaches equipment from reports and folios, then deletes the equipment.
+// Detaches equipment from reports and ordenes, then deletes the equipment.
 // reporte_fotos.equipo_id is ON DELETE SET NULL (auto-nullified).
 // reporte_equipos.equipo_id is ON DELETE RESTRICT, so we delete those rows.
-// folio_equipos.equipo_id is ON DELETE RESTRICT, so we delete those rows.
+// orden_equipos.equipo_id is ON DELETE RESTRICT, so we delete those rows.
 
 export async function adminDeleteEquipo(
   equipoId: string
@@ -180,15 +181,15 @@ export async function adminDeleteEquipo(
     };
   }
 
-  // 2. Delete folio_equipos rows referencing this equipment
+  // 2. Delete orden_equipos rows referencing this equipment
   const { error: feError } = await admin
-    .from("folio_equipos")
+    .from("orden_equipos")
     .delete()
     .eq("equipo_id", equipoId);
 
   if (feError) {
     return {
-      error: "Error al desvincular equipo de folios: " + feError.message,
+      error: "Error al desvincular equipo de ordenes: " + feError.message,
     };
   }
 
@@ -213,7 +214,7 @@ export async function adminDeleteEquipo(
 // 4. Admin Delete Sucursal
 // ══════════════════════════════════════════════════════════════════════════
 // Deletes a branch and everything connected to it:
-// - All folios for this sucursal (with their reports + storage files)
+// - All ordenes for this sucursal (with their reports + storage files)
 // - Any orphan reports directly referencing sucursal_id
 // - The sucursal itself (CASCADE deletes all equipos under it)
 
@@ -225,20 +226,20 @@ export async function adminDeleteSucursal(
 
   const admin = createAdminClient();
 
-  // 1. Fetch all folios for this sucursal
-  const { data: folios } = await admin
-    .from("folios")
+  // 1. Fetch all ordenes for this sucursal
+  const { data: ordenes } = await admin
+    .from("ordenes_servicio")
     .select("id")
     .eq("sucursal_id", sucursalId);
 
-  // 2. For each folio, delete all reports (with storage cleanup) and then the folio
-  if (folios && folios.length > 0) {
-    for (const folio of folios) {
-      // Fetch reports for this folio
+  // 2. For each orden, delete all reports (with storage cleanup) and then the orden
+  if (ordenes && ordenes.length > 0) {
+    for (const orden of ordenes) {
+      // Fetch reports for this orden
       const { data: reportes } = await admin
         .from("reportes")
         .select("id")
-        .eq("folio_id", folio.id);
+        .eq("orden_servicio_id", orden.id);
 
       if (reportes && reportes.length > 0) {
         // Clean up storage for each report
@@ -247,18 +248,18 @@ export async function adminDeleteSucursal(
           await deleteStorageFiles(urls);
         }
 
-        // Delete all reports for this folio
+        // Delete all reports for this orden
         const reporteIds = reportes.map((r) => r.id);
         await admin.from("reportes").delete().in("id", reporteIds);
       }
 
-      // Delete the folio (CASCADE: folio_asignados, folio_equipos)
-      await admin.from("folios").delete().eq("id", folio.id);
+      // Delete the orden (CASCADE: orden_asignados, orden_equipos)
+      await admin.from("ordenes_servicio").delete().eq("id", orden.id);
     }
   }
 
   // 3. Handle orphan reports directly referencing sucursal_id
-  //    (reports whose folio was already deleted but still reference this sucursal)
+  //    (reports whose orden was already deleted but still reference this sucursal)
   const { data: orphanReportes } = await admin
     .from("reportes")
     .select("id")
@@ -285,7 +286,7 @@ export async function adminDeleteSucursal(
   }
 
   revalidatePath("/admin/sucursales");
-  revalidatePath("/admin/folios");
+  revalidatePath("/admin/ordenes-servicio");
   revalidatePath("/admin/reportes");
   revalidatePath("/admin/equipos");
   return { success: true, message: "Sucursal eliminada exitosamente" };

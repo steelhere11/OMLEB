@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useCallback } from "react";
 import Link from "next/link";
-import { createFolio } from "@/app/actions/folios";
+import { createOrdenServicio } from "@/app/actions/ordenes-servicio";
 import { createEquipo } from "@/app/actions/equipos";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
@@ -13,23 +13,23 @@ import { createClient } from "@/lib/supabase/client";
 import type { ActionState } from "@/types/actions";
 import type { Sucursal, Cliente, User, Equipo, TipoEquipo } from "@/types";
 
-interface CreateFolioFormProps {
+interface CreateOrdenFormProps {
   branches: Sucursal[];
   clientes: Cliente[];
   users: User[];
   tiposEquipo: TipoEquipo[];
 }
 
-export function CreateFolioForm({
+export function CreateOrdenForm({
   branches,
   clientes,
   users,
   tiposEquipo,
-}: CreateFolioFormProps) {
+}: CreateOrdenFormProps) {
   const [state, formAction, isPending] = useActionState<
     ActionState | null,
     FormData
-  >(createFolio, null);
+  >(createOrdenServicio, null);
 
   const [selectedSucursalId, setSelectedSucursalId] = useState("");
   const [branchEquipment, setBranchEquipment] = useState<Equipo[]>([]);
@@ -117,7 +117,7 @@ export function CreateFolioForm({
     <div className="mx-auto max-w-[480px]">
       {/* Back link */}
       <Link
-        href="/admin/folios"
+        href="/admin/ordenes-servicio"
         className="mb-6 inline-flex items-center gap-1 text-[13px] text-text-2 transition-colors duration-[80ms] hover:text-text-1"
       >
         <svg
@@ -134,11 +134,11 @@ export function CreateFolioForm({
             d="M15 19l-7-7 7-7"
           />
         </svg>
-        Volver a folios
+        Volver a ordenes de servicio
       </Link>
 
       <h1 className="mb-6 text-[22px] font-bold tracking-[-0.025em] text-text-0">
-        Crear Folio
+        Crear Orden de Servicio
       </h1>
 
       <div className="rounded-[10px] border border-admin-border bg-admin-surface p-6">
@@ -261,10 +261,10 @@ export function CreateFolioForm({
           {/* Equipment Assignment */}
           <div>
             <Label className="text-[13px] text-text-1">
-              Equipos del Folio
+              Equipos de la Orden
             </Label>
             <p className="mt-0.5 text-[12px] text-text-3">
-              Seleccione los equipos que se trabajaran en este folio
+              Seleccione los equipos que se trabajaran en esta orden
             </p>
 
             {!selectedSucursalId ? (
@@ -460,7 +460,7 @@ export function CreateFolioForm({
           )}
 
           <Button type="submit" variant="outline" fullWidth loading={isPending}>
-            Crear Folio
+            Crear Orden de Servicio
           </Button>
         </form>
       </div>

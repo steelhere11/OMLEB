@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import type { Folio, FolioEstatus, ReporteEstatus } from "@/types";
+import type { OrdenServicio, OrdenServicioEstatus, ReporteEstatus } from "@/types";
 
-type FolioWithDetails = Folio & {
+type OrdenWithDetails = OrdenServicio & {
   sucursales: { nombre: string; numero: string; direccion: string } | null;
   clientes: { nombre: string } | null;
 };
 
-const folioStatusConfig: Record<
-  FolioEstatus,
+const ordenStatusConfig: Record<
+  OrdenServicioEstatus,
   { label: string; className: string }
 > = {
   abierto: {
@@ -47,7 +47,7 @@ const reportStatusConfig: Record<
   },
 };
 
-export default async function TecnicoFoliosPage() {
+export default async function TecnicoOrdenesPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -55,39 +55,39 @@ export default async function TecnicoFoliosPage() {
 
   if (!user) return null;
 
-  // RLS ensures only assigned folios are returned
-  const { data: folios } = await supabase
-    .from("folios")
+  // RLS ensures only assigned ordenes are returned
+  const { data: ordenes } = await supabase
+    .from("ordenes_servicio")
     .select("*, sucursales(nombre, numero, direccion), clientes(nombre)")
     .in("estatus", ["abierto", "en_progreso", "en_espera"])
     .order("created_at", { ascending: false });
 
-  const list = (folios as FolioWithDetails[] | null) ?? [];
+  const list = (ordenes as OrdenWithDetails[] | null) ?? [];
 
-  // Check today's reports for each folio
+  // Check today's reports for each orden
   const today = new Date().toISOString().split("T")[0];
-  const folioIds = list.map((f) => f.id);
+  const ordenIds = list.map((o) => o.id);
 
-  let reportByFolio = new Map<
+  let reportByOrden = new Map<
     string,
-    { id: string; folio_id: string; estatus: ReporteEstatus }
+    { id: string; orden_servicio_id: string; estatus: ReporteEstatus }
   >();
 
-  if (folioIds.length > 0) {
+  if (ordenIds.length > 0) {
     const { data: todayReports } = await supabase
       .from("reportes")
-      .select("id, folio_id, estatus")
-      .in("folio_id", folioIds)
+      .select("id, orden_servicio_id, estatus")
+      .in("orden_servicio_id", ordenIds)
       .eq("fecha", today);
 
-    reportByFolio = new Map(
+    reportByOrden = new Map(
       (
         (todayReports as {
           id: string;
-          folio_id: string;
+          orden_servicio_id: string;
           estatus: ReporteEstatus;
         }[]) ?? []
-      ).map((r) => [r.folio_id, r])
+      ).map((r) => [r.orden_servicio_id, r])
     );
   }
 
@@ -117,14 +117,14 @@ export default async function TecnicoFoliosPage() {
           </svg>
         </div>
 
-        <h1 className="mb-2 text-xl font-bold text-gray-900">Mis Folios</h1>
+        <h1 className="mb-2 text-xl font-bold text-gray-900">Mis Ordenes</h1>
 
         <p className="mb-2 text-base font-medium text-gray-600">
-          No tienes folios asignados
+          No tienes ordenes asignadas
         </p>
 
         <p className="max-w-xs text-sm text-gray-400">
-          Los folios apareceran aqui cuando un administrador te asigne trabajo
+          Las ordenes apareceran aqui cuando un administrador te asigne trabajo
         </p>
       </div>
     );
@@ -132,42 +132,42 @@ export default async function TecnicoFoliosPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-bold text-gray-900">Mis Folios</h1>
+      <h1 className="mb-4 text-xl font-bold text-gray-900">Mis Ordenes</h1>
 
       <div className="space-y-3">
-        {list.map((folio) => {
-          const todayReport = reportByFolio.get(folio.id);
-          const folioStatus =
-            folioStatusConfig[folio.estatus] ?? folioStatusConfig.abierto;
+        {list.map((orden) => {
+          const todayReport = reportByOrden.get(orden.id);
+          const ordenStatus =
+            ordenStatusConfig[orden.estatus] ?? ordenStatusConfig.abierto;
 
           return (
             <Link
-              key={folio.id}
-              href={`/tecnico/folios/${folio.id}`}
+              key={orden.id}
+              href={`/tecnico/ordenes-servicio/${orden.id}`}
               className="block min-h-[72px] rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-colors active:bg-gray-50"
             >
-              {/* Top row: folio number + status */}
+              {/* Top row: orden number + status */}
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-base font-bold text-gray-900">
-                  {folio.numero_folio}
+                  {orden.numero_orden}
                 </span>
                 <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${folioStatus.className}`}
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${ordenStatus.className}`}
                 >
-                  {folioStatus.label}
+                  {ordenStatus.label}
                 </span>
               </div>
 
               {/* Branch info */}
               <p className="text-sm text-gray-600">
-                {folio.sucursales
-                  ? `${folio.sucursales.nombre} (${folio.sucursales.numero})`
+                {orden.sucursales
+                  ? `${orden.sucursales.nombre} (${orden.sucursales.numero})`
                   : "Sin sucursal"}
               </p>
 
               {/* Client */}
               <p className="text-sm text-gray-500">
-                {folio.clientes?.nombre ?? "Sin cliente"}
+                {orden.clientes?.nombre ?? "Sin cliente"}
               </p>
 
               {/* Today's report indicator */}

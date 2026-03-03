@@ -46,7 +46,7 @@ export interface PdfRegistrationEntry {
 }
 
 export interface PdfReportData {
-  folio: { numero_folio: string; descripcion_problema: string };
+  orden: { numero_orden: string; descripcion_problema: string };
   sucursal: { nombre: string; numero: string; direccion: string };
   cliente: { nombre: string; logoBase64: string | null };
   companyLogoBase64: string | null;
@@ -139,7 +139,7 @@ const s = StyleSheet.create({
     fontWeight: 700,
     color: GRAY_900,
   },
-  headerFolio: {
+  headerOrden: {
     fontSize: 10,
     fontWeight: 500,
     color: BLUE,
@@ -910,7 +910,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
 
   return (
     <Document
-      title={`Reporte ${data.folio.numero_folio} - ${data.fecha}`}
+      title={`Reporte ${data.orden.numero_orden} - ${data.fecha}`}
       author="OMLEB"
     >
       <Page
@@ -933,8 +933,8 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
           )}
           <View style={s.headerCenter}>
             <Text style={s.headerTitle}>Reporte de Mantenimiento</Text>
-            <Text style={s.headerFolio}>
-              Folio: {data.folio.numero_folio}
+            <Text style={s.headerOrden}>
+              ODS: {data.orden.numero_orden}
               {data.revisionActual > 0 ? `  |  Revision ${data.revisionActual}` : ""}
             </Text>
           </View>
@@ -983,7 +983,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
             <View style={s.infoCellProblem}>
               <Text style={s.infoLabel}>Problema Reportado</Text>
               <Text style={[s.infoValue, { fontSize: 10 }]}>
-                {data.folio.descripcion_problema}
+                {data.orden.descripcion_problema}
               </Text>
             </View>
           </View>

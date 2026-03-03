@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Folio, FolioEstatus, Equipo, ReporteEstatus } from "@/types";
-import { FolioDeleteButton } from "@/components/admin/folio-delete-button";
+import type { OrdenServicio, OrdenServicioEstatus, Equipo, ReporteEstatus } from "@/types";
+import { OrdenDeleteButton } from "@/components/admin/orden-delete-button";
 
-type FolioDetail = Folio & {
+type OrdenDetail = OrdenServicio & {
   sucursales: { nombre: string; numero: string } | null;
   clientes: { nombre: string } | null;
-  folio_asignados: {
+  orden_asignados: {
     usuario_id: string;
     users: { nombre: string; rol: string } | null;
   }[];
-  folio_equipos: {
+  orden_equipos: {
     equipo_id: string;
     equipos: Equipo | null;
   }[];
@@ -26,7 +26,7 @@ type ReporteSummary = {
 };
 
 const statusConfig: Record<
-  FolioEstatus,
+  OrdenServicioEstatus,
   { label: string; className: string }
 > = {
   abierto: {
@@ -65,7 +65,7 @@ const reporteStatusConfig: Record<
   },
 };
 
-export default async function FolioDetailPage({
+export default async function OrdenDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -73,24 +73,24 @@ export default async function FolioDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  // Fetch folio with relations
-  const { data: folio } = await supabase
-    .from("folios")
+  // Fetch orden with relations
+  const { data: orden } = await supabase
+    .from("ordenes_servicio")
     .select(
-      "*, sucursales(nombre, numero), clientes(nombre), folio_asignados(usuario_id, users(nombre, rol)), folio_equipos(equipo_id, equipos(*))"
+      "*, sucursales(nombre, numero), clientes(nombre), orden_asignados(usuario_id, users(nombre, rol)), orden_equipos(equipo_id, equipos(*))"
     )
     .eq("id", id)
     .single();
 
-  if (!folio) notFound();
+  if (!orden) notFound();
 
-  const typedFolio = folio as unknown as FolioDetail;
+  const typedOrden = orden as unknown as OrdenDetail;
 
-  // Fetch reports for this folio
+  // Fetch reports for this orden
   const { data: reportes } = await supabase
     .from("reportes")
     .select("id, fecha, estatus, creado_por, users:creado_por(nombre)")
-    .eq("folio_id", id)
+    .eq("orden_servicio_id", id)
     .order("fecha", { ascending: false });
 
   const reporteList = (reportes as unknown as ReporteSummary[] | null) ?? [];
@@ -106,13 +106,13 @@ export default async function FolioDetailPage({
     photoCount = count ?? 0;
   }
 
-  const status = statusConfig[typedFolio.estatus] ?? statusConfig.abierto;
+  const status = statusConfig[typedOrden.estatus] ?? statusConfig.abierto;
 
   return (
     <div className="mx-auto max-w-3xl">
       {/* Back link */}
       <Link
-        href="/admin/folios"
+        href="/admin/ordenes-servicio"
         className="mb-6 inline-flex items-center gap-1 text-[13px] text-text-2 transition-colors duration-[80ms] hover:text-text-1"
       >
         <svg
@@ -129,21 +129,21 @@ export default async function FolioDetailPage({
             d="M15 19l-7-7 7-7"
           />
         </svg>
-        Volver a folios
+        Volver a ordenes de servicio
       </Link>
 
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-[22px] font-bold tracking-[-0.025em] text-text-0">
-            Folio {typedFolio.numero_folio}
+            Orden {typedOrden.numero_orden}
           </h1>
           <p className="mt-0.5 text-[13px] text-text-2">
-            {typedFolio.sucursales
-              ? `${typedFolio.sucursales.nombre} (${typedFolio.sucursales.numero})`
+            {typedOrden.sucursales
+              ? `${typedOrden.sucursales.nombre} (${typedOrden.sucursales.numero})`
               : ""}
-            {typedFolio.clientes
-              ? ` — ${typedFolio.clientes.nombre}`
+            {typedOrden.clientes
+              ? ` — ${typedOrden.clientes.nombre}`
               : ""}
           </p>
         </div>
@@ -154,17 +154,17 @@ export default async function FolioDetailPage({
             {status.label}
           </span>
           <Link
-            href={`/admin/folios/${id}/editar`}
+            href={`/admin/ordenes-servicio/${id}/editar`}
             className="inline-flex items-center gap-1.5 rounded-[6px] border border-admin-border px-3 py-1.5 text-[13px] font-medium text-text-1 transition-colors duration-[80ms] hover:bg-admin-surface-hover"
           >
             Editar
           </Link>
-          <FolioDeleteButton
-            folioId={id}
-            folioLabel={typedFolio.numero_folio}
+          <OrdenDeleteButton
+            ordenId={id}
+            ordenLabel={typedOrden.numero_orden}
             reportCount={reporteList.length}
             photoCount={photoCount}
-            redirectTo="/admin/folios"
+            redirectTo="/admin/ordenes-servicio"
           />
         </div>
       </div>
@@ -176,7 +176,7 @@ export default async function FolioDetailPage({
             Problema reportado
           </h2>
           <p className="text-[13px] leading-relaxed text-text-1">
-            {typedFolio.descripcion_problema}
+            {typedOrden.descripcion_problema}
           </p>
         </div>
 
@@ -185,11 +185,11 @@ export default async function FolioDetailPage({
           <h2 className="mb-3 text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
             Cuadrilla
           </h2>
-          {typedFolio.folio_asignados.length === 0 ? (
+          {typedOrden.orden_asignados.length === 0 ? (
             <p className="text-[13px] text-text-3">Sin asignaciones</p>
           ) : (
             <div className="flex flex-wrap gap-2">
-              {typedFolio.folio_asignados.map((a) => {
+              {typedOrden.orden_asignados.map((a) => {
                 const user = a.users;
                 return (
                   <div
@@ -215,23 +215,23 @@ export default async function FolioDetailPage({
           )}
         </div>
 
-        {/* Equipos del folio */}
+        {/* Equipos de la orden */}
         <div className="rounded-[10px] border border-admin-border bg-admin-surface p-5">
           <h2 className="mb-3 text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
-            Equipos del folio ({typedFolio.folio_equipos.length})
+            Equipos de la orden ({typedOrden.orden_equipos.length})
           </h2>
-          {typedFolio.folio_equipos.length === 0 ? (
+          {typedOrden.orden_equipos.length === 0 ? (
             <p className="text-[13px] text-text-3">
-              No hay equipos asignados a este folio
+              No hay equipos asignados a esta orden
             </p>
           ) : (
             <div className="space-y-2">
-              {typedFolio.folio_equipos.map((fe) => {
-                const eq = fe.equipos;
+              {typedOrden.orden_equipos.map((oe) => {
+                const eq = oe.equipos;
                 if (!eq) return null;
                 return (
                   <div
-                    key={fe.equipo_id}
+                    key={oe.equipo_id}
                     className="flex items-center justify-between rounded-[6px] border border-admin-border-subtle bg-admin-surface-elevated px-4 py-2.5"
                   >
                     <div>
@@ -268,7 +268,7 @@ export default async function FolioDetailPage({
           </h2>
           {reporteList.length === 0 ? (
             <p className="text-[13px] text-text-3">
-              Aun no se han generado reportes para este folio
+              Aun no se han generado reportes para esta orden
             </p>
           ) : (
             <div className="space-y-2">

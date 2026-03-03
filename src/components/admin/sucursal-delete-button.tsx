@@ -6,7 +6,7 @@ import { adminDeleteSucursal } from "@/app/actions/admin-delete";
 interface SucursalDeleteButtonProps {
   sucursalId: string;
   sucursalLabel: string;
-  folioCount: number;
+  ordenCount: number;
   reportCount: number;
   equipoCount: number;
   photoCount: number;
@@ -15,13 +15,13 @@ interface SucursalDeleteButtonProps {
 export function SucursalDeleteButton({
   sucursalId,
   sucursalLabel,
-  folioCount,
+  ordenCount,
   reportCount,
   equipoCount,
   photoCount,
 }: SucursalDeleteButtonProps) {
   const parts: string[] = [];
-  if (folioCount > 0) parts.push(`${folioCount} folio${folioCount > 1 ? "s" : ""}`);
+  if (ordenCount > 0) parts.push(`${ordenCount} orden${ordenCount > 1 ? "es" : ""} de servicio`);
   if (reportCount > 0) parts.push(`${reportCount} reporte${reportCount > 1 ? "s" : ""}`);
   if (equipoCount > 0) parts.push(`${equipoCount} equipo${equipoCount > 1 ? "s" : ""}`);
   if (photoCount > 0) parts.push(`${photoCount} foto${photoCount > 1 ? "s" : ""}`);

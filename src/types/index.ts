@@ -48,29 +48,29 @@ export interface Equipo {
   updated_at: string;
 }
 
-export type FolioEstatus = "abierto" | "en_progreso" | "completado" | "en_espera";
+export type OrdenServicioEstatus = "abierto" | "en_progreso" | "completado" | "en_espera";
 
-export interface Folio {
+export interface OrdenServicio {
   id: string;
   sucursal_id: string;
   cliente_id: string;
-  numero_folio: string;
+  numero_orden: string;
   descripcion_problema: string;
-  estatus: FolioEstatus;
+  estatus: OrdenServicioEstatus;
   created_at: string;
   updated_at: string;
 }
 
-export interface FolioAsignado {
+export interface OrdenAsignado {
   id: string;
-  folio_id: string;
+  orden_servicio_id: string;
   usuario_id: string;
   created_at: string;
 }
 
-export interface FolioEquipo {
+export interface OrdenEquipo {
   id: string;
-  folio_id: string;
+  orden_servicio_id: string;
   equipo_id: string;
   added_by: string | null;
   created_at: string;
@@ -80,7 +80,7 @@ export type ReporteEstatus = "en_progreso" | "en_espera" | "completado";
 
 export interface Reporte {
   id: string;
-  folio_id: string;
+  orden_servicio_id: string;
   creado_por: string;
   sucursal_id: string;
   fecha: string;

@@ -18,7 +18,7 @@ export default async function ReporteDetailPage({
     .select(
       `
       *,
-      folios(*, clientes(nombre, logo_url)),
+      ordenes_servicio:orden_servicio_id(*, clientes(nombre, logo_url)),
       sucursales(nombre, numero, direccion),
       users:creado_por(nombre, rol),
       reporte_equipos(
@@ -60,9 +60,9 @@ export default async function ReporteDetailPage({
   // Fetch team members, tipos_equipo, comments, and revisions in parallel
   const [{ data: asignados }, { data: tiposEquipo }, { data: comentarios }, revisions] = await Promise.all([
     supabase
-      .from("folio_asignados")
+      .from("orden_asignados")
       .select("usuario_id, users(nombre, rol)")
-      .eq("folio_id", reporte.folio_id),
+      .eq("orden_servicio_id", reporte.orden_servicio_id),
     supabase
       .from("tipos_equipo")
       .select("id, slug, nombre, is_system, created_at")

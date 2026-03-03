@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
-import { createEquipoForFolio } from "@/app/actions/equipos";
+import { createEquipoForOrden } from "@/app/actions/equipos";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,7 @@ import type { TipoEquipo } from "@/types";
 import type { ActionState } from "@/types/actions";
 
 interface AddEquipmentModalProps {
-  folioId: string;
+  ordenServicioId: string;
   reporteId: string;
   tiposEquipo: TipoEquipo[];
   isOpen: boolean;
@@ -19,14 +19,14 @@ interface AddEquipmentModalProps {
 }
 
 export function AddEquipmentModal({
-  folioId,
+  ordenServicioId,
   reporteId,
   tiposEquipo,
   isOpen,
   onClose,
   onEquipmentCreated,
 }: AddEquipmentModalProps) {
-  const boundAction = createEquipoForFolio.bind(null, folioId, reporteId);
+  const boundAction = createEquipoForOrden.bind(null, ordenServicioId, reporteId);
   const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
     boundAction,
     null
@@ -106,8 +106,8 @@ export function AddEquipmentModal({
         {/* Info notice */}
         <div className="mb-4 rounded-lg bg-blue-50 p-3">
           <p className="text-xs text-blue-700">
-            Este equipo sera revisado por un administrador y se vinculara a este
-            folio.
+            Este equipo sera revisado por un administrador y se vinculara a esta
+            orden de servicio.
           </p>
         </div>
 

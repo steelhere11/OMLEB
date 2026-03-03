@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const folioSchema = z.object({
+export const ordenServicioSchema = z.object({
   sucursal_id: z
     .string({ error: "La sucursal es requerida" })
     .uuid({ error: "ID de sucursal invalido" }),
@@ -15,4 +15,4 @@ export const folioSchema = z.object({
     }),
 });
 
-export type FolioInput = z.infer<typeof folioSchema>;
+export type OrdenServicioInput = z.infer<typeof ordenServicioSchema>;

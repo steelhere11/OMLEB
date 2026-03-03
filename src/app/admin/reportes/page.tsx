@@ -10,7 +10,7 @@ type ReporteWithRelations = {
   estatus: ReporteEstatus;
   finalizado_por_admin: boolean;
   created_at: string;
-  folios: { numero_folio: string; descripcion_problema: string; clientes: { nombre: string } | null } | null;
+  ordenes_servicio: { numero_orden: string; descripcion_problema: string; clientes: { nombre: string } | null } | null;
   sucursales: { nombre: string; numero: string } | null;
   users: { nombre: string; rol: string } | null;
   reporte_fotos: { id: string }[];
@@ -48,7 +48,7 @@ export default async function ReportesPage({
   let query = supabase
     .from("reportes")
     .select(
-      "id, fecha, estatus, finalizado_por_admin, created_at, folios(numero_folio, descripcion_problema, clientes(nombre)), sucursales(nombre, numero), users:creado_por(nombre, rol), reporte_fotos(id)"
+      "id, fecha, estatus, finalizado_por_admin, created_at, ordenes_servicio:orden_servicio_id(numero_orden, descripcion_problema, clientes(nombre)), sucursales(nombre, numero), users:creado_por(nombre, rol), reporte_fotos(id)"
     )
     .order("fecha", { ascending: false });
 
@@ -102,7 +102,7 @@ export default async function ReportesPage({
             {/* Header row */}
             <div className="flex items-center border-b border-admin-border-subtle px-[14px] py-[10px] text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
               <div className="w-[100px]">Fecha</div>
-              <div className="w-[100px]">Folio</div>
+              <div className="w-[100px]">ODS</div>
               <div className="w-[160px]">Sucursal</div>
               <div className="w-[120px]">Creado por</div>
               <div className="w-[100px]">Estatus</div>
@@ -126,7 +126,7 @@ export default async function ReportesPage({
                     })}
                   </div>
                   <div className="w-[100px] font-mono text-[13px] font-medium text-text-0">
-                    {reporte.folios?.numero_folio ?? "—"}
+                    {reporte.ordenes_servicio?.numero_orden ?? "—"}
                   </div>
                   <div className="w-[160px] text-[13px] text-text-1">
                     {reporte.sucursales
@@ -168,7 +168,7 @@ export default async function ReportesPage({
                     </Link>
                     <ReporteDeleteButton
                       reporteId={reporte.id}
-                      reporteLabel={`${reporte.folios?.numero_folio ?? "—"} - ${new Date(reporte.fecha).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}`}
+                      reporteLabel={`${reporte.ordenes_servicio?.numero_orden ?? "—"} - ${new Date(reporte.fecha).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}`}
                       photoCount={reporte.reporte_fotos?.length ?? 0}
                     />
                   </div>

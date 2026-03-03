@@ -4,9 +4,9 @@ import type { Equipo, Sucursal } from "@/types";
 
 type EquipoWithRelations = Equipo & {
   sucursales: Pick<Sucursal, "nombre" | "numero"> | null;
-  folio_equipos: {
-    folio_id: string;
-    folios: { numero_folio: string; estatus: string } | null;
+  orden_equipos: {
+    orden_servicio_id: string;
+    ordenes_servicio: { numero_orden: string; estatus: string } | null;
   }[];
 };
 
@@ -16,7 +16,7 @@ export default async function EquiposPage() {
   const { data: equipos } = await supabase
     .from("equipos")
     .select(
-      "*, sucursales(nombre, numero), folio_equipos(folio_id, folios(numero_folio, estatus))"
+      "*, sucursales(nombre, numero), orden_equipos(orden_servicio_id, ordenes_servicio:orden_servicio_id(numero_orden, estatus))"
     )
     .order("created_at", { ascending: false });
 
@@ -54,7 +54,7 @@ export default async function EquiposPage() {
       {/* Info banner */}
       <div className="mb-6 rounded-[8px] border border-accent/20 bg-accent/5 px-4 py-3">
         <p className="text-[13px] text-text-1">
-          Los equipos se agregan desde los folios. Aqui puedes consultar el
+          Los equipos se agregan desde las ordenes de servicio. Aqui puedes consultar el
           historial y editar detalles.
         </p>
       </div>
@@ -64,10 +64,10 @@ export default async function EquiposPage() {
         <div className="rounded-[10px] border border-admin-border bg-admin-surface py-28 text-center">
           <p className="text-[13px] text-text-3">No hay equipos registrados</p>
           <Link
-            href="/admin/folios/nuevo"
+            href="/admin/ordenes-servicio/nuevo"
             className="mt-3 inline-block text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
           >
-            Crear un folio para agregar equipos →
+            Crear una orden de servicio para agregar equipos →
           </Link>
         </div>
       ) : (
@@ -102,13 +102,13 @@ export default async function EquiposPage() {
                   <div className="w-[100px]">Marca</div>
                   <div className="w-[100px]">Modelo</div>
                   <div className="w-[100px]">Tipo</div>
-                  <div className="flex-1">Folios</div>
+                  <div className="flex-1">Ordenes</div>
                   <div className="w-[100px] text-right">Estado</div>
                 </div>
 
                 {/* Equipment rows */}
                 {items.map((equipo, i) => {
-                  const folioCount = equipo.folio_equipos?.length ?? 0;
+                  const ordenCount = equipo.orden_equipos?.length ?? 0;
                   return (
                     <Link
                       key={equipo.id}
@@ -128,9 +128,9 @@ export default async function EquiposPage() {
                         {equipo.tipo_equipo ?? "—"}
                       </div>
                       <div className="flex-1 text-[13px] text-text-2">
-                        {folioCount === 0
+                        {ordenCount === 0
                           ? "—"
-                          : `${folioCount} ${folioCount === 1 ? "folio" : "folios"}`}
+                          : `${ordenCount} ${ordenCount === 1 ? "orden" : "ordenes"}`}
                       </div>
                       <div className="w-[100px] text-right">
                         {equipo.revisado ? (

@@ -17,14 +17,14 @@ export type FlaggedPhotoSummary = {
 
 type ReportWithRelations = {
   id: string;
-  folio_id: string;
+  orden_servicio_id: string;
   fecha: string;
   estatus: ReporteEstatus;
   sucursal_id: string;
   llegada_completada: boolean;
   sitio_completado: boolean;
-  folios: {
-    numero_folio: string;
+  ordenes_servicio: {
+    numero_orden: string;
     descripcion_problema: string;
     sucursal_id: string;
     sucursales: { nombre: string; numero: string } | null;
@@ -51,11 +51,11 @@ export default async function ReportePage({
   const { reporteId } = await params;
   const supabase = await createClient();
 
-  // Fetch the report with folio details + gating fields
+  // Fetch the report with orden details + gating fields
   const { data: report } = await supabase
     .from("reportes")
     .select(
-      "id, folio_id, fecha, estatus, sucursal_id, llegada_completada, sitio_completado, folios(numero_folio, descripcion_problema, sucursal_id, sucursales(nombre, numero), clientes(nombre))"
+      "id, orden_servicio_id, fecha, estatus, sucursal_id, llegada_completada, sitio_completado, ordenes_servicio:orden_servicio_id(numero_orden, descripcion_problema, sucursal_id, sucursales(nombre, numero), clientes(nombre))"
     )
     .eq("id", reporteId)
     .single();
@@ -87,16 +87,16 @@ export default async function ReportePage({
     .eq("reporte_id", reporteId);
 
   const sucursalId = typedReport.sucursal_id;
-  const folioId = typedReport.folio_id;
+  const ordenServicioId = typedReport.orden_servicio_id;
 
-  // Fetch folio-scoped equipment via join table
-  const { data: folioEquipos } = await supabase
-    .from("folio_equipos")
+  // Fetch orden-scoped equipment via join table
+  const { data: ordenEquipos } = await supabase
+    .from("orden_equipos")
     .select("equipo_id, equipos(*)")
-    .eq("folio_id", folioId);
+    .eq("orden_servicio_id", ordenServicioId);
 
-  const availableEquipment = (folioEquipos ?? [])
-    .map((fe) => (fe as unknown as { equipo_id: string; equipos: Equipo | null }).equipos)
+  const availableEquipment = (ordenEquipos ?? [])
+    .map((oe) => (oe as unknown as { equipo_id: string; equipos: Equipo | null }).equipos)
     .filter(Boolean) as Equipo[];
 
   // Fetch tipos_equipo for the add-equipment modal
@@ -108,9 +108,9 @@ export default async function ReportePage({
 
   // Fetch team members
   const { data: asignados } = await supabase
-    .from("folio_asignados")
+    .from("orden_asignados")
     .select("usuario_id, users(nombre, rol)")
-    .eq("folio_id", folioId);
+    .eq("orden_servicio_id", ordenServicioId);
 
   const teamMembers = (asignados ?? []).map((a) => {
     const user = a.users as unknown as { nombre: string; rol: string } | null;
@@ -140,45 +140,45 @@ export default async function ReportePage({
     .limit(1)
     .maybeSingle();
 
-  // Fetch existing folio-level site photo from ANY report for this folio
-  // Step 1: Get all report IDs for this folio
-  const { data: folioReports } = await supabase
+  // Fetch existing orden-level site photo from ANY report for this orden
+  // Step 1: Get all report IDs for this orden
+  const { data: ordenReports } = await supabase
     .from("reportes")
     .select("id, sitio_completado")
-    .eq("folio_id", folioId);
+    .eq("orden_servicio_id", ordenServicioId);
 
-  const folioReportIds = (folioReports ?? []).map((r) => r.id);
+  const ordenReportIds = (ordenReports ?? []).map((r) => r.id);
 
-  // Check if ANY report on this folio already completed the site overview
-  const folioSiteAlreadyDone = (folioReports ?? []).some(
+  // Check if ANY report on this orden already completed the site overview
+  const ordenSiteAlreadyDone = (ordenReports ?? []).some(
     (r) => (r as unknown as { sitio_completado: boolean }).sitio_completado
   );
 
-  let existingFolioSitePhoto: { url: string } | null = null;
-  if (folioReportIds.length > 0) {
-    const { data: folioSitePhoto } = await supabase
+  let existingOrdenSitePhoto: { url: string } | null = null;
+  if (ordenReportIds.length > 0) {
+    const { data: ordenSitePhoto } = await supabase
       .from("reporte_fotos")
       .select("url")
-      .in("reporte_id", folioReportIds)
+      .in("reporte_id", ordenReportIds)
       .eq("etiqueta", "sitio")
       .limit(1)
       .maybeSingle();
 
-    existingFolioSitePhoto = folioSitePhoto;
+    existingOrdenSitePhoto = ordenSitePhoto;
   }
 
   // Fetch registration photos per equipment (equipo_general + placa)
-  // Includes cross-folio photos: photos from any report for this folio's equipment
+  // Includes cross-orden photos: photos from any report for this orden's equipment
   const equipoIds = (entries ?? []).map(
     (e) => (e as unknown as { equipo_id: string }).equipo_id
   );
 
   let registrationPhotos: ReporteFoto[] = [];
-  if (equipoIds.length > 0 && folioReportIds.length > 0) {
+  if (equipoIds.length > 0 && ordenReportIds.length > 0) {
     const { data: regPhotos } = await supabase
       .from("reporte_fotos")
       .select("id, reporte_id, equipo_id, reporte_paso_id, url, etiqueta, tipo_media, metadata_gps, metadata_fecha, created_at")
-      .in("reporte_id", folioReportIds)
+      .in("reporte_id", ordenReportIds)
       .in("equipo_id", equipoIds)
       .in("etiqueta", ["equipo_general", "placa"]);
 
@@ -201,7 +201,7 @@ export default async function ReportePage({
     const hasGeneralPhoto = equipoPhotos.some((p) => p.etiqueta === "equipo_general");
     const hasPlacaPhoto = equipoPhotos.some((p) => p.etiqueta === "placa");
 
-    // Compute effective completeness from actual data (photos + fields from any report on the folio)
+    // Compute effective completeness from actual data (photos + fields from any report on the orden)
     const allFieldsFilled = REQUIRED_REG_FIELDS.every((field) => {
       const value = (entry.equipos as unknown as Record<string, string | null>)?.[field];
       return value !== null && value !== undefined && value.trim() !== "";
@@ -316,22 +316,22 @@ export default async function ReportePage({
     etiqueta: e.equipos?.numero_etiqueta ?? "Equipo",
   }));
 
-  const folio = typedReport.folios;
+  const orden = typedReport.ordenes_servicio;
   const isCompleted = typedReport.estatus === "completado";
 
   return (
     <ReportForm
       reporteId={reporteId}
-      folioId={folioId}
-      folioNumero={folio?.numero_folio ?? ""}
-      folioDescripcion={folio?.descripcion_problema ?? ""}
+      ordenServicioId={ordenServicioId}
+      ordenNumero={orden?.numero_orden ?? ""}
+      ordenDescripcion={orden?.descripcion_problema ?? ""}
       sucursalNombre={
-        folio?.sucursales
-          ? `${folio.sucursales.nombre} (${folio.sucursales.numero})`
+        orden?.sucursales
+          ? `${orden.sucursales.nombre} (${orden.sucursales.numero})`
           : ""
       }
       sucursalId={sucursalId}
-      clienteNombre={folio?.clientes?.nombre ?? ""}
+      clienteNombre={orden?.clientes?.nombre ?? ""}
       initialEntries={typedEntries}
       initialMaterials={(materials as ReporteMaterial[]) ?? []}
       availableEquipment={(availableEquipment as Equipo[]) ?? []}
@@ -340,7 +340,7 @@ export default async function ReportePage({
       currentStatus={typedReport.estatus}
       isCompleted={isCompleted}
       llegadaCompletada={typedReport.llegada_completada}
-      sitioCompletado={typedReport.sitio_completado || folioSiteAlreadyDone}
+      sitioCompletado={typedReport.sitio_completado || ordenSiteAlreadyDone}
       arrivalPhoto={
         arrivalPhoto
           ? {
@@ -359,7 +359,7 @@ export default async function ReportePage({
             }
           : null
       }
-      existingFolioSitePhoto={existingFolioSitePhoto}
+      existingOrdenSitePhoto={existingOrdenSitePhoto}
       registrationEntries={registrationEntries}
       adminComments={adminComments}
       flaggedPhotos={flaggedPhotoSummaries}

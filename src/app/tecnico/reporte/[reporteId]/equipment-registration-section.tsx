@@ -63,7 +63,7 @@ export function EquipmentRegistrationSection({
     return (
       <div className="text-center py-6">
         <p className="text-sm text-gray-400">
-          No hay equipos asignados a este folio.
+          No hay equipos asignados a esta orden.
         </p>
       </div>
     );

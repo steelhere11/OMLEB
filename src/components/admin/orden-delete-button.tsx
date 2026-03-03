@@ -1,33 +1,33 @@
 "use client";
 
 import { CascadeDeleteButton } from "./cascade-delete-button";
-import { adminDeleteFolio } from "@/app/actions/admin-delete";
+import { adminDeleteOrdenServicio } from "@/app/actions/admin-delete";
 
-interface FolioDeleteButtonProps {
-  folioId: string;
-  folioLabel: string;
+interface OrdenDeleteButtonProps {
+  ordenId: string;
+  ordenLabel: string;
   reportCount: number;
   photoCount?: number;
   redirectTo?: string;
 }
 
-export function FolioDeleteButton({
-  folioId,
-  folioLabel,
+export function OrdenDeleteButton({
+  ordenId,
+  ordenLabel,
   reportCount,
   photoCount,
   redirectTo,
-}: FolioDeleteButtonProps) {
+}: OrdenDeleteButtonProps) {
   const parts: string[] = [];
   if (reportCount > 0) parts.push(`${reportCount} reporte${reportCount > 1 ? "s" : ""}`);
   if (photoCount && photoCount > 0) parts.push(`${photoCount} foto${photoCount > 1 ? "s" : ""}`);
 
   return (
     <CascadeDeleteButton
-      entityType="folio"
-      entityId={folioId}
-      entityLabel={folioLabel}
-      onDelete={adminDeleteFolio}
+      entityType="orden"
+      entityId={ordenId}
+      entityLabel={ordenLabel}
+      onDelete={adminDeleteOrdenServicio}
       impactSummary={parts.length > 0 ? parts.join(" con ") : undefined}
       requireTypedConfirmation={reportCount > 0}
       redirectTo={redirectTo}

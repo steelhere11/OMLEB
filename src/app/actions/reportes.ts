@@ -14,7 +14,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 // ── Get or Create Today's Report ────────────────────────────────────────
 
 export async function getOrCreateTodayReport(
-  folioId: string
+  ordenServicioId: string
 ): Promise<
   | {
       reporteId: string;
@@ -34,11 +34,11 @@ export async function getOrCreateTodayReport(
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Check for existing report for this folio today
+  // Check for existing report for this orden today
   const { data: existing, error: selectError } = await supabase
     .from("reportes")
     .select("id, llegada_completada, sitio_completado")
-    .eq("folio_id", folioId)
+    .eq("orden_servicio_id", ordenServicioId)
     .eq("fecha", today)
     .maybeSingle();
 
@@ -54,22 +54,22 @@ export async function getOrCreateTodayReport(
     };
   }
 
-  // Get folio's sucursal_id for the new report
-  const { data: folio, error: folioError } = await supabase
-    .from("folios")
+  // Get orden's sucursal_id for the new report
+  const { data: orden, error: ordenError } = await supabase
+    .from("ordenes_servicio")
     .select("sucursal_id")
-    .eq("id", folioId)
+    .eq("id", ordenServicioId)
     .single();
 
-  if (folioError || !folio) {
-    return { error: "Folio no encontrado" };
+  if (ordenError || !orden) {
+    return { error: "Orden de servicio no encontrada" };
   }
 
-  // Check if any previous report on this folio already completed site overview
+  // Check if any previous report on this orden already completed site overview
   const { data: prevSiteCheck } = await supabase
     .from("reportes")
     .select("sitio_completado")
-    .eq("folio_id", folioId)
+    .eq("orden_servicio_id", ordenServicioId)
     .eq("sitio_completado", true)
     .limit(1)
     .maybeSingle();
@@ -80,9 +80,9 @@ export async function getOrCreateTodayReport(
   const { data: newReport, error: insertError } = await supabase
     .from("reportes")
     .insert({
-      folio_id: folioId,
+      orden_servicio_id: ordenServicioId,
       creado_por: user.id,
-      sucursal_id: folio.sucursal_id,
+      sucursal_id: orden.sucursal_id,
       fecha: today,
       estatus: "en_progreso",
       sitio_completado: carryForwardSite,
@@ -96,7 +96,7 @@ export async function getOrCreateTodayReport(
       const { data: raceReport, error: raceError } = await supabase
         .from("reportes")
         .select("id, llegada_completada, sitio_completado")
-        .eq("folio_id", folioId)
+        .eq("orden_servicio_id", ordenServicioId)
         .eq("fecha", today)
         .maybeSingle();
 
@@ -115,7 +115,7 @@ export async function getOrCreateTodayReport(
   }
 
   // Pre-fill equipment entries from previous report
-  await preFillFromPreviousReport(supabase, folioId, newReport.id, today);
+  await preFillFromPreviousReport(supabase, ordenServicioId, newReport.id, today);
 
   return {
     reporteId: newReport.id,
@@ -128,15 +128,15 @@ export async function getOrCreateTodayReport(
 
 async function preFillFromPreviousReport(
   supabase: SupabaseClient,
-  folioId: string,
+  ordenServicioId: string,
   newReporteId: string,
   today: string
 ): Promise<void> {
-  // Find the most recent previous report for this folio
+  // Find the most recent previous report for this orden
   const { data: previousReport } = await supabase
     .from("reportes")
     .select("id")
-    .eq("folio_id", folioId)
+    .eq("orden_servicio_id", ordenServicioId)
     .lt("fecha", today)
     .order("fecha", { ascending: false })
     .limit(1)
@@ -161,16 +161,16 @@ async function preFillFromPreviousReport(
     }
   }
 
-  // No previous report (or it had no equipment) — auto-populate from folio_equipos
-  const { data: folioEquipos } = await supabase
-    .from("folio_equipos")
+  // No previous report (or it had no equipment) — auto-populate from orden_equipos
+  const { data: ordenEquipos } = await supabase
+    .from("orden_equipos")
     .select("equipo_id")
-    .eq("folio_id", folioId);
+    .eq("orden_servicio_id", ordenServicioId);
 
-  if (folioEquipos && folioEquipos.length > 0) {
-    const newEntries = folioEquipos.map((fe) => ({
+  if (ordenEquipos && ordenEquipos.length > 0) {
+    const newEntries = ordenEquipos.map((oe) => ({
       reporte_id: newReporteId,
-      equipo_id: fe.equipo_id,
+      equipo_id: oe.equipo_id,
       tipo_trabajo: "preventivo",
     }));
 
@@ -402,7 +402,7 @@ export async function updateReportStatus(
     .from("reportes")
     .update(updatePayload)
     .eq("id", reporteId)
-    .select("folio_id")
+    .select("orden_servicio_id")
     .single();
 
   if (updateError) {
@@ -411,16 +411,16 @@ export async function updateReportStatus(
     };
   }
 
-  // Sync folio status to match report status
-  if (report?.folio_id) {
+  // Sync orden status to match report status
+  if (report?.orden_servicio_id) {
     await supabase
-      .from("folios")
+      .from("ordenes_servicio")
       .update({ estatus: newStatus })
-      .eq("id", report.folio_id);
+      .eq("id", report.orden_servicio_id);
   }
 
   revalidatePath("/tecnico");
-  revalidatePath("/admin/folios");
+  revalidatePath("/admin/ordenes-servicio");
   return { success: true, message: "Estatus actualizado" };
 }
 
@@ -568,18 +568,18 @@ export async function adminUpdateReportStatus(
     return { error: "Error al actualizar estatus: " + error.message };
   }
 
-  // Sync folio status
+  // Sync orden status
   const { data: reporte } = await supabase
     .from("reportes")
-    .select("folio_id")
+    .select("orden_servicio_id")
     .eq("id", reporteId)
     .single();
 
-  if (reporte?.folio_id) {
+  if (reporte?.orden_servicio_id) {
     await supabase
-      .from("folios")
+      .from("ordenes_servicio")
       .update({ estatus })
-      .eq("id", reporte.folio_id);
+      .eq("id", reporte.orden_servicio_id);
   }
 
   revalidatePath("/admin/reportes");

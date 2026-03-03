@@ -61,8 +61,8 @@ export const equipoSchema = z.object({
 
 export type EquipoInput = z.infer<typeof equipoSchema>;
 
-// Schema for creating equipment from within a folio (no sucursal_id — derived from folio)
-export const equipoForFolioSchema = z.object({
+// Schema for creating equipment from within an orden (no sucursal_id — derived from orden)
+export const equipoForOrdenSchema = z.object({
   numero_etiqueta: z
     .string({ error: "La etiqueta del equipo es requerida" })
     .min(1, { error: "La etiqueta del equipo es requerida" })
@@ -118,7 +118,7 @@ export const equipoForFolioSchema = z.object({
     .or(z.literal("")),
 });
 
-export type EquipoForFolioInput = z.infer<typeof equipoForFolioSchema>;
+export type EquipoForOrdenInput = z.infer<typeof equipoForOrdenSchema>;
 
 // Schema for equipment registration (nameplate data from field)
 export const equipmentRegistrationSchema = z.object({

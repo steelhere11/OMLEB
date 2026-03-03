@@ -107,7 +107,7 @@ interface ReporteMaterialData {
 
 interface ReporteData {
   id: string;
-  folio_id: string;
+  orden_servicio_id: string;
   creado_por: string;
   sucursal_id: string;
   fecha: string;
@@ -118,8 +118,8 @@ interface ReporteData {
   revision_actual: number;
   created_at: string;
   updated_at: string;
-  folios: {
-    numero_folio: string;
+  ordenes_servicio: {
+    numero_orden: string;
     descripcion_problema: string;
     clientes: { nombre: string; logo_url: string | null } | null;
   } | null;
@@ -206,7 +206,7 @@ function formatRol(rol: string): string {
 export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revisions }: ReportDetailProps) {
   const router = useRouter();
   const status = statusConfig[reporte.estatus] ?? statusConfig.en_progreso;
-  const folio = reporte.folios;
+  const orden = reporte.ordenes_servicio;
   const sucursal = reporte.sucursales;
   const creator = reporte.users;
 
@@ -269,7 +269,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-[22px] font-bold tracking-[-0.025em] text-text-0">
-            Reporte - {folio?.numero_folio ?? "Sin folio"}
+            Reporte - {orden?.numero_orden ?? "Sin ODS"}
           </h1>
           <div className="mt-1 flex items-center gap-2">
             <p className="text-[13px] text-text-2">
@@ -334,7 +334,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
           )}
           <ReporteDeleteButton
             reporteId={reporte.id}
-            reporteLabel={`${folio?.numero_folio ?? "—"} - ${new Date(reporte.fecha).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}`}
+            reporteLabel={`${orden?.numero_orden ?? "—"} - ${new Date(reporte.fecha).toLocaleDateString("es-MX", { day: "2-digit", month: "short" })}`}
             photoCount={reporte.reporte_fotos.length}
             equipmentCount={reporte.reporte_equipos.length}
             materialCount={reporte.reporte_materiales.length}
@@ -363,11 +363,11 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
           />
           <InfoRow
             label="Cliente"
-            value={folio?.clientes?.nombre ?? "\u2014"}
+            value={orden?.clientes?.nombre ?? "\u2014"}
           />
           <InfoRow
             label="Problema reportado"
-            value={folio?.descripcion_problema ?? "\u2014"}
+            value={orden?.descripcion_problema ?? "\u2014"}
           />
           <InfoRow
             label="Equipo de trabajo"
@@ -631,9 +631,9 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
               fecha: revisions[0].created_at,
               autor: revisions[0].autor_nombre,
             } : undefined}
-            folio={{
-              numero_folio: folio?.numero_folio ?? "",
-              descripcion_problema: folio?.descripcion_problema ?? "",
+            orden={{
+              numero_orden: orden?.numero_orden ?? "",
+              descripcion_problema: orden?.descripcion_problema ?? "",
             }}
             sucursal={{
               nombre: sucursal?.nombre ?? "",
@@ -641,8 +641,8 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
               direccion: sucursal?.direccion ?? "",
             }}
             cliente={{
-              nombre: folio?.clientes?.nombre ?? "",
-              logo_url: folio?.clientes?.logo_url ?? null,
+              nombre: orden?.clientes?.nombre ?? "",
+              logo_url: orden?.clientes?.logo_url ?? null,
             }}
             teamMembers={teamMembers
               .filter((m) => m.users)

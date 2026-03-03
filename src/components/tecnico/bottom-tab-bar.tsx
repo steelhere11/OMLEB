@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 const tabs = [
   {
-    label: "Folios",
+    label: "Ordenes",
     href: "/tecnico",
     icon: (active: boolean) => (
       <svg

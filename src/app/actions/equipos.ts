@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { equipoSchema, equipoForFolioSchema } from "@/lib/validations/equipos";
+import { equipoSchema, equipoForOrdenSchema } from "@/lib/validations/equipos";
 import { z } from "zod";
 import type { ActionState } from "@/types/actions";
 
@@ -225,12 +225,12 @@ export async function deleteEquipo(
   return { success: true, message: "Equipo eliminado exitosamente" };
 }
 
-// ── Create Equipment for Folio ──────────────────────────────────────────
-// Creates equipment and links it to a folio in one step.
-// Derives sucursal_id from the folio. Used by both admin and technician.
+// ── Create Equipment for Orden ──────────────────────────────────────────
+// Creates equipment and links it to an orden in one step.
+// Derives sucursal_id from the orden. Used by both admin and technician.
 
-export async function createEquipoForFolio(
-  folioId: string,
+export async function createEquipoForOrden(
+  ordenServicioId: string,
   reporteId: string | null,
   _prevState: ActionState | null,
   formData: FormData
@@ -249,15 +249,15 @@ export async function createEquipoForFolio(
     return { error: "No autorizado" };
   }
 
-  // 1. Get sucursal_id from the folio
-  const { data: folio } = await supabase
-    .from("folios")
+  // 1. Get sucursal_id from the orden
+  const { data: orden } = await supabase
+    .from("ordenes_servicio")
     .select("sucursal_id")
-    .eq("id", folioId)
+    .eq("id", ordenServicioId)
     .single();
 
-  if (!folio) {
-    return { error: "Folio no encontrado" };
+  if (!orden) {
+    return { error: "Orden de servicio no encontrada" };
   }
 
   // 2. Validate with Zod (no sucursal_id in form)
@@ -269,7 +269,7 @@ export async function createEquipoForFolio(
     tipo_equipo: formData.get("tipo_equipo"),
   };
 
-  const result = equipoForFolioSchema.safeParse(rawData);
+  const result = equipoForOrdenSchema.safeParse(rawData);
   if (!result.success) {
     const flattened = z.flattenError(result.error);
     return { fieldErrors: flattened.fieldErrors };
@@ -277,7 +277,7 @@ export async function createEquipoForFolio(
 
   // 3. Prepare insert data
   const insertData: Record<string, unknown> = {
-    sucursal_id: folio.sucursal_id,
+    sucursal_id: orden.sucursal_id,
     numero_etiqueta: result.data.numero_etiqueta,
     agregado_por: user.id,
     revisado: rol === "admin",
@@ -324,11 +324,11 @@ export async function createEquipoForFolio(
     return { error: "Error al agregar el equipo: " + dbError.message };
   }
 
-  // 5. Link equipment to folio
+  // 5. Link equipment to orden
   const { error: linkError } = await supabase
-    .from("folio_equipos")
+    .from("orden_equipos")
     .insert({
-      folio_id: folioId,
+      orden_servicio_id: ordenServicioId,
       equipo_id: equipo.id,
       added_by: user.id,
     });
@@ -336,7 +336,7 @@ export async function createEquipoForFolio(
   if (linkError) {
     return {
       error:
-        "El equipo fue creado pero no se pudo vincular al folio: " +
+        "El equipo fue creado pero no se pudo vincular a la orden: " +
         linkError.message,
     };
   }
@@ -352,7 +352,7 @@ export async function createEquipoForFolio(
 
   // 6. Revalidate and return
   revalidatePath("/tecnico");
-  revalidatePath(`/admin/folios/${folioId}`);
+  revalidatePath(`/admin/ordenes-servicio/${ordenServicioId}`);
   return {
     success: true,
     message: "Equipo agregado",

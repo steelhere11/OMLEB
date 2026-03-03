@@ -2,26 +2,26 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getOrCreateTodayReport } from "@/app/actions/reportes";
 
-export default async function FolioDetailPage({
+export default async function OrdenDetailPage({
   params,
 }: {
-  params: Promise<{ folioId: string }>;
+  params: Promise<{ ordenId: string }>;
 }) {
-  const { folioId } = await params;
+  const { ordenId } = await params;
   const supabase = await createClient();
 
-  // Fetch folio details
-  const { data: folio } = await supabase
-    .from("folios")
+  // Fetch orden details
+  const { data: orden } = await supabase
+    .from("ordenes_servicio")
     .select("*, sucursales(nombre, numero, direccion), clientes(nombre)")
-    .eq("id", folioId)
+    .eq("id", ordenId)
     .single();
 
-  if (!folio) {
+  if (!orden) {
     return (
       <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
         <p className="text-base font-medium text-gray-600">
-          Folio no encontrado
+          Orden de servicio no encontrada
         </p>
       </div>
     );
@@ -29,9 +29,9 @@ export default async function FolioDetailPage({
 
   // Fetch team members
   const { data: asignados } = await supabase
-    .from("folio_asignados")
+    .from("orden_asignados")
     .select("usuario_id, users(nombre, rol)")
-    .eq("folio_id", folioId);
+    .eq("orden_servicio_id", ordenId);
 
   const teamMembers = (asignados ?? []).map((a) => {
     const user = a.users as unknown as { nombre: string; rol: string } | null;
@@ -42,22 +42,22 @@ export default async function FolioDetailPage({
   });
 
   // Get or create today's report and redirect
-  const result = await getOrCreateTodayReport(folioId);
+  const result = await getOrCreateTodayReport(ordenId);
 
   if ("error" in result) {
-    const sucursal = folio.sucursales as {
+    const sucursal = orden.sucursales as {
       nombre: string;
       numero: string;
       direccion: string;
     } | null;
-    const cliente = folio.clientes as { nombre: string } | null;
+    const cliente = orden.clientes as { nombre: string } | null;
 
     return (
       <div className="space-y-4">
-        {/* Folio header */}
+        {/* Orden header */}
         <div className="rounded-xl border border-gray-200 bg-white p-4">
           <h1 className="text-lg font-bold text-gray-900">
-            {folio.numero_folio}
+            {orden.numero_orden}
           </h1>
           {sucursal && (
             <p className="text-sm text-gray-600">

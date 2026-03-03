@@ -127,7 +127,7 @@ export async function deleteSucursal(
     if (error.code === "23503") {
       return {
         error:
-          "No se puede eliminar esta sucursal porque tiene folios o equipos asociados. Elimine primero los registros relacionados.",
+          "No se puede eliminar esta sucursal porque tiene ordenes de servicio o equipos asociados. Elimine primero los registros relacionados.",
       };
     }
     return { error: "Error al eliminar: " + error.message };

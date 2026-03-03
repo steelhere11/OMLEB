@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Sucursal, Cliente, User, TipoEquipo } from "@/types";
-import { CreateFolioForm } from "./create-form";
+import { CreateOrdenForm } from "./create-form";
 
-export default async function NuevoFolioPage() {
+export default async function NuevaOrdenPage() {
   const supabase = await createClient();
 
   // Fetch branches, clients, users, and equipment types in parallel
@@ -27,7 +27,7 @@ export default async function NuevoFolioPage() {
   const tiposEquipo = (tiposRes.data as TipoEquipo[] | null) ?? [];
 
   return (
-    <CreateFolioForm
+    <CreateOrdenForm
       branches={branches}
       clientes={clientes}
       users={users}

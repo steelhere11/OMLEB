@@ -9,9 +9,9 @@ import { completeSiteOverview } from "@/app/actions/registration";
 
 interface SiteOverviewSectionProps {
   reporteId: string;
-  folioId: string;
+  ordenServicioId: string;
   isComplete: boolean;
-  existingFolioPhoto: { url: string } | null;
+  existingOrdenPhoto: { url: string } | null;
   existingPhoto: {
     url: string;
     metadata_fecha: string | null;
@@ -22,9 +22,9 @@ interface SiteOverviewSectionProps {
 
 export function SiteOverviewSection({
   reporteId,
-  folioId,
+  ordenServicioId,
   isComplete,
-  existingFolioPhoto,
+  existingOrdenPhoto,
   existingPhoto,
   onComplete,
 }: SiteOverviewSectionProps) {
@@ -44,22 +44,22 @@ export function SiteOverviewSection({
           fecha: existingPhoto.metadata_fecha,
           gps: existingPhoto.metadata_gps,
         }
-      : existingFolioPhoto
-        ? { url: existingFolioPhoto.url, fecha: null, gps: null }
+      : existingOrdenPhoto
+        ? { url: existingOrdenPhoto.url, fecha: null, gps: null }
         : null
   );
   const [autoCompleted, setAutoCompleted] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-complete if a folio-level site photo already exists from a previous visit
+  // Auto-complete if an orden-level site photo already exists from a previous visit
   useEffect(() => {
-    if (existingFolioPhoto && !isComplete && !autoCompleted) {
+    if (existingOrdenPhoto && !isComplete && !autoCompleted) {
       setAutoCompleted(true);
       completeSiteOverview(reporteId).then(() => {
         onComplete();
       });
     }
-  }, [existingFolioPhoto, isComplete, autoCompleted, reporteId, onComplete]);
+  }, [existingOrdenPhoto, isComplete, autoCompleted, reporteId, onComplete]);
 
   const handleSelectCamera = () => {
     setShowSourcePicker(false);
@@ -131,8 +131,8 @@ export function SiteOverviewSection({
     [reporteId, onComplete]
   );
 
-  // Already complete with existing folio photo from previous visit
-  if (existingFolioPhoto && (isComplete || autoCompleted)) {
+  // Already complete with existing orden photo from previous visit
+  if (existingOrdenPhoto && (isComplete || autoCompleted)) {
     return (
       <div className="space-y-3">
         <p className="text-sm text-gray-500">
@@ -140,7 +140,7 @@ export function SiteOverviewSection({
         </p>
         <div className="flex items-center gap-3 rounded-lg bg-green-50 border border-green-200 p-3">
           <img
-            src={existingFolioPhoto.url}
+            src={existingOrdenPhoto.url}
             alt="Foto panoramica"
             className="h-16 w-16 rounded-lg object-cover flex-shrink-0"
           />

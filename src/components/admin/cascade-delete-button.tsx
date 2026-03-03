@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 interface CascadeDeleteButtonProps {
-  entityType: "folio" | "reporte" | "equipo" | "sucursal";
+  entityType: "orden" | "reporte" | "equipo" | "sucursal";
   entityId: string;
   entityLabel: string;
   onDelete: (id: string) => Promise<{ success?: boolean; error?: string }>;
@@ -14,7 +14,7 @@ interface CascadeDeleteButtonProps {
 }
 
 const entityNames: Record<CascadeDeleteButtonProps["entityType"], string> = {
-  folio: "el folio",
+  orden: "la orden de servicio",
   reporte: "el reporte",
   equipo: "el equipo",
   sucursal: "la sucursal",

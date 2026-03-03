@@ -1,14 +1,14 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Folio, Sucursal, Cliente, User, Equipo, TipoEquipo } from "@/types";
-import { EditFolioForm } from "./edit-form";
+import type { OrdenServicio, Sucursal, Cliente, User, Equipo, TipoEquipo } from "@/types";
+import { EditOrdenForm } from "./edit-form";
 
-type FolioWithAssignments = Folio & {
-  folio_asignados: { usuario_id: string }[];
-  folio_equipos: { equipo_id: string }[];
+type OrdenWithAssignments = OrdenServicio & {
+  orden_asignados: { usuario_id: string }[];
+  orden_equipos: { equipo_id: string }[];
 };
 
-export default async function EditarFolioPage({
+export default async function EditarOrdenPage({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -16,16 +16,16 @@ export default async function EditarFolioPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  // Fetch folio with its current assignments and equipment
-  const { data: folio } = await supabase
-    .from("folios")
-    .select("*, folio_asignados(usuario_id), folio_equipos(equipo_id)")
+  // Fetch orden with its current assignments and equipment
+  const { data: orden } = await supabase
+    .from("ordenes_servicio")
+    .select("*, orden_asignados(usuario_id), orden_equipos(equipo_id)")
     .eq("id", id)
     .single();
 
-  if (!folio) notFound();
+  if (!orden) notFound();
 
-  const typedFolio = folio as FolioWithAssignments;
+  const typedOrden = orden as OrdenWithAssignments;
 
   // Fetch branches, clients, users, branch equipment, and tipos in parallel
   const [branchesRes, clientesRes, usersRes, equipmentRes, tiposRes] =
@@ -40,7 +40,7 @@ export default async function EditarFolioPage({
       supabase
         .from("equipos")
         .select("*")
-        .eq("sucursal_id", typedFolio.sucursal_id)
+        .eq("sucursal_id", typedOrden.sucursal_id)
         .order("numero_etiqueta"),
       supabase
         .from("tipos_equipo")
@@ -54,16 +54,16 @@ export default async function EditarFolioPage({
   const users = (usersRes.data as User[] | null) ?? [];
   const branchEquipment = (equipmentRes.data as Equipo[] | null) ?? [];
   const tiposEquipo = (tiposRes.data as TipoEquipo[] | null) ?? [];
-  const currentAssignmentIds = typedFolio.folio_asignados.map(
+  const currentAssignmentIds = typedOrden.orden_asignados.map(
     (a) => a.usuario_id
   );
-  const currentEquipoIds = typedFolio.folio_equipos.map(
+  const currentEquipoIds = typedOrden.orden_equipos.map(
     (e) => e.equipo_id
   );
 
   return (
-    <EditFolioForm
-      folio={typedFolio}
+    <EditOrdenForm
+      orden={typedOrden}
       branches={branches}
       clientes={clientes}
       users={users}

@@ -62,10 +62,10 @@ export async function completeSiteOverview(
   return { success: true };
 }
 
-// ── Check if Folio Has Site Photo ──────────────────────────────────────
+// ── Check if Orden Has Site Photo ──────────────────────────────────────
 
-export async function checkFolioSitePhoto(
-  folioId: string
+export async function checkOrdenSitePhoto(
+  ordenServicioId: string
 ): Promise<{ exists: boolean; photoUrl?: string }> {
   const supabase = await createClient();
   const {
@@ -76,11 +76,11 @@ export async function checkFolioSitePhoto(
     return { exists: false };
   }
 
-  // Step 1: Get all report IDs for this folio
+  // Step 1: Get all report IDs for this orden
   const { data: reportes, error: reportesError } = await supabase
     .from("reportes")
     .select("id")
-    .eq("folio_id", folioId);
+    .eq("orden_servicio_id", ordenServicioId);
 
   if (reportesError || !reportes || reportes.length === 0) {
     return { exists: false };
@@ -88,7 +88,7 @@ export async function checkFolioSitePhoto(
 
   const reporteIds = reportes.map((r) => r.id);
 
-  // Step 2: Find a site photo across all reports for this folio
+  // Step 2: Find a site photo across all reports for this orden
   const { data: foto, error: fotoError } = await supabase
     .from("reporte_fotos")
     .select("url")
@@ -280,8 +280,8 @@ async function evaluateRegistrationCompleteness(
   }
 
   // Check 2: Required photos exist (equipo_general + placa)
-  // Look across all reports for the same folio to find these photos
-  // First get the folio_id through reporte_equipos -> reportes
+  // Look across all reports for the same orden to find these photos
+  // First get the orden_servicio_id through reporte_equipos -> reportes
   const { data: reporteEquipo, error: reError } = await supabase
     .from("reporte_equipos")
     .select("reporte_id")
@@ -294,7 +294,7 @@ async function evaluateRegistrationCompleteness(
 
   const { data: reporte, error: repError } = await supabase
     .from("reportes")
-    .select("folio_id")
+    .select("orden_servicio_id")
     .eq("id", reporteEquipo.reporte_id)
     .single();
 
@@ -302,11 +302,11 @@ async function evaluateRegistrationCompleteness(
     return false;
   }
 
-  // Get all report IDs for this folio
+  // Get all report IDs for this orden
   const { data: allReportes, error: allRepError } = await supabase
     .from("reportes")
     .select("id")
-    .eq("folio_id", reporte.folio_id);
+    .eq("orden_servicio_id", reporte.orden_servicio_id);
 
   if (allRepError || !allReportes || allReportes.length === 0) {
     return false;

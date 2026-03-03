@@ -15,13 +15,13 @@ export default async function SucursalesPage() {
 
   // Fetch cascade impact data per sucursal
   const sucursalIds = list.map((s) => s.id);
-  type ImpactData = { folios: number; reportes: number; equipos: number; fotos: number };
+  type ImpactData = { ordenes: number; reportes: number; equipos: number; fotos: number };
   const impactMap = new Map<string, ImpactData>();
 
   if (sucursalIds.length > 0) {
-    // Folios per sucursal
-    const { data: folioRows } = await supabase
-      .from("folios")
+    // Ordenes per sucursal
+    const { data: ordenRows } = await supabase
+      .from("ordenes_servicio")
       .select("id, sucursal_id")
       .in("sucursal_id", sucursalIds);
 
@@ -31,7 +31,7 @@ export default async function SucursalesPage() {
       .select("id, sucursal_id")
       .in("sucursal_id", sucursalIds);
 
-    // Reports per sucursal (via folios or direct sucursal_id)
+    // Reports per sucursal (via ordenes or direct sucursal_id)
     const { data: reporteRows } = await supabase
       .from("reportes")
       .select("id, sucursal_id")
@@ -54,7 +54,7 @@ export default async function SucursalesPage() {
 
     // Build impact map
     for (const sid of sucursalIds) {
-      const folioCount = (folioRows ?? []).filter((f) => f.sucursal_id === sid).length;
+      const ordenCount = (ordenRows ?? []).filter((o) => o.sucursal_id === sid).length;
       const reporteCount = (reporteRows ?? []).filter((r) => r.sucursal_id === sid).length;
       const equipoCount = (equipoRows ?? []).filter((e) => e.sucursal_id === sid).length;
       const sucursalReporteIds = (reporteRows ?? [])
@@ -66,7 +66,7 @@ export default async function SucursalesPage() {
       );
 
       impactMap.set(sid, {
-        folios: folioCount,
+        ordenes: ordenCount,
         reportes: reporteCount,
         equipos: equipoCount,
         fotos: photoCount,
@@ -144,7 +144,7 @@ export default async function SucursalesPage() {
                 <SucursalDeleteButton
                   sucursalId={sucursal.id}
                   sucursalLabel={`${sucursal.nombre} (${sucursal.numero})`}
-                  folioCount={impactMap.get(sucursal.id)?.folios ?? 0}
+                  ordenCount={impactMap.get(sucursal.id)?.ordenes ?? 0}
                   reportCount={impactMap.get(sucursal.id)?.reportes ?? 0}
                   equipoCount={impactMap.get(sucursal.id)?.equipos ?? 0}
                   photoCount={impactMap.get(sucursal.id)?.fotos ?? 0}
