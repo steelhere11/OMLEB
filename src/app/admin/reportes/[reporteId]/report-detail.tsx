@@ -127,6 +127,7 @@ interface ReporteData {
   firma_encargado: string | null;
   nombre_encargado: string | null;
   finalizado_por_admin: boolean;
+  numero_revision: number;
   revision_actual: number;
   created_at: string;
   updated_at: string;
@@ -343,9 +344,12 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                 year: "numeric",
               })}
             </p>
+            <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
+              Rev {reporte.numero_revision}
+            </span>
             {reporte.revision_actual > 0 && (
               <span className="inline-flex items-center rounded-full bg-accent/10 px-2 py-0.5 text-[11px] font-semibold text-accent">
-                Revision {reporte.revision_actual}
+                Edicion {reporte.revision_actual}
               </span>
             )}
           </div>
@@ -718,6 +722,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
               estatus: reporte.estatus,
               firma_encargado: reporte.firma_encargado,
               nombre_encargado: reporte.nombre_encargado,
+              numero_revision: reporte.numero_revision,
               revision_actual: reporte.revision_actual,
             }}
             lastRevision={revisions.length > 0 ? {

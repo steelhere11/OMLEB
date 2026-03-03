@@ -83,6 +83,7 @@ export interface PdfReportData {
   materials: Array<{ cantidad: number; unidad: string; descripcion: string }>;
   firmaBase64: string | null;
   nombreEncargado: string | null;
+  numeroRevision: number;
   revisionActual: number;
   lastRevision: { fecha: string; autor: string } | null;
 }
@@ -971,8 +972,8 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
           <View style={s.headerCenter}>
             <Text style={s.headerTitle}>Reporte de Mantenimiento</Text>
             <Text style={s.headerOrden}>
-              ODS: {data.orden.numero_orden}
-              {data.revisionActual > 0 ? `  |  Revision ${data.revisionActual}` : ""}
+              ODS: {data.orden.numero_orden}  |  Rev {data.numeroRevision}
+              {data.revisionActual > 0 ? `  |  Edicion ${data.revisionActual}` : ""}
             </Text>
           </View>
           {data.cliente.logoBase64 && (

@@ -70,13 +70,13 @@ export default async function TecnicoOrdenesPage() {
 
   let reportByOrden = new Map<
     string,
-    { id: string; orden_servicio_id: string; estatus: ReporteEstatus }
+    { id: string; orden_servicio_id: string; estatus: ReporteEstatus; numero_revision: number }
   >();
 
   if (ordenIds.length > 0) {
     const { data: todayReports } = await supabase
       .from("reportes")
-      .select("id, orden_servicio_id, estatus")
+      .select("id, orden_servicio_id, estatus, numero_revision")
       .in("orden_servicio_id", ordenIds)
       .eq("fecha", today);
 
@@ -86,6 +86,7 @@ export default async function TecnicoOrdenesPage() {
           id: string;
           orden_servicio_id: string;
           estatus: ReporteEstatus;
+          numero_revision: number;
         }[]) ?? []
       ).map((r) => [r.orden_servicio_id, r])
     );
@@ -176,7 +177,7 @@ export default async function TecnicoOrdenesPage() {
                   <span
                     className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${reportStatusConfig[todayReport.estatus]?.className ?? ""}`}
                   >
-                    Reporte de hoy: {reportStatusConfig[todayReport.estatus]?.label ?? todayReport.estatus}
+                    Reporte Rev {todayReport.numero_revision}: {reportStatusConfig[todayReport.estatus]?.label ?? todayReport.estatus}
                   </span>
                 ) : (
                   <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">

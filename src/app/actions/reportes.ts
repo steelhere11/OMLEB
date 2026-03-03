@@ -76,6 +76,13 @@ export async function getOrCreateTodayReport(
 
   const carryForwardSite = !!prevSiteCheck;
 
+  // Compute next revision number
+  const { count: existingCount } = await supabase
+    .from("reportes")
+    .select("*", { count: "exact", head: true })
+    .eq("orden_servicio_id", ordenServicioId);
+  const nextRevision = (existingCount ?? 0) + 1;
+
   // Insert new report
   const { data: newReport, error: insertError } = await supabase
     .from("reportes")
@@ -86,6 +93,7 @@ export async function getOrCreateTodayReport(
       fecha: today,
       estatus: "en_progreso",
       sitio_completado: carryForwardSite,
+      numero_revision: nextRevision,
     })
     .select("id")
     .single();
@@ -114,8 +122,8 @@ export async function getOrCreateTodayReport(
     return { error: "Error al crear reporte: " + insertError.message };
   }
 
-  // Pre-fill equipment entries from previous report
-  await preFillFromPreviousReport(supabase, ordenServicioId, newReport.id, today);
+  // Deep-copy all data from previous report (or fallback to orden_equipos)
+  await deepCopyFromPreviousReport(supabase, ordenServicioId, newReport.id, today);
 
   return {
     reporteId: newReport.id,
@@ -124,9 +132,9 @@ export async function getOrCreateTodayReport(
   };
 }
 
-// ── Pre-fill from Previous Report (private) ─────────────────────────────
+// ── Deep Copy from Previous Report (private) ────────────────────────────
 
-async function preFillFromPreviousReport(
+async function deepCopyFromPreviousReport(
   supabase: SupabaseClient,
   ordenServicioId: string,
   newReporteId: string,
@@ -142,39 +150,162 @@ async function preFillFromPreviousReport(
     .limit(1)
     .maybeSingle();
 
-  if (previousReport) {
-    // Copy equipment entries from previous report (equipo_id + tipo_trabajo only, text fields start fresh)
-    const { data: previousEntries } = await supabase
-      .from("reporte_equipos")
-      .select("equipo_id, tipo_trabajo")
-      .eq("reporte_id", previousReport.id);
+  if (!previousReport) {
+    // No previous report — auto-populate from orden_equipos (first-day behavior)
+    const { data: ordenEquipos } = await supabase
+      .from("orden_equipos")
+      .select("equipo_id")
+      .eq("orden_servicio_id", ordenServicioId);
 
-    if (previousEntries && previousEntries.length > 0) {
-      const newEntries = previousEntries.map((entry) => ({
+    if (ordenEquipos && ordenEquipos.length > 0) {
+      const newEntries = ordenEquipos.map((oe) => ({
         reporte_id: newReporteId,
-        equipo_id: entry.equipo_id,
-        tipo_trabajo: entry.tipo_trabajo,
+        equipo_id: oe.equipo_id,
+        tipo_trabajo: "preventivo",
       }));
-
       await supabase.from("reporte_equipos").insert(newEntries);
-      return;
+    }
+    return;
+  }
+
+  // ── a. Copy reporte_equipos (ALL fields) ──────────────────────────────
+  const { data: prevEquipEntries } = await supabase
+    .from("reporte_equipos")
+    .select("id, equipo_id, tipo_trabajo, diagnostico, trabajo_realizado, observaciones, registro_completado")
+    .eq("reporte_id", previousReport.id);
+
+  if (!prevEquipEntries || prevEquipEntries.length === 0) {
+    // Previous report had no equipment — fallback to orden_equipos
+    const { data: ordenEquipos } = await supabase
+      .from("orden_equipos")
+      .select("equipo_id")
+      .eq("orden_servicio_id", ordenServicioId);
+
+    if (ordenEquipos && ordenEquipos.length > 0) {
+      const newEntries = ordenEquipos.map((oe) => ({
+        reporte_id: newReporteId,
+        equipo_id: oe.equipo_id,
+        tipo_trabajo: "preventivo",
+      }));
+      await supabase.from("reporte_equipos").insert(newEntries);
+    }
+    return;
+  }
+
+  // Insert new equipment entries with all text fields carried forward
+  const newEquipRows = prevEquipEntries.map((e) => ({
+    reporte_id: newReporteId,
+    equipo_id: e.equipo_id,
+    tipo_trabajo: e.tipo_trabajo,
+    diagnostico: e.diagnostico,
+    trabajo_realizado: e.trabajo_realizado,
+    observaciones: e.observaciones,
+    registro_completado: e.registro_completado ?? false,
+  }));
+
+  const { data: insertedEquip } = await supabase
+    .from("reporte_equipos")
+    .insert(newEquipRows)
+    .select("id, equipo_id");
+
+  if (!insertedEquip) return;
+
+  // Build old→new equipment entry ID mapping (match by equipo_id)
+  const equipIdMap = new Map<string, string>(); // old reporte_equipo id → new id
+  for (const oldEntry of prevEquipEntries) {
+    const newEntry = insertedEquip.find((n) => n.equipo_id === oldEntry.equipo_id);
+    if (newEntry) {
+      equipIdMap.set(oldEntry.id, newEntry.id);
     }
   }
 
-  // No previous report (or it had no equipment) — auto-populate from orden_equipos
-  const { data: ordenEquipos } = await supabase
-    .from("orden_equipos")
-    .select("equipo_id")
-    .eq("orden_servicio_id", ordenServicioId);
+  // ── b. Copy reporte_pasos (ALL fields) ────────────────────────────────
+  const { data: prevPasos } = await supabase
+    .from("reporte_pasos")
+    .select("id, reporte_equipo_id, plantilla_paso_id, falla_correctiva_id, nombre_custom, completado, notas, lecturas, completed_at")
+    .in("reporte_equipo_id", prevEquipEntries.map((e) => e.id));
 
-  if (ordenEquipos && ordenEquipos.length > 0) {
-    const newEntries = ordenEquipos.map((oe) => ({
+  const pasoIdMap = new Map<string, string>(); // old paso id → new paso id
+
+  if (prevPasos && prevPasos.length > 0) {
+    const newPasoRows = prevPasos
+      .filter((p) => equipIdMap.has(p.reporte_equipo_id))
+      .map((p) => ({
+        reporte_equipo_id: equipIdMap.get(p.reporte_equipo_id)!,
+        plantilla_paso_id: p.plantilla_paso_id,
+        falla_correctiva_id: p.falla_correctiva_id,
+        nombre_custom: p.nombre_custom,
+        completado: p.completado,
+        notas: p.notas,
+        lecturas: p.lecturas,
+        completed_at: p.completed_at,
+      }));
+
+    if (newPasoRows.length > 0) {
+      const { data: insertedPasos } = await supabase
+        .from("reporte_pasos")
+        .insert(newPasoRows)
+        .select("id, reporte_equipo_id, plantilla_paso_id, falla_correctiva_id, nombre_custom");
+
+      if (insertedPasos) {
+        // Match old→new by composite key within each equipment entry
+        for (const oldPaso of prevPasos) {
+          const newEquipId = equipIdMap.get(oldPaso.reporte_equipo_id);
+          if (!newEquipId) continue;
+
+          const newPaso = insertedPasos.find(
+            (n) =>
+              n.reporte_equipo_id === newEquipId &&
+              n.plantilla_paso_id === oldPaso.plantilla_paso_id &&
+              n.falla_correctiva_id === oldPaso.falla_correctiva_id &&
+              n.nombre_custom === oldPaso.nombre_custom
+          );
+          if (newPaso) {
+            pasoIdMap.set(oldPaso.id, newPaso.id);
+          }
+        }
+      }
+    }
+  }
+
+  // ── c. Copy reporte_fotos (metadata rows only, same URLs) ─────────────
+  const { data: prevPhotos } = await supabase
+    .from("reporte_fotos")
+    .select("reporte_paso_id, equipo_id, url, etiqueta, tipo_media, metadata_gps, metadata_fecha, estatus_revision")
+    .eq("reporte_id", previousReport.id);
+
+  if (prevPhotos && prevPhotos.length > 0) {
+    const newPhotoRows = prevPhotos.map((p) => ({
       reporte_id: newReporteId,
-      equipo_id: oe.equipo_id,
-      tipo_trabajo: "preventivo",
+      equipo_id: p.equipo_id,
+      url: p.url,
+      etiqueta: p.etiqueta,
+      tipo_media: p.tipo_media ?? "foto",
+      metadata_gps: p.metadata_gps,
+      metadata_fecha: p.metadata_fecha,
+      estatus_revision: p.estatus_revision ?? "pendiente",
+      // Map reporte_paso_id to new paso IDs
+      reporte_paso_id: p.reporte_paso_id ? (pasoIdMap.get(p.reporte_paso_id) ?? null) : null,
     }));
 
-    await supabase.from("reporte_equipos").insert(newEntries);
+    await supabase.from("reporte_fotos").insert(newPhotoRows);
+  }
+
+  // ── d. Copy reporte_materiales ────────────────────────────────────────
+  const { data: prevMaterials } = await supabase
+    .from("reporte_materiales")
+    .select("cantidad, unidad, descripcion")
+    .eq("reporte_id", previousReport.id);
+
+  if (prevMaterials && prevMaterials.length > 0) {
+    const newMaterialRows = prevMaterials.map((m) => ({
+      reporte_id: newReporteId,
+      cantidad: m.cantidad,
+      unidad: m.unidad,
+      descripcion: m.descripcion,
+    }));
+
+    await supabase.from("reporte_materiales").insert(newMaterialRows);
   }
 }
 

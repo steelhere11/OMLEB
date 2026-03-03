@@ -21,6 +21,7 @@ interface ReportPdfButtonProps {
     estatus: string;
     firma_encargado: string | null;
     nombre_encargado: string | null;
+    numero_revision: number;
     revision_actual: number;
   };
   lastRevision?: {
@@ -321,6 +322,7 @@ export default function ReportPdfButton({
       materials,
       firmaBase64: reporte.firma_encargado,
       nombreEncargado: reporte.nombre_encargado,
+      numeroRevision: reporte.numero_revision,
       revisionActual: reporte.revision_actual,
       lastRevision: lastRevision ?? null,
     };

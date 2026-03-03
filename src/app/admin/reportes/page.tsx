@@ -9,6 +9,7 @@ type ReporteWithRelations = {
   fecha: string;
   estatus: ReporteEstatus;
   finalizado_por_admin: boolean;
+  numero_revision: number;
   created_at: string;
   ordenes_servicio: { numero_orden: string; descripcion_problema: string; clientes: { nombre: string } | null } | null;
   sucursales: { nombre: string; numero: string } | null;
@@ -48,7 +49,7 @@ export default async function ReportesPage({
   let query = supabase
     .from("reportes")
     .select(
-      "id, fecha, estatus, finalizado_por_admin, created_at, ordenes_servicio:orden_servicio_id(numero_orden, descripcion_problema, clientes(nombre)), sucursales(nombre, numero), users:creado_por(nombre, rol), reporte_fotos(id)"
+      "id, fecha, estatus, finalizado_por_admin, numero_revision, created_at, ordenes_servicio:orden_servicio_id(numero_orden, descripcion_problema, clientes(nombre)), sucursales(nombre, numero), users:creado_por(nombre, rol), reporte_fotos(id)"
     )
     .order("fecha", { ascending: false });
 
@@ -127,6 +128,9 @@ export default async function ReportesPage({
                   </div>
                   <div className="w-[100px] font-mono text-[13px] font-medium text-text-0">
                     {reporte.ordenes_servicio?.numero_orden ?? "—"}
+                    <span className="ml-1 text-[11px] font-normal text-text-2">
+                      Rev {reporte.numero_revision}
+                    </span>
                   </div>
                   <div className="w-[160px] text-[13px] text-text-1">
                     {reporte.sucursales
