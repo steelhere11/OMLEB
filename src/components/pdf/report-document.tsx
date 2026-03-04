@@ -123,7 +123,7 @@ const s = StyleSheet.create({
     paddingBottom: 50,
     color: GRAY_900,
   },
-  // Watermark
+  // Watermark (renders on top of content, covers full page diagonally)
   watermark: {
     position: "absolute",
     top: 0,
@@ -134,11 +134,11 @@ const s = StyleSheet.create({
     alignItems: "center",
   },
   watermarkImg: {
-    width: 500,
-    height: 500,
+    width: 650,
+    height: 650,
     objectFit: "contain" as const,
-    opacity: 0.07,
-    transform: "rotate(-35deg)",
+    opacity: 0.08,
+    transform: "rotate(-40deg)",
   },
   // Header
   header: {
@@ -1000,13 +1000,6 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         style={s.page}
         wrap={true}
       >
-        {/* Watermark — centered logo on every page */}
-        {data.companyLogoBase64 && (
-          <View style={s.watermark} fixed>
-            <Image src={data.companyLogoBase64} style={s.watermarkImg} />
-          </View>
-        )}
-
         {/* Header */}
         <View style={s.header} fixed>
           {data.companyLogoBase64 ? (
@@ -1646,6 +1639,13 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
           />
           <Text style={s.footerText}>OMLEB - Servicios HVAC</Text>
         </View>
+
+        {/* Watermark — overlays on top of all content, every page */}
+        {data.companyLogoBase64 && (
+          <View style={s.watermark} fixed>
+            <Image src={data.companyLogoBase64} style={s.watermarkImg} />
+          </View>
+        )}
       </Page>
     </Document>
   );
