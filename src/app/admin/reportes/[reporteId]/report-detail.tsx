@@ -335,6 +335,18 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
   const rechazadaCount = allPhotos.filter((f) => f.estatus_revision === "rechazada").length;
   const retomarCount = allPhotos.filter((f) => f.estatus_revision === "retomar").length;
 
+  // Sort equipment entries: by numero_etiqueta (natural), then preventivo before correctivo
+  reporte.reporte_equipos.sort((a, b) => {
+    const tagA = a.equipos?.numero_etiqueta ?? "";
+    const tagB = b.equipos?.numero_etiqueta ?? "";
+    const cmp = tagA.localeCompare(tagB, undefined, { numeric: true });
+    if (cmp !== 0) return cmp;
+    // preventivo before correctivo
+    if (a.tipo_trabajo === "preventivo" && b.tipo_trabajo !== "preventivo") return -1;
+    if (a.tipo_trabajo !== "preventivo" && b.tipo_trabajo === "preventivo") return 1;
+    return 0;
+  });
+
   // Equipment list for upload component
   const equiposList = reporte.reporte_equipos
     .filter((e) => e.equipos)
