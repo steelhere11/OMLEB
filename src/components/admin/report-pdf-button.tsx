@@ -237,13 +237,16 @@ export default function ReportPdfButton({
       );
 
       for (const result of regFetched) {
-        if (result.status !== "fulfilled" || !result.value.data) continue;
+        if (result.status !== "fulfilled") continue;
         const p = result.value;
-        const imgData = p.data as string;
+        const isVideo = p.tipo_media === "video";
+        // Videos won't have base64 data — skip non-video entries that failed to fetch
+        if (!isVideo && !p.data) continue;
+        const imgData = (p.data ?? "") as string;
         if (p.etiqueta === "llegada" && !arrivalPhotoData) {
-          arrivalPhotoData = { data: imgData, gps: p.metadata_gps, fecha: p.metadata_fecha, isVideo: p.tipo_media === "video" };
+          arrivalPhotoData = { data: imgData, gps: p.metadata_gps, fecha: p.metadata_fecha, isVideo };
         } else if (p.etiqueta === "sitio" && !sitePhotoData) {
-          sitePhotoData = { data: imgData, gps: p.metadata_gps, fecha: p.metadata_fecha, isVideo: p.tipo_media === "video" };
+          sitePhotoData = { data: imgData, gps: p.metadata_gps, fecha: p.metadata_fecha, isVideo };
         } else if (p.etiqueta === "equipo_general" && p.equipo_id) {
           const existing = regPhotoMap.get(p.equipo_id) ?? { general: null, placa: null };
           if (!existing.general) existing.general = imgData;
