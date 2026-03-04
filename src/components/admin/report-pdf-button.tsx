@@ -24,6 +24,7 @@ interface ReportPdfButtonProps {
     numero_revision: number;
     revision_actual: number;
     updated_at: string;
+    fecha_cierre: string | null;
   };
   lastRevision?: {
     fecha: string;
@@ -379,6 +380,7 @@ export default function ReportPdfButton({
       lastRevision: lastRevision ?? null,
       ordenCreatedAt: orden.created_at,
       reporteUpdatedAt: reporte.updated_at,
+      fechaCierre: reporte.fecha_cierre ?? reporte.updated_at,
     };
   }
 

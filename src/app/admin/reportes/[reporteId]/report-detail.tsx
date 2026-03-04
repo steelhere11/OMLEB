@@ -8,6 +8,7 @@ import {
   adminUpdateEquipmentEntry,
   adminSaveMaterials,
   adminUpdateReportStatus,
+  adminUpdateReportDate,
   approveReport,
   adminUpdateStep,
   adminUpdateEquipmentInfo,
@@ -132,6 +133,7 @@ interface ReporteData {
   finalizado_por_admin: boolean;
   numero_revision: number;
   revision_actual: number;
+  fecha_cierre: string | null;
   created_at: string;
   updated_at: string;
   ordenes_servicio: {
@@ -250,6 +252,22 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
   // Equipment removal state
   const [removePending, startRemoveTransition] = useTransition();
 
+  // Date editing state
+  const [editingDate, setEditingDate] = useState(false);
+  const [datePending, startDateTransition] = useTransition();
+
+  function handleDateChange(newDate: string) {
+    setEditingDate(false);
+    startDateTransition(async () => {
+      const result = await adminUpdateReportDate(reporte.id, newDate);
+      if (result.error) {
+        alert(result.error);
+      } else {
+        router.refresh();
+      }
+    });
+  }
+
   // Photo management handlers
   async function handleFlagPhoto(fotoId: string, estatus: FotoEstatusRevision, nota?: string) {
     await adminFlagPhoto(fotoId, estatus, nota);
@@ -364,14 +382,48 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
             Reporte - {orden?.numero_orden ?? "Sin ODS"}
           </h1>
           <div className="mt-1 flex items-center gap-2">
-            <p className="text-[13px] text-text-2">
-              {new Date(reporte.fecha).toLocaleDateString("es-MX", {
-                weekday: "long",
-                day: "2-digit",
-                month: "long",
-                year: "numeric",
-              })}
-            </p>
+            {editingDate ? (
+              <input
+                type="date"
+                defaultValue={reporte.fecha}
+                autoFocus
+                className="rounded border border-admin-border bg-admin-surface px-2 py-0.5 text-[13px] text-text-1"
+                onBlur={(e) => {
+                  if (e.target.value && e.target.value !== reporte.fecha) {
+                    handleDateChange(e.target.value);
+                  } else {
+                    setEditingDate(false);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const val = (e.target as HTMLInputElement).value;
+                    if (val && val !== reporte.fecha) {
+                      handleDateChange(val);
+                    } else {
+                      setEditingDate(false);
+                    }
+                  } else if (e.key === "Escape") {
+                    setEditingDate(false);
+                  }
+                }}
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingDate(true)}
+                disabled={datePending}
+                className="text-[13px] text-text-2 hover:text-accent hover:underline disabled:opacity-50"
+                title="Clic para editar fecha"
+              >
+                {datePending ? "Guardando..." : new Date(reporte.fecha).toLocaleDateString("es-MX", {
+                  weekday: "long",
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </button>
+            )}
             <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
               Rev {reporte.numero_revision}
             </span>
@@ -770,6 +822,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
               numero_revision: reporte.numero_revision,
               revision_actual: reporte.revision_actual,
               updated_at: reporte.updated_at,
+              fecha_cierre: reporte.fecha_cierre ?? null,
             }}
             lastRevision={revisions.length > 0 ? {
               fecha: revisions[0].created_at,

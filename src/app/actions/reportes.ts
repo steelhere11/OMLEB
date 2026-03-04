@@ -527,6 +527,17 @@ export async function updateReportStatus(
   if (newStatus === "completado") {
     updatePayload.firma_encargado = firmaEncargado;
     updatePayload.nombre_encargado = nombreEncargado;
+
+    // Set fecha_cierre if not already set
+    const { data: existing } = await supabase
+      .from("reportes")
+      .select("fecha_cierre")
+      .eq("id", reporteId)
+      .single();
+
+    if (!existing?.fecha_cierre) {
+      updatePayload.fecha_cierre = new Date().toISOString();
+    }
   }
 
   // Update report status (and firma/nombre if completado)
@@ -671,6 +682,39 @@ export async function adminSaveMaterials(
   return { success: true, message: "Materiales guardados" };
 }
 
+// ── Admin: Update Report Date ────────────────────────────────────────────
+
+export async function adminUpdateReportDate(
+  reporteId: string,
+  fecha: string
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  // Validate date string (YYYY-MM-DD)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+    return { error: "Formato de fecha invalido" };
+  }
+
+  const { error } = await supabase
+    .from("reportes")
+    .update({ fecha })
+    .eq("id", reporteId);
+
+  if (error) {
+    return { error: "Error al actualizar fecha: " + error.message };
+  }
+
+  revalidatePath("/admin/reportes");
+  return { success: true, message: "Fecha actualizada" };
+}
+
 // ── Admin: Approve Report ───────────────────────────────────────────────
 
 export async function adminUpdateReportStatus(
@@ -691,9 +735,23 @@ export async function adminUpdateReportStatus(
     return { error: "Estatus invalido" };
   }
 
+  // Set fecha_cierre when completing (if not already set)
+  const updatePayload: Record<string, string> = { estatus };
+  if (estatus === "completado") {
+    const { data: existing } = await supabase
+      .from("reportes")
+      .select("fecha_cierre")
+      .eq("id", reporteId)
+      .single();
+
+    if (!existing?.fecha_cierre) {
+      updatePayload.fecha_cierre = new Date().toISOString();
+    }
+  }
+
   const { error } = await supabase
     .from("reportes")
-    .update({ estatus })
+    .update(updatePayload)
     .eq("id", reporteId);
 
   if (error) {

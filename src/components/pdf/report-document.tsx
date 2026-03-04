@@ -93,6 +93,7 @@ export interface PdfReportData {
   lastRevision: { fecha: string; autor: string } | null;
   ordenCreatedAt: string;
   reporteUpdatedAt: string;
+  fechaCierre: string | null;
 }
 
 // ---------- Colors ----------
@@ -267,7 +268,6 @@ const s = StyleSheet.create({
     border: `1px solid ${GRAY_300}`,
     borderRadius: 4,
     marginBottom: 20,
-    overflow: "hidden" as const,
   },
   equipHeader: {
     flexDirection: "row",
@@ -277,6 +277,8 @@ const s = StyleSheet.create({
     padding: 8,
     borderBottomWidth: 1,
     borderBottomColor: GRAY_200,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
   },
   equipName: {
     fontSize: 10,
@@ -552,7 +554,6 @@ const s = StyleSheet.create({
     border: `1px solid ${GRAY_300}`,
     borderRadius: 4,
     marginBottom: 8,
-    overflow: "hidden" as const,
   },
   regCardHeader: {
     flexDirection: "row",
@@ -562,6 +563,8 @@ const s = StyleSheet.create({
     padding: 7,
     borderBottomWidth: 1,
     borderBottomColor: GRAY_200,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
   },
   regCardBody: {
     padding: 8,
@@ -698,8 +701,8 @@ function ReadingsTable({
   });
 
   return (
-    <View style={s.readingsTable}>
-      <View style={s.readingsHeaderRow}>
+    <View style={s.readingsTable} wrap={true}>
+      <View style={s.readingsHeaderRow} minPresenceAhead={20}>
         <View style={anyHasRange ? s.rCellParam : { width: "45%", padding: 3 }}>
           <Text style={s.rHeaderText}>Parametro</Text>
         </View>
@@ -1059,8 +1062,8 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
             <View style={s.infoCell}>
               <Text style={s.infoLabel}>Fecha de Cierre</Text>
               <Text style={s.infoValue}>
-                {data.estatus === "completado" && data.reporteUpdatedAt
-                  ? new Date(data.reporteUpdatedAt).toLocaleDateString("es-MX", {
+                {data.estatus === "completado" && data.fechaCierre
+                  ? new Date(data.fechaCierre).toLocaleDateString("es-MX", {
                       day: "2-digit",
                       month: "long",
                       year: "numeric",
@@ -1171,7 +1174,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         {/* Registro de Equipos */}
         {data.registrationEntries.length > 0 && (
           <>
-            <Text style={s.sectionTitle}>
+            <Text style={s.sectionTitle} minPresenceAhead={80}>
               Registro de Equipos ({data.registrationEntries.length})
             </Text>
             {data.registrationEntries.map((reg, rIdx) => {
@@ -1237,7 +1240,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         {/* Equipment Sections */}
         {data.equipmentEntries.length > 0 && (
           <>
-            <Text style={s.sectionTitle}>
+            <Text style={s.sectionTitle} minPresenceAhead={80}>
               Servicios Realizados ({data.equipmentEntries.length})
             </Text>
             {data.equipmentEntries.map((entry, idx) => {
