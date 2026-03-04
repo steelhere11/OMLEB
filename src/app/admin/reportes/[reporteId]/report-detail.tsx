@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState, useTransition, useEffect } from "react";
+import { useState, useActionState, useTransition, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { ReporteEstatus, TipoTrabajo, FotoEtiqueta, FotoEstatusRevision, TipoEquipo } from "@/types";
 import dynamic from "next/dynamic";
@@ -13,6 +13,7 @@ import {
   adminUpdateEquipmentInfo,
   adminRemoveEquipmentEntry,
   adminUpdateSignature,
+  adminReorderSteps,
 } from "@/app/actions/reportes";
 import { adminFlagPhoto, adminDeletePhoto, adminUploadPhoto, adminUpdateEtiqueta, backfillOrphanPhotos } from "@/app/actions/fotos";
 import { ReporteDeleteButton } from "@/components/admin/reporte-delete-button";
@@ -82,6 +83,7 @@ interface ReportePasoData {
   lecturas: Record<string, number | string>;
   completed_at: string | null;
   nombre_custom: string | null;
+  orden: number | null;
   plantillas_pasos: {
     nombre: string;
     procedimiento: string;
@@ -856,7 +858,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                     lecturas_meta:
                       paso.plantillas_pasos?.lecturas_requeridas ?? null,
                     isCustom: !paso.plantillas_pasos && !paso.fallas_correctivas && !!paso.nombre_custom,
-                    orden: paso.plantillas_pasos?.orden ?? (paso.fallas_correctivas ? 9000 : 9999),
+                    orden: paso.orden ?? paso.plantillas_pasos?.orden ?? (paso.fallas_correctivas ? 9000 : 9999),
                   })).sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999)),
                   photos: filteredPhotos.map(
                     (foto) => ({
@@ -1403,71 +1405,21 @@ function EquipmentCard({
       )}
 
       {/* Workflow steps with inline photos */}
-      {entry.reporte_pasos.length > 0 && (() => {
-        // Group photos by reporte_paso_id
-        const photosByStep = new Map<string, ReporteFotoData[]>();
-        const orphanPhotos: ReporteFotoData[] = [];
-        for (const foto of photos) {
-          if (foto.reporte_paso_id) {
-            const arr = photosByStep.get(foto.reporte_paso_id) ?? [];
-            arr.push(foto);
-            photosByStep.set(foto.reporte_paso_id, arr);
-          } else {
-            orphanPhotos.push(foto);
-          }
-        }
-
-        return (
-          <div className="mt-3">
-            <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
-              Pasos del Flujo de Trabajo
-            </h4>
-            <div className="space-y-2">
-              {entry.reporte_pasos.map((paso) => (
-                <StepRow
-                  key={paso.id}
-                  paso={paso}
-                  stagePhotos={photosByStep.get(paso.id) ?? []}
-                  onFlagPhoto={onFlagPhoto}
-                  onDeletePhoto={onDeletePhoto}
-                  onUpdateEtiqueta={onUpdateEtiqueta}
-                  onDeleteStep={onDeleteStep}
-                  isEditing={editingStepId === paso.id}
-                  onEdit={() => onEditStep(paso.id)}
-                  onCancelEdit={onCancelEditStep}
-                  onSaved={onStepSaved}
-                  reporteId={reporteId}
-                  equipoId={entry.equipo_id}
-                />
-              ))}
-              <AdminCustomStepForm
-                reporteEquipoId={entry.id}
-                onStepAdded={onStepSaved}
-              />
-            </div>
-
-            {/* Orphan photos (not linked to any step) */}
-            {orphanPhotos.length > 0 && (
-              <div className="mt-4">
-                <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
-                  Fotos adicionales ({orphanPhotos.length})
-                </h4>
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                  {orphanPhotos.map((foto) => (
-                    <AdminPhotoCard
-                      key={foto.id}
-                      foto={foto}
-                      onFlag={onFlagPhoto}
-                      onDelete={onDeletePhoto}
-                      onUpdateEtiqueta={onUpdateEtiqueta}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })()}
+      {entry.reporte_pasos.length > 0 && (
+        <StepList
+          entry={entry}
+          photos={photos}
+          onFlagPhoto={onFlagPhoto}
+          onDeletePhoto={onDeletePhoto}
+          onUpdateEtiqueta={onUpdateEtiqueta}
+          onDeleteStep={onDeleteStep}
+          editingStepId={editingStepId}
+          onEditStep={onEditStep}
+          onCancelEditStep={onCancelEditStep}
+          onStepSaved={onStepSaved}
+          reporteId={reporteId}
+        />
+      )}
 
       {/* Add custom step when no workflow steps exist yet */}
       {entry.reporte_pasos.length === 0 && (
@@ -1679,11 +1631,145 @@ function TextBlock({ label, value }: { label: string; value: string }) {
   );
 }
 
+// ---------- Step List (manages ordering + photos grouping) ----------
+
+function StepList({
+  entry,
+  photos,
+  onFlagPhoto,
+  onDeletePhoto,
+  onUpdateEtiqueta,
+  onDeleteStep,
+  editingStepId,
+  onEditStep,
+  onCancelEditStep,
+  onStepSaved,
+  reporteId,
+}: {
+  entry: ReporteEquipoData;
+  photos: ReporteFotoData[];
+  onFlagPhoto: (fotoId: string, estatus: FotoEstatusRevision, nota?: string) => Promise<void>;
+  onDeletePhoto: (fotoId: string) => Promise<void>;
+  onUpdateEtiqueta: (fotoId: string, etiqueta: string | null) => Promise<void>;
+  onDeleteStep: (stepId: string) => Promise<void>;
+  editingStepId: string | null;
+  onEditStep: (stepId: string) => void;
+  onCancelEditStep: () => void;
+  onStepSaved: () => void;
+  reporteId: string;
+}) {
+  // Effective order helper
+  const getEffectiveOrder = useCallback((paso: ReportePasoData) =>
+    paso.orden ?? paso.plantillas_pasos?.orden ?? (paso.fallas_correctivas ? 9000 : 9999),
+  []);
+
+  // Local ordered steps state
+  const [orderedSteps, setOrderedSteps] = useState<ReportePasoData[]>(() =>
+    [...entry.reporte_pasos].sort((a, b) => getEffectiveOrder(a) - getEffectiveOrder(b))
+  );
+  const [reordering, startReorderTransition] = useTransition();
+
+  // Re-sync when server data changes
+  useEffect(() => {
+    setOrderedSteps(
+      [...entry.reporte_pasos].sort((a, b) => getEffectiveOrder(a) - getEffectiveOrder(b))
+    );
+  }, [entry.reporte_pasos, getEffectiveOrder]);
+
+  // Group photos by reporte_paso_id
+  const photosByStep = new Map<string, ReporteFotoData[]>();
+  const orphanPhotos: ReporteFotoData[] = [];
+  for (const foto of photos) {
+    if (foto.reporte_paso_id) {
+      const arr = photosByStep.get(foto.reporte_paso_id) ?? [];
+      arr.push(foto);
+      photosByStep.set(foto.reporte_paso_id, arr);
+    } else {
+      orphanPhotos.push(foto);
+    }
+  }
+
+  const moveStep = useCallback((index: number, direction: "up" | "down") => {
+    setOrderedSteps((prev) => {
+      const next = [...prev];
+      const swapIdx = direction === "up" ? index - 1 : index + 1;
+      if (swapIdx < 0 || swapIdx >= next.length) return prev;
+      [next[index], next[swapIdx]] = [next[swapIdx], next[index]];
+
+      // Persist the new order
+      const updates = next.map((step, i) => ({ id: step.id, orden: i + 1 }));
+      startReorderTransition(async () => {
+        await adminReorderSteps(updates);
+      });
+
+      return next;
+    });
+  }, []);
+
+  return (
+    <div className="mt-3">
+      <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
+        Pasos del Flujo de Trabajo
+        {reordering && <span className="ml-2 text-[10px] font-normal text-text-3">Guardando orden...</span>}
+      </h4>
+      <div className="space-y-2">
+        {orderedSteps.map((paso, index) => (
+          <StepRow
+            key={paso.id}
+            paso={paso}
+            stagePhotos={photosByStep.get(paso.id) ?? []}
+            onFlagPhoto={onFlagPhoto}
+            onDeletePhoto={onDeletePhoto}
+            onUpdateEtiqueta={onUpdateEtiqueta}
+            onDeleteStep={onDeleteStep}
+            isEditing={editingStepId === paso.id}
+            onEdit={() => onEditStep(paso.id)}
+            onCancelEdit={onCancelEditStep}
+            onSaved={onStepSaved}
+            reporteId={reporteId}
+            equipoId={entry.equipo_id}
+            onMoveUp={index > 0 ? () => moveStep(index, "up") : null}
+            onMoveDown={index < orderedSteps.length - 1 ? () => moveStep(index, "down") : null}
+          />
+        ))}
+        <AdminCustomStepForm
+          reporteEquipoId={entry.id}
+          onStepAdded={onStepSaved}
+        />
+      </div>
+
+      {/* Orphan photos (not linked to any step) */}
+      {orphanPhotos.length > 0 && (
+        <div className="mt-4">
+          <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
+            Fotos adicionales ({orphanPhotos.length})
+          </h4>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            {orphanPhotos.map((foto) => (
+              <AdminPhotoCard
+                key={foto.id}
+                foto={foto}
+                onFlag={onFlagPhoto}
+                onDelete={onDeletePhoto}
+                onUpdateEtiqueta={onUpdateEtiqueta}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------- Stage colors ----------
+
 const stageColors: Record<string, string> = {
   antes: "bg-blue-100 text-blue-700",
   durante: "bg-amber-100 text-amber-700",
   despues: "bg-green-100 text-green-700",
 };
+
+// ---------- Collapsible Step Row ----------
 
 function StepRow({
   paso,
@@ -1698,6 +1784,8 @@ function StepRow({
   onSaved,
   reporteId,
   equipoId,
+  onMoveUp,
+  onMoveDown,
 }: {
   paso: ReportePasoData;
   stagePhotos?: ReporteFotoData[];
@@ -1711,7 +1799,10 @@ function StepRow({
   onSaved: () => void;
   reporteId: string;
   equipoId: string;
+  onMoveUp: (() => void) | null;
+  onMoveDown: (() => void) | null;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -1740,31 +1831,26 @@ function StepRow({
     if (!sortedStages.includes(st)) sortedStages.push(st);
   }
 
+  // Summary counts for collapsed header
+  const photoCount = stagePhotos.length;
+  const readingCount = readings.length;
+
+  // Auto-expand on edit or upload
+  useEffect(() => {
+    if (isEditing || showUpload) setExpanded(true);
+  }, [isEditing, showUpload]);
+
   return (
     <div className="rounded-[6px] border border-admin-border-subtle px-3 py-2">
-      {isEditing ? (
-        <AdminStepEditor
-          paso={paso}
-          onSave={async (data) => {
-            const result = await adminUpdateStep(paso.id, data);
-            if (result.error) throw new Error(result.error);
-            onSaved();
-          }}
-          onCancel={onCancelEdit}
-        />
-      ) : (
-      <div className="flex items-start gap-2">
+      {/* Always-visible header */}
+      <div
+        className="flex items-center gap-2 cursor-pointer select-none"
+        onClick={() => setExpanded((v) => !v)}
+      >
         {/* Completado indicator */}
-        <div className="mt-0.5 shrink-0">
+        <div className="shrink-0">
           {paso.completado ? (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 text-status-success"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-status-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           ) : (
@@ -1772,189 +1858,267 @@ function StepRow({
           )}
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-[13px] font-medium text-text-0">{name}</p>
-            {isCustom && (
-              <span className="shrink-0 rounded-full bg-purple-100 px-1.5 py-0.5 text-[10px] font-semibold text-purple-700">
-                Personalizado
+        {/* Name */}
+        <p className="text-[13px] font-medium text-text-0 truncate">{name}</p>
+
+        {isCustom && (
+          <span className="shrink-0 rounded-full bg-purple-100 px-1.5 py-0.5 text-[10px] font-semibold text-purple-700">
+            Personalizado
+          </span>
+        )}
+
+        {/* Summary pills (collapsed info) */}
+        {!expanded && (
+          <>
+            {photoCount > 0 && (
+              <span className="shrink-0 rounded-full bg-admin-surface-raised px-1.5 py-0.5 text-[10px] font-medium text-text-2">
+                {photoCount} foto{photoCount !== 1 ? "s" : ""}
               </span>
             )}
+            {readingCount > 0 && (
+              <span className="shrink-0 rounded-full bg-admin-surface-raised px-1.5 py-0.5 text-[10px] font-medium text-text-2">
+                {readingCount} lectura{readingCount !== 1 ? "s" : ""}
+              </span>
+            )}
+            {paso.notas && (
+              <span className="shrink-0 rounded-full bg-admin-surface-raised px-1.5 py-0.5 text-[10px] font-medium text-text-2">
+                Nota
+              </span>
+            )}
+          </>
+        )}
+
+        <div className="flex-1" />
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          {/* Reorder arrows */}
+          {onMoveUp && (
             <button
               type="button"
-              onClick={onEdit}
-              className="shrink-0 text-[11px] font-medium text-text-3 transition-colors duration-[80ms] hover:text-accent"
-            >
-              Editar
-            </button>
-            <button
-              type="button"
-              onClick={() => { setShowUpload((v) => !v); setUploadError(null); }}
-              className="shrink-0 text-[11px] font-medium text-text-3 transition-colors duration-[80ms] hover:text-accent flex items-center gap-0.5"
+              onClick={onMoveUp}
+              className="rounded p-0.5 text-text-3 transition-colors hover:bg-admin-surface-raised hover:text-text-1"
+              title="Mover arriba"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
               </svg>
-              Agregar foto
             </button>
-            {isCustom && (
-              <button
-                type="button"
-                onClick={() => setShowDeleteStepConfirm(true)}
-                disabled={deletingStep}
-                className="shrink-0 text-[11px] font-medium text-red-500 transition-colors duration-[80ms] hover:text-red-700 flex items-center gap-0.5"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Eliminar
-              </button>
-            )}
-          </div>
-
-          {/* Delete step confirmation */}
-          {showDeleteStepConfirm && (
-            <div className="mt-2 rounded border border-red-300 bg-red-50 px-3 py-2">
-              <p className="mb-2 text-[12px] font-medium text-red-800">
-                Eliminar este paso personalizado y todas sus fotos?
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    startDeleteStepTransition(async () => {
-                      await onDeleteStep(paso.id);
-                      setShowDeleteStepConfirm(false);
-                    });
-                  }}
-                  disabled={deletingStep}
-                  className="rounded-[6px] bg-red-600 px-2.5 py-1 text-[11px] font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
-                >
-                  {deletingStep ? "Eliminando..." : "Confirmar"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowDeleteStepConfirm(false)}
-                  className="text-[11px] font-medium text-text-2 transition-colors hover:text-text-0"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
           )}
-
-          {/* Inline photo upload form */}
-          {showUpload && (
-            <form
-              className="mt-2 flex flex-wrap items-end gap-2 rounded border border-admin-border-subtle bg-admin-surface-raised p-2"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setUploading(true);
-                setUploadError(null);
-                const fd = new FormData(e.currentTarget);
-                fd.set("reporteId", reporteId);
-                fd.set("equipoId", equipoId);
-                fd.set("reportePasoId", paso.id);
-                const result = await adminUploadPhoto(fd);
-                setUploading(false);
-                if (result.error) {
-                  setUploadError(result.error);
-                } else {
-                  setShowUpload(false);
-                  onSaved();
-                }
-              }}
+          {onMoveDown && (
+            <button
+              type="button"
+              onClick={onMoveDown}
+              className="rounded p-0.5 text-text-3 transition-colors hover:bg-admin-surface-raised hover:text-text-1"
+              title="Mover abajo"
             >
-              <label className="flex flex-col gap-1 text-[11px] font-medium text-text-2">
-                Archivo
-                <input
-                  type="file"
-                  name="file"
-                  accept="image/*,video/*"
-                  required
-                  className="w-[180px] text-[11px] file:mr-2 file:rounded file:border-0 file:bg-accent/10 file:px-2 file:py-0.5 file:text-[11px] file:font-medium file:text-accent"
-                />
-              </label>
-              <label className="flex flex-col gap-1 text-[11px] font-medium text-text-2">
-                Etiqueta
-                <select
-                  name="etiqueta"
-                  required
-                  className="rounded border border-admin-border-subtle bg-admin-surface px-2 py-1 text-[12px] text-text-0"
-                >
-                  <option value="antes">Antes</option>
-                  <option value="durante">Durante</option>
-                  <option value="despues">Despues</option>
-                </select>
-              </label>
-              <button
-                type="submit"
-                disabled={uploading}
-                className="rounded bg-accent px-3 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
-              >
-                {uploading ? "Subiendo..." : "Subir"}
-              </button>
-              <button
-                type="button"
-                onClick={() => { setShowUpload(false); setUploadError(null); }}
-                className="text-[11px] font-medium text-text-3 hover:text-text-1"
-              >
-                Cancelar
-              </button>
-              {uploadError && (
-                <p className="w-full text-[11px] text-status-error">{uploadError}</p>
-              )}
-            </form>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
           )}
 
-          {/* Readings */}
-          {readings.length > 0 && (
-            <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5">
-              {readings.map(([key, val]) => (
-                <span key={key} className="text-[12px] text-text-2">
-                  {key}: <span className="font-mono text-text-1">{String(val)}</span>
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Notes */}
-          {paso.notas && (
-            <p className="mt-1 text-[12px] text-text-2 italic">
-              Nota: {paso.notas}
-            </p>
+          <button
+            type="button"
+            onClick={() => { onEdit(); setExpanded(true); }}
+            className="shrink-0 text-[11px] font-medium text-text-3 transition-colors duration-[80ms] hover:text-accent"
+          >
+            Editar
+          </button>
+          <button
+            type="button"
+            onClick={() => { setShowUpload((v) => !v); setUploadError(null); setExpanded(true); }}
+            className="shrink-0 text-[11px] font-medium text-text-3 transition-colors duration-[80ms] hover:text-accent flex items-center gap-0.5"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Foto
+          </button>
+          {isCustom && (
+            <button
+              type="button"
+              onClick={() => setShowDeleteStepConfirm(true)}
+              disabled={deletingStep}
+              className="shrink-0 text-[11px] font-medium text-red-500 transition-colors duration-[80ms] hover:text-red-700"
+            >
+              Eliminar
+            </button>
           )}
         </div>
-      </div>
-      )}
 
-      {/* Inline photos grouped by stage */}
-      {sortedStages.length > 0 && (
-        <div className="mt-2 space-y-2 pl-6">
-          {sortedStages.map((stage) => {
-            const photos = photosByStage.get(stage) ?? [];
-            return (
-              <div key={stage}>
-                <span
-                  className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.04em] ${stageColors[stage] ?? "bg-gray-100 text-gray-600"}`}
+        {/* Chevron */}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className={`h-4 w-4 shrink-0 text-text-3 transition-transform duration-150 ${expanded ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+
+      {/* Collapsible body */}
+      {expanded && (
+        <div className="mt-2">
+          {isEditing ? (
+            <AdminStepEditor
+              paso={paso}
+              onSave={async (data) => {
+                const result = await adminUpdateStep(paso.id, data);
+                if (result.error) throw new Error(result.error);
+                onSaved();
+              }}
+              onCancel={onCancelEdit}
+            />
+          ) : (
+            <>
+              {/* Delete step confirmation */}
+              {showDeleteStepConfirm && (
+                <div className="mb-2 rounded border border-red-300 bg-red-50 px-3 py-2">
+                  <p className="mb-2 text-[12px] font-medium text-red-800">
+                    Eliminar este paso personalizado y todas sus fotos?
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        startDeleteStepTransition(async () => {
+                          await onDeleteStep(paso.id);
+                          setShowDeleteStepConfirm(false);
+                        });
+                      }}
+                      disabled={deletingStep}
+                      className="rounded-[6px] bg-red-600 px-2.5 py-1 text-[11px] font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+                    >
+                      {deletingStep ? "Eliminando..." : "Confirmar"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteStepConfirm(false)}
+                      className="text-[11px] font-medium text-text-2 transition-colors hover:text-text-0"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Inline photo upload form */}
+              {showUpload && (
+                <form
+                  className="mb-2 flex flex-wrap items-end gap-2 rounded border border-admin-border-subtle bg-admin-surface-raised p-2"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setUploading(true);
+                    setUploadError(null);
+                    const fd = new FormData(e.currentTarget);
+                    fd.set("reporteId", reporteId);
+                    fd.set("equipoId", equipoId);
+                    fd.set("reportePasoId", paso.id);
+                    const result = await adminUploadPhoto(fd);
+                    setUploading(false);
+                    if (result.error) {
+                      setUploadError(result.error);
+                    } else {
+                      setShowUpload(false);
+                      onSaved();
+                    }
+                  }}
                 >
-                  {etiquetaLabels[stage] ?? stage}
-                </span>
-                <div className="mt-1 grid grid-cols-3 gap-2">
-                  {photos.map((foto) => (
-                    <AdminPhotoCard
-                      key={foto.id}
-                      foto={foto}
-                      onFlag={onFlagPhoto}
-                      onDelete={onDeletePhoto}
-                      onUpdateEtiqueta={onUpdateEtiqueta}
+                  <label className="flex flex-col gap-1 text-[11px] font-medium text-text-2">
+                    Archivo
+                    <input
+                      type="file"
+                      name="file"
+                      accept="image/*,video/*"
+                      required
+                      className="w-[180px] text-[11px] file:mr-2 file:rounded file:border-0 file:bg-accent/10 file:px-2 file:py-0.5 file:text-[11px] file:font-medium file:text-accent"
                     />
+                  </label>
+                  <label className="flex flex-col gap-1 text-[11px] font-medium text-text-2">
+                    Etiqueta
+                    <select
+                      name="etiqueta"
+                      required
+                      className="rounded border border-admin-border-subtle bg-admin-surface px-2 py-1 text-[12px] text-text-0"
+                    >
+                      <option value="antes">Antes</option>
+                      <option value="durante">Durante</option>
+                      <option value="despues">Despues</option>
+                    </select>
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={uploading}
+                    className="rounded bg-accent px-3 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
+                  >
+                    {uploading ? "Subiendo..." : "Subir"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowUpload(false); setUploadError(null); }}
+                    className="text-[11px] font-medium text-text-3 hover:text-text-1"
+                  >
+                    Cancelar
+                  </button>
+                  {uploadError && (
+                    <p className="w-full text-[11px] text-status-error">{uploadError}</p>
+                  )}
+                </form>
+              )}
+
+              {/* Readings */}
+              {readings.length > 0 && (
+                <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+                  {readings.map(([key, val]) => (
+                    <span key={key} className="text-[12px] text-text-2">
+                      {key}: <span className="font-mono text-text-1">{String(val)}</span>
+                    </span>
                   ))}
                 </div>
-              </div>
-            );
-          })}
+              )}
+
+              {/* Notes */}
+              {paso.notas && (
+                <p className="mt-1 text-[12px] text-text-2 italic">
+                  Nota: {paso.notas}
+                </p>
+              )}
+
+              {/* Inline photos grouped by stage */}
+              {sortedStages.length > 0 && (
+                <div className="mt-2 space-y-2 pl-6">
+                  {sortedStages.map((stage) => {
+                    const stagePhotosArr = photosByStage.get(stage) ?? [];
+                    return (
+                      <div key={stage}>
+                        <span
+                          className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.04em] ${stageColors[stage] ?? "bg-gray-100 text-gray-600"}`}
+                        >
+                          {etiquetaLabels[stage] ?? stage}
+                        </span>
+                        <div className="mt-1 grid grid-cols-3 gap-2">
+                          {stagePhotosArr.map((foto) => (
+                            <AdminPhotoCard
+                              key={foto.id}
+                              foto={foto}
+                              onFlag={onFlagPhoto}
+                              onDelete={onDeletePhoto}
+                              onUpdateEtiqueta={onUpdateEtiqueta}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
     </div>

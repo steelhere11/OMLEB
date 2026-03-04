@@ -169,6 +169,7 @@ export function WorkflowCorrective({
           notas: null,
           lecturas: {},
           completed_at: null,
+          orden: null,
         },
       ]);
     }

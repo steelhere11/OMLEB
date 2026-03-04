@@ -75,6 +75,7 @@ export interface ReportePaso {
   notas: string | null;
   lecturas: Record<string, number | string>;
   completed_at: string | null;
+  orden: number | null;
 }
 
 // --- Reference Values ---

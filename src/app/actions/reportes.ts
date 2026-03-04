@@ -222,7 +222,7 @@ async function deepCopyFromPreviousReport(
   // ── b. Copy reporte_pasos (ALL fields) ────────────────────────────────
   const { data: prevPasos } = await supabase
     .from("reporte_pasos")
-    .select("id, reporte_equipo_id, plantilla_paso_id, falla_correctiva_id, nombre_custom, completado, notas, lecturas, completed_at")
+    .select("id, reporte_equipo_id, plantilla_paso_id, falla_correctiva_id, nombre_custom, completado, notas, lecturas, completed_at, orden")
     .in("reporte_equipo_id", prevEquipEntries.map((e) => e.id));
 
   const pasoIdMap = new Map<string, string>(); // old paso id → new paso id
@@ -239,6 +239,7 @@ async function deepCopyFromPreviousReport(
         notas: p.notas,
         lecturas: p.lecturas,
         completed_at: p.completed_at,
+        orden: p.orden,
       }));
 
     if (newPasoRows.length > 0) {
@@ -747,6 +748,35 @@ export async function approveReport(
 
   revalidatePath("/admin/reportes");
   return { success: true, message: "Reporte aprobado" };
+}
+
+// ── Admin: Reorder Steps ─────────────────────────────────────────────────
+
+export async function adminReorderSteps(
+  steps: { id: string; orden: number }[]
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  for (const step of steps) {
+    const { error } = await supabase
+      .from("reporte_pasos")
+      .update({ orden: step.orden })
+      .eq("id", step.id);
+
+    if (error) {
+      return { error: "Error al reordenar pasos: " + error.message };
+    }
+  }
+
+  revalidatePath("/admin/reportes");
+  return { success: true, message: "Orden actualizado" };
 }
 
 // ── Admin: Update Step (readings, notes, completion) ────────────────────

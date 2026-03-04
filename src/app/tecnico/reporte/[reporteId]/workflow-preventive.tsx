@@ -90,6 +90,7 @@ export function WorkflowPreventive({
           notas: data.notas || null,
           lecturas: data.lecturas,
           completed_at: data.completado ? new Date().toISOString() : null,
+          orden: existing?.orden ?? null,
         });
         return next;
       });
@@ -133,6 +134,7 @@ export function WorkflowPreventive({
             notas: existingEntry?.notas ?? null,
             lecturas: existingEntry?.lecturas ?? {},
             completed_at: existingEntry?.completed_at ?? null,
+            orden: existingEntry?.orden ?? null,
           });
           return next;
         });
