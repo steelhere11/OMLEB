@@ -1109,6 +1109,13 @@ function MaterialsSection({
             </p>
           ) : (
             <div className="mb-3 space-y-3">
+              {/* Column labels */}
+              <div className="hidden sm:grid sm:grid-cols-[100px_120px_1fr_24px] gap-2">
+                <span className="text-[10px] font-medium uppercase tracking-[0.04em] text-text-3 px-1">Cantidad</span>
+                <span className="text-[10px] font-medium uppercase tracking-[0.04em] text-text-3 px-1">Unidad</span>
+                <span className="text-[10px] font-medium uppercase tracking-[0.04em] text-text-3 px-1">Descripcion</span>
+                <span />
+              </div>
               {rows.map((row) => (
                 <div key={row.id} className="flex items-start gap-2">
                   <div className="grid flex-1 gap-2 sm:grid-cols-[100px_120px_1fr]">
@@ -1121,18 +1128,16 @@ function MaterialsSection({
                         updateRow(row.id, "cantidad", parseFloat(e.target.value) || 0)
                       }
                       placeholder="Cantidad"
-                      className="rounded-[6px] border border-admin-border bg-admin-surface px-3 py-1.5 text-[13px]"
+                      className="rounded-[6px] border border-admin-border bg-admin-surface px-3 py-1.5 text-[13px] text-text-0 placeholder:text-text-3"
                     />
-                    <div>
-                      <input
-                        type="text"
-                        list="unidades-list"
-                        value={row.unidad}
-                        onChange={(e) => updateRow(row.id, "unidad", e.target.value)}
-                        placeholder="Unidad"
-                        className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-3 py-1.5 text-[13px]"
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      list="unidades-list"
+                      value={row.unidad}
+                      onChange={(e) => updateRow(row.id, "unidad", e.target.value)}
+                      placeholder="Unidad"
+                      className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-3 py-1.5 text-[13px] text-text-0 placeholder:text-text-3"
+                    />
                     <input
                       type="text"
                       value={row.descripcion}
@@ -1140,7 +1145,7 @@ function MaterialsSection({
                         updateRow(row.id, "descripcion", e.target.value)
                       }
                       placeholder="Descripcion"
-                      className="rounded-[6px] border border-admin-border bg-admin-surface px-3 py-1.5 text-[13px]"
+                      className="rounded-[6px] border border-admin-border bg-admin-surface px-3 py-1.5 text-[13px] text-text-0 placeholder:text-text-3"
                     />
                   </div>
                   <button
@@ -1203,7 +1208,12 @@ function MaterialsSection({
         </div>
       ) : (
         <div className="overflow-x-auto rounded-[10px] border border-admin-border bg-admin-surface">
-          <table className="w-full">
+          <table className="w-full table-fixed">
+            <colgroup>
+              <col className="w-[100px]" />
+              <col className="w-[130px]" />
+              <col />
+            </colgroup>
             <thead>
               <tr className="border-b border-admin-border-subtle text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
                 <th className="px-4 py-[10px] text-left">Cantidad</th>
@@ -1220,10 +1230,10 @@ function MaterialsSection({
                   <td className="px-4 py-[9px] font-mono text-[13px] text-text-0">
                     {mat.cantidad}
                   </td>
-                  <td className="px-4 py-[9px] text-[13px] text-text-1">
+                  <td className="px-4 py-[9px] text-[13px] text-text-0">
                     {mat.unidad}
                   </td>
-                  <td className="px-4 py-[9px] text-[13px] text-text-1">
+                  <td className="px-4 py-[9px] text-[13px] text-text-0">
                     {mat.descripcion}
                   </td>
                 </tr>
