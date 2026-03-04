@@ -91,7 +91,6 @@ export interface PdfReportData {
   numeroRevision: number;
   revisionActual: number;
   lastRevision: { fecha: string; autor: string } | null;
-  ordenCreatedAt: string;
   reporteUpdatedAt: string;
   fechaCierre: string | null;
 }
@@ -816,18 +815,19 @@ function StepPhotoGrid({ photos }: { photos: PhotoBase64[] }) {
   return (
     <>
       {stages.map((stage) => (
-        <View key={stage} wrap={false}>
+        <View key={stage}>
           <Text
             style={[
               s.stageLabel,
               stageLabelStyles[stage] ?? s.stageLabelAntes,
             ]}
+            minPresenceAhead={80}
           >
             {stageLabels[stage] ?? stage.toUpperCase()}
           </Text>
           <View style={s.photoGrid}>
             {grouped[stage].map((photo, pIdx) => (
-              <View key={pIdx} style={s.photoBox}>
+              <View key={pIdx} style={s.photoBox} wrap={false}>
                 {photo.isVideo ? (
                   <VideoPlaceholder />
                 ) : (
@@ -892,7 +892,7 @@ function WarnIcon({ color = RED, size = 10 }: { color?: string; size?: number })
 function StepBlock({ step }: { step: PdfStepData }) {
   return (
     <View style={s.stepBlock} wrap={true}>
-      <View style={s.stepHeaderRow}>
+      <View style={s.stepHeaderRow} minPresenceAhead={30}>
         {step.completado ? (
           <View style={s.stepCheckIcon}>
             <CheckIcon />
@@ -1034,7 +1034,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         <View style={s.infoGrid}>
           <View style={s.infoRow}>
             <View style={s.infoCell}>
-              <Text style={s.infoLabel}>Fecha del Reporte</Text>
+              <Text style={s.infoLabel}>Fecha de Inicio</Text>
               <Text style={s.infoValue}>{fechaFormatted}</Text>
             </View>
             <View style={s.infoCell}>
@@ -1048,10 +1048,10 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
           </View>
           <View style={s.infoRow}>
             <View style={s.infoCell}>
-              <Text style={s.infoLabel}>Fecha de Inicio</Text>
+              <Text style={s.infoLabel}>Fecha de Cierre</Text>
               <Text style={s.infoValue}>
-                {data.ordenCreatedAt
-                  ? new Date(data.ordenCreatedAt).toLocaleDateString("es-MX", {
+                {data.fechaCierre
+                  ? new Date(data.fechaCierre).toLocaleDateString("es-MX", {
                       day: "2-digit",
                       month: "long",
                       year: "numeric",
@@ -1060,16 +1060,8 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
               </Text>
             </View>
             <View style={s.infoCell}>
-              <Text style={s.infoLabel}>Fecha de Cierre</Text>
-              <Text style={s.infoValue}>
-                {data.estatus === "completado" && data.fechaCierre
-                  ? new Date(data.fechaCierre).toLocaleDateString("es-MX", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })
-                  : "—"}
-              </Text>
+              <Text style={s.infoLabel}>Cliente</Text>
+              <Text style={s.infoValue}>{data.cliente.nombre}</Text>
             </View>
           </View>
           <View style={s.infoRow}>
@@ -1080,12 +1072,6 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
               </Text>
             </View>
             <View style={s.infoCell}>
-              <Text style={s.infoLabel}>Cliente</Text>
-              <Text style={s.infoValue}>{data.cliente.nombre}</Text>
-            </View>
-          </View>
-          <View style={s.infoRow}>
-            <View style={s.infoCellFull}>
               <Text style={s.infoLabel}>Direccion</Text>
               <Text style={s.infoValue}>{data.sucursal.direccion}</Text>
             </View>
@@ -1112,10 +1098,10 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         {/* Evidencia de Llegada */}
         {data.arrivalPhotos.length > 0 && (
           <>
-            <Text style={s.sectionTitle}>Evidencia de Llegada</Text>
+            <Text style={s.sectionTitle} minPresenceAhead={80}>Evidencia de Llegada</Text>
             <View style={s.photoGrid}>
               {data.arrivalPhotos.map((photo, idx) => (
-                <View key={idx} style={s.photoBox}>
+                <View key={idx} style={s.photoBox} wrap={false}>
                   {photo.isVideo ? (
                     <VideoPlaceholder />
                   ) : (
@@ -1143,10 +1129,10 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         {/* Panoramica del Sitio */}
         {data.sitePhotos.length > 0 && (
           <>
-            <Text style={s.sectionTitle}>Panoramica del Sitio</Text>
+            <Text style={s.sectionTitle} minPresenceAhead={80}>Panoramica del Sitio</Text>
             <View style={s.photoGrid}>
               {data.sitePhotos.map((photo, idx) => (
-                <View key={idx} style={s.photoBox}>
+                <View key={idx} style={s.photoBox} wrap={false}>
                   {photo.isVideo ? (
                     <VideoPlaceholder />
                   ) : (
@@ -1190,7 +1176,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
               ].filter((f) => f.value);
 
               return (
-                <View key={rIdx} style={s.regCard} wrap={true}>
+                <View key={rIdx} style={s.regCard} wrap={false}>
                   <View style={s.regCardHeader}>
                     <Text style={s.equipName}>{reg.equipoTag}</Text>
                     {reg.tipoEquipo && (
@@ -1263,7 +1249,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
               return (
                 <View key={idx} style={s.equipCard} wrap={true}>
                   {/* Equipment header */}
-                  <View style={s.equipHeader}>
+                  <View style={s.equipHeader} minPresenceAhead={120}>
                     <Text style={s.equipName}>
                       {entry.equipo.numero_etiqueta}
                       {entry.equipo.marca || entry.equipo.modelo
@@ -1295,24 +1281,24 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
 
                   {/* Free-text fields */}
                   {entry.diagnostico && (
-                    <>
+                    <View wrap={false}>
                       <Text style={s.fieldLabel}>Diagnostico</Text>
                       <Text style={s.fieldValue}>{entry.diagnostico}</Text>
-                    </>
+                    </View>
                   )}
                   {entry.trabajo_realizado && (
-                    <>
+                    <View wrap={false}>
                       <Text style={s.fieldLabel}>Trabajo Realizado</Text>
                       <Text style={s.fieldValue}>
                         {entry.trabajo_realizado}
                       </Text>
-                    </>
+                    </View>
                   )}
                   {entry.observaciones && (
-                    <>
+                    <View wrap={false}>
                       <Text style={s.fieldLabel}>Observaciones</Text>
                       <Text style={s.fieldValue}>{entry.observaciones}</Text>
-                    </>
+                    </View>
                   )}
 
                   {/* Steps — show all steps that have content (completed, photos, notes, or readings) */}
@@ -1346,6 +1332,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                                     justifyContent: "space-between",
                                     alignItems: "center",
                                   }}
+                                  minPresenceAhead={60}
                                 >
                                   <Text
                                     style={{
@@ -1408,6 +1395,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                               paddingVertical: 6,
                               paddingHorizontal: 10,
                             }}
+                            minPresenceAhead={60}
                           >
                             <Text
                               style={{
@@ -1431,7 +1419,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                         {/* Custom steps with blue ADICIONAL badge */}
                         {customSteps.length > 0 && (
                           <View style={{ marginTop: 8 }}>
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4, paddingHorizontal: 8 }}>
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 4, paddingHorizontal: 8 }} minPresenceAhead={50}>
                               <View
                                 style={{
                                   backgroundColor: GRAY_200,
@@ -1478,7 +1466,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                       </Text>
                       <View style={s.photoGrid}>
                         {entry.orphanPhotosBase64.map((photo, pIdx) => (
-                          <View key={pIdx} style={s.photoBox}>
+                          <View key={pIdx} style={s.photoBox} wrap={false}>
                             {photo.isVideo ? (
                               <VideoPlaceholder />
                             ) : (
@@ -1510,10 +1498,10 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
 
                   {/* Admin comments for this equipment */}
                   {equipComments.length > 0 && (
-                    <View style={s.commentsSection}>
+                    <View style={s.commentsSection} minPresenceAhead={30}>
                       <Text style={s.commentsTitle}>Comentarios del Administrador</Text>
                       {equipComments.map((c, cIdx) => (
-                        <View key={cIdx} style={s.commentBlock}>
+                        <View key={cIdx} style={s.commentBlock} wrap={false}>
                           <Text style={s.commentText}>{c.contenido}</Text>
                           <Text style={s.commentMeta}>
                             — {c.autorNombre},{" "}
@@ -1536,11 +1524,11 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         {/* Materials table */}
         {data.materials.length > 0 && (
           <>
-            <Text style={s.sectionTitle}>
+            <Text style={s.sectionTitle} minPresenceAhead={40}>
               Material Empleado ({data.materials.length})
             </Text>
             <View style={s.matTable}>
-              <View style={s.matHeaderRow}>
+              <View style={s.matHeaderRow} minPresenceAhead={20}>
                 <View style={s.matCellCant}>
                   <Text style={s.matHeaderText}>Cant.</Text>
                 </View>
@@ -1574,11 +1562,11 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         {/* General Admin Comments */}
         {(data.comments ?? []).filter((c) => !c.equipo_id).length > 0 && (
           <>
-            <Text style={s.sectionTitle}>Comentarios del Administrador</Text>
+            <Text style={s.sectionTitle} minPresenceAhead={40}>Comentarios del Administrador</Text>
             {(data.comments ?? [])
               .filter((c) => !c.equipo_id)
               .map((c, cIdx) => (
-                <View key={cIdx} style={s.commentBlock}>
+                <View key={cIdx} style={s.commentBlock} wrap={false}>
                   <Text style={s.commentText}>{c.contenido}</Text>
                   <Text style={s.commentMeta}>
                     — {c.autorNombre},{" "}
@@ -1596,8 +1584,8 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         {/* Signature */}
         {data.firmaBase64 && (
           <>
-            <Text style={s.sectionTitle}>Firma del Encargado</Text>
-            <View style={s.sigSection}>
+            <Text style={s.sectionTitle} minPresenceAhead={80}>Firma del Encargado</Text>
+            <View style={s.sigSection} wrap={false}>
               <Image src={data.firmaBase64} style={s.sigImage} />
               <View style={s.sigLine} />
               {data.nombreEncargado && (
@@ -1611,10 +1599,10 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         {/* Papeleta */}
         {(data.papeletaPhotos ?? []).length > 0 && (
           <>
-            <Text style={s.sectionTitle}>Papeleta</Text>
+            <Text style={s.sectionTitle} minPresenceAhead={80}>Papeleta</Text>
             <View style={s.photoGrid}>
               {(data.papeletaPhotos ?? []).map((photo, pIdx) => (
-                <View key={pIdx} style={s.photoBox}>
+                <View key={pIdx} style={s.photoBox} wrap={false}>
                   {photo.isVideo ? (
                     <VideoPlaceholder />
                   ) : (

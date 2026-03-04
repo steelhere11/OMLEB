@@ -253,13 +253,15 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
   const [removePending, startRemoveTransition] = useTransition();
 
   // Date editing state
-  const [editingDate, setEditingDate] = useState(false);
+  const [editingFechaInicio, setEditingFechaInicio] = useState(false);
+  const [editingFechaCierre, setEditingFechaCierre] = useState(false);
   const [datePending, startDateTransition] = useTransition();
 
-  function handleDateChange(newDate: string) {
-    setEditingDate(false);
+  function handleDateChange(newDate: string, field: "fecha" | "fecha_cierre" = "fecha") {
+    if (field === "fecha") setEditingFechaInicio(false);
+    else setEditingFechaCierre(false);
     startDateTransition(async () => {
-      const result = await adminUpdateReportDate(reporte.id, newDate);
+      const result = await adminUpdateReportDate(reporte.id, newDate, field);
       if (result.error) {
         alert(result.error);
       } else {
@@ -378,52 +380,10 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-[22px] font-bold tracking-[-0.025em] text-text-0">
-            Reporte - {orden?.numero_orden ?? "Sin ODS"}
-          </h1>
-          <div className="mt-1 flex items-center gap-2">
-            {editingDate ? (
-              <input
-                type="date"
-                defaultValue={reporte.fecha}
-                autoFocus
-                className="rounded border border-admin-border bg-admin-surface px-2 py-0.5 text-[13px] text-text-1"
-                onBlur={(e) => {
-                  if (e.target.value && e.target.value !== reporte.fecha) {
-                    handleDateChange(e.target.value);
-                  } else {
-                    setEditingDate(false);
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    const val = (e.target as HTMLInputElement).value;
-                    if (val && val !== reporte.fecha) {
-                      handleDateChange(val);
-                    } else {
-                      setEditingDate(false);
-                    }
-                  } else if (e.key === "Escape") {
-                    setEditingDate(false);
-                  }
-                }}
-              />
-            ) : (
-              <button
-                type="button"
-                onClick={() => setEditingDate(true)}
-                disabled={datePending}
-                className="text-[13px] text-text-2 hover:text-accent hover:underline disabled:opacity-50"
-                title="Clic para editar fecha"
-              >
-                {datePending ? "Guardando..." : new Date(reporte.fecha).toLocaleDateString("es-MX", {
-                  weekday: "long",
-                  day: "2-digit",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </button>
-            )}
+          <div className="flex items-center gap-2">
+            <h1 className="text-[22px] font-bold tracking-[-0.025em] text-text-0">
+              Reporte - {orden?.numero_orden ?? "Sin ODS"}
+            </h1>
             <span className="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
               Rev {reporte.numero_revision}
             </span>
@@ -432,6 +392,104 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                 Edicion {reporte.revision_actual}
               </span>
             )}
+          </div>
+          {/* Fecha de Inicio + Fecha de Cierre */}
+          <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1">
+            {/* Fecha de Inicio */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-text-3">Inicio:</span>
+              {editingFechaInicio ? (
+                <input
+                  type="date"
+                  defaultValue={reporte.fecha}
+                  autoFocus
+                  className="rounded border border-admin-border bg-admin-surface px-2 py-0.5 text-[13px] text-text-1"
+                  onBlur={(e) => {
+                    if (e.target.value && e.target.value !== reporte.fecha) {
+                      handleDateChange(e.target.value, "fecha");
+                    } else {
+                      setEditingFechaInicio(false);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const val = (e.target as HTMLInputElement).value;
+                      if (val && val !== reporte.fecha) {
+                        handleDateChange(val, "fecha");
+                      } else {
+                        setEditingFechaInicio(false);
+                      }
+                    } else if (e.key === "Escape") {
+                      setEditingFechaInicio(false);
+                    }
+                  }}
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setEditingFechaInicio(true)}
+                  disabled={datePending}
+                  className="text-[13px] text-text-2 hover:text-accent hover:underline disabled:opacity-50"
+                  title="Clic para editar fecha de inicio"
+                >
+                  {datePending ? "..." : new Date(reporte.fecha + "T12:00:00").toLocaleDateString("es-MX", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </button>
+              )}
+            </div>
+            {/* Fecha de Cierre */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-text-3">Cierre:</span>
+              {editingFechaCierre ? (
+                <input
+                  type="date"
+                  defaultValue={reporte.fecha_cierre ? reporte.fecha_cierre.slice(0, 10) : ""}
+                  autoFocus
+                  className="rounded border border-admin-border bg-admin-surface px-2 py-0.5 text-[13px] text-text-1"
+                  onBlur={(e) => {
+                    const val = e.target.value;
+                    const current = reporte.fecha_cierre?.slice(0, 10) ?? "";
+                    if (val !== current) {
+                      handleDateChange(val, "fecha_cierre");
+                    } else {
+                      setEditingFechaCierre(false);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      const val = (e.target as HTMLInputElement).value;
+                      const current = reporte.fecha_cierre?.slice(0, 10) ?? "";
+                      if (val !== current) {
+                        handleDateChange(val, "fecha_cierre");
+                      } else {
+                        setEditingFechaCierre(false);
+                      }
+                    } else if (e.key === "Escape") {
+                      setEditingFechaCierre(false);
+                    }
+                  }}
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setEditingFechaCierre(true)}
+                  disabled={datePending}
+                  className="text-[13px] text-text-2 hover:text-accent hover:underline disabled:opacity-50"
+                  title="Clic para editar fecha de cierre"
+                >
+                  {datePending ? "..." : reporte.fecha_cierre
+                    ? new Date(reporte.fecha_cierre).toLocaleDateString("es-MX", {
+                        day: "2-digit",
+                        month: "long",
+                        year: "numeric",
+                      })
+                    : "Sin definir"}
+                </button>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -831,7 +889,6 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
             orden={{
               numero_orden: orden?.numero_orden ?? "",
               descripcion_problema: orden?.descripcion_problema ?? "",
-              created_at: orden?.created_at ?? "",
             }}
             sucursal={{
               nombre: sucursal?.nombre ?? "",

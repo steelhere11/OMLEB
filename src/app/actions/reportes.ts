@@ -686,7 +686,8 @@ export async function adminSaveMaterials(
 
 export async function adminUpdateReportDate(
   reporteId: string,
-  fecha: string
+  fecha: string,
+  field: "fecha" | "fecha_cierre" = "fecha"
 ): Promise<ActionState> {
   const supabase = await createClient();
   const {
@@ -697,14 +698,31 @@ export async function adminUpdateReportDate(
     return { error: "No autorizado" };
   }
 
-  // Validate date string (YYYY-MM-DD)
+  // Validate date string (YYYY-MM-DD) — allow empty string for fecha_cierre to clear it
+  if (fecha === "" && field === "fecha_cierre") {
+    const { error } = await supabase
+      .from("reportes")
+      .update({ fecha_cierre: null })
+      .eq("id", reporteId);
+
+    if (error) {
+      return { error: "Error al actualizar fecha: " + error.message };
+    }
+    revalidatePath("/admin/reportes");
+    return { success: true, message: "Fecha de cierre eliminada" };
+  }
+
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
     return { error: "Formato de fecha invalido" };
   }
 
+  const updatePayload = field === "fecha_cierre"
+    ? { fecha_cierre: new Date(fecha + "T12:00:00").toISOString() }
+    : { fecha };
+
   const { error } = await supabase
     .from("reportes")
-    .update({ fecha })
+    .update(updatePayload)
     .eq("id", reporteId);
 
   if (error) {

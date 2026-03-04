@@ -33,7 +33,6 @@ interface ReportPdfButtonProps {
   orden: {
     numero_orden: string;
     descripcion_problema: string;
-    created_at: string;
   };
   sucursal: {
     nombre: string;
@@ -378,7 +377,6 @@ export default function ReportPdfButton({
       numeroRevision: reporte.numero_revision,
       revisionActual: reporte.revision_actual,
       lastRevision: lastRevision ?? null,
-      ordenCreatedAt: orden.created_at,
       reporteUpdatedAt: reporte.updated_at,
       fechaCierre: reporte.fecha_cierre ?? reporte.updated_at,
     };
