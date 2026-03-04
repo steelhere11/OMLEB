@@ -34,6 +34,7 @@ interface PhotoInput {
   metadata_gps: string | null;
   metadata_fecha: string | null;
   reporte_paso_id?: string | null;
+  tipo_media?: string;
 }
 
 export interface PhotoBase64 {
@@ -42,6 +43,7 @@ export interface PhotoBase64 {
   gps: string | null;
   fecha: string | null;
   reportePasoId: string | null;
+  isVideo: boolean;
 }
 
 /**
@@ -53,6 +55,17 @@ export async function fetchAllPhotosAsBase64(
 ): Promise<PhotoBase64[]> {
   const results = await Promise.allSettled(
     photos.map(async (photo) => {
+      // Videos can't be embedded in PDF — return placeholder entry, skip download
+      if (photo.tipo_media === "video") {
+        return {
+          data: "",
+          etiqueta: photo.etiqueta ?? "",
+          gps: photo.metadata_gps,
+          fecha: photo.metadata_fecha,
+          reportePasoId: photo.reporte_paso_id ?? null,
+          isVideo: true,
+        };
+      }
       const data = await fetchImageAsBase64(photo.url);
       if (!data) return null;
       return {
@@ -61,6 +74,7 @@ export async function fetchAllPhotosAsBase64(
         gps: photo.metadata_gps,
         fecha: photo.metadata_fecha,
         reportePasoId: photo.reporte_paso_id ?? null,
+        isVideo: false,
       };
     })
   );

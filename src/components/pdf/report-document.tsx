@@ -58,8 +58,8 @@ export interface PdfReportData {
   fecha: string;
   estatus: string;
   teamMembers: { nombre: string; rol: string }[];
-  arrivalPhoto: { data: string; gps: string | null; fecha: string | null } | null;
-  sitePhoto: { data: string; gps: string | null; fecha: string | null } | null;
+  arrivalPhoto: { data: string; gps: string | null; fecha: string | null; isVideo: boolean } | null;
+  sitePhoto: { data: string; gps: string | null; fecha: string | null; isVideo: boolean } | null;
   registrationEntries: PdfRegistrationEntry[];
   comments: Array<{
     contenido: string;
@@ -748,6 +748,31 @@ function ReadingsTable({
   );
 }
 
+// ---------- Helper: Video Placeholder ----------
+
+function VideoPlaceholder() {
+  return (
+    <View
+      style={{
+        height: 130,
+        width: "100%",
+        backgroundColor: "#f3f4f6",
+        borderRadius: 4,
+        border: `1px solid ${GRAY_200}`,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Svg width={32} height={32} viewBox="0 0 24 24">
+        <Path d="M8 5v14l11-7z" fill={GRAY_300} />
+      </Svg>
+      <Text style={{ fontSize: 8, color: GRAY_500, marginTop: 4 }}>
+        Se anexa video
+      </Text>
+    </View>
+  );
+}
+
 // ---------- Helper: Step Photo Grid ----------
 
 function StepPhotoGrid({ photos }: { photos: PhotoBase64[] }) {
@@ -783,7 +808,11 @@ function StepPhotoGrid({ photos }: { photos: PhotoBase64[] }) {
           <View style={s.photoGrid}>
             {grouped[stage].map((photo, pIdx) => (
               <View key={pIdx} style={s.photoBox}>
-                <Image src={photo.data} style={s.photoImg} />
+                {photo.isVideo ? (
+                  <VideoPlaceholder />
+                ) : (
+                  <Image src={photo.data} style={s.photoImg} />
+                )}
                 <Text style={s.photoCaption}>
                   {photo.etiqueta || "Foto"}
                   {photo.fecha
@@ -1065,7 +1094,11 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
           <>
             <Text style={s.sectionTitle}>Evidencia de Llegada</Text>
             <View style={s.regPhotoFull}>
-              <Image src={data.arrivalPhoto.data} style={s.regImg} />
+              {data.arrivalPhoto.isVideo ? (
+                <VideoPlaceholder />
+              ) : (
+                <Image src={data.arrivalPhoto.data} style={s.regImg} />
+              )}
               <Text style={s.regCaption}>
                 Foto de llegada
                 {data.arrivalPhoto.fecha
@@ -1090,7 +1123,11 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
           <>
             <Text style={s.sectionTitle}>Panoramica del Sitio</Text>
             <View style={s.regPhotoFull}>
-              <Image src={data.sitePhoto.data} style={s.regImg} />
+              {data.sitePhoto.isVideo ? (
+                <VideoPlaceholder />
+              ) : (
+                <Image src={data.sitePhoto.data} style={s.regImg} />
+              )}
               <Text style={s.regCaption}>
                 Foto panoramica del sitio
                 {data.sitePhoto.fecha
@@ -1418,7 +1455,11 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                       <View style={s.photoGrid}>
                         {entry.orphanPhotosBase64.map((photo, pIdx) => (
                           <View key={pIdx} style={s.photoBox}>
-                            <Image src={photo.data} style={s.photoImg} />
+                            {photo.isVideo ? (
+                              <VideoPlaceholder />
+                            ) : (
+                              <Image src={photo.data} style={s.photoImg} />
+                            )}
                             <Text style={s.photoCaption}>
                               {photo.etiqueta || "Foto"}
                               {photo.fecha
@@ -1550,7 +1591,11 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
             <View style={s.photoGrid}>
               {(data.papeletaPhotos ?? []).map((photo, pIdx) => (
                 <View key={pIdx} style={s.photoBox}>
-                  <Image src={photo.data} style={s.photoImg} />
+                  {photo.isVideo ? (
+                    <VideoPlaceholder />
+                  ) : (
+                    <Image src={photo.data} style={s.photoImg} />
+                  )}
                   {photo.fecha && (
                     <Text style={s.photoCaption}>
                       {new Date(photo.fecha).toLocaleString("es-MX")}

@@ -224,8 +224,8 @@ export default function ReportPdfButton({
     );
 
     // 3b. Pre-fetch registration photos (arrival, site, equipo_general, placa)
-    let arrivalPhotoData: { data: string; gps: string | null; fecha: string | null } | null = null;
-    let sitePhotoData: { data: string; gps: string | null; fecha: string | null } | null = null;
+    let arrivalPhotoData: { data: string; gps: string | null; fecha: string | null; isVideo: boolean } | null = null;
+    let sitePhotoData: { data: string; gps: string | null; fecha: string | null; isVideo: boolean } | null = null;
     const regPhotoMap = new Map<string, { general: string | null; placa: string | null }>();
 
     if (registrationPhotos && registrationPhotos.length > 0) {
@@ -241,9 +241,9 @@ export default function ReportPdfButton({
         const p = result.value;
         const imgData = p.data as string;
         if (p.etiqueta === "llegada" && !arrivalPhotoData) {
-          arrivalPhotoData = { data: imgData, gps: p.metadata_gps, fecha: p.metadata_fecha };
+          arrivalPhotoData = { data: imgData, gps: p.metadata_gps, fecha: p.metadata_fecha, isVideo: p.tipo_media === "video" };
         } else if (p.etiqueta === "sitio" && !sitePhotoData) {
-          sitePhotoData = { data: imgData, gps: p.metadata_gps, fecha: p.metadata_fecha };
+          sitePhotoData = { data: imgData, gps: p.metadata_gps, fecha: p.metadata_fecha, isVideo: p.tipo_media === "video" };
         } else if (p.etiqueta === "equipo_general" && p.equipo_id) {
           const existing = regPhotoMap.get(p.equipo_id) ?? { general: null, placa: null };
           if (!existing.general) existing.general = imgData;
@@ -287,6 +287,7 @@ export default function ReportPdfButton({
             gps: p.metadata_gps,
             fecha: p.metadata_fecha,
             reportePasoId: null,
+            isVideo: p.tipo_media === "video",
           } satisfies PhotoBase64;
         })
       );
