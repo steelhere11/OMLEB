@@ -976,7 +976,6 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
   const fechaFormatted = new Date(data.fecha + "T12:00:00").toLocaleDateString(
     "es-MX",
     {
-      weekday: "long",
       day: "2-digit",
       month: "long",
       year: "numeric",
@@ -1122,12 +1121,10 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                   <Text style={s.photoCaption}>
                     {`Llegada ${idx + 1}`}
                     {photo.fecha
-                      ? ` - ${new Date(photo.fecha).toLocaleString("es-MX", {
+                      ? ` - ${new Date(photo.fecha).toLocaleDateString("es-MX", {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
                         })}`
                       : ""}
                   </Text>
@@ -1155,12 +1152,10 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                   <Text style={s.photoCaption}>
                     {`Sitio ${idx + 1}`}
                     {photo.fecha
-                      ? ` - ${new Date(photo.fecha).toLocaleString("es-MX", {
+                      ? ` - ${new Date(photo.fecha).toLocaleDateString("es-MX", {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
                         })}`
                       : ""}
                   </Text>
@@ -1202,17 +1197,17 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                     )}
                   </View>
                   <View style={s.regCardBody}>
-                    {/* Photos side by side */}
+                    {/* Photos side by side (or full width if only one) */}
                     {(reg.photoGeneral || reg.photoPlaca) && (
                       <View style={s.regPhotoRow}>
                         {reg.photoGeneral && (
-                          <View style={s.regPhotoHalf}>
+                          <View style={reg.photoPlaca ? s.regPhotoHalf : s.regPhotoFull}>
                             <Image src={reg.photoGeneral} style={s.regImgSmall} />
                             <Text style={s.regCaption}>Vista general</Text>
                           </View>
                         )}
                         {reg.photoPlaca && (
-                          <View style={s.regPhotoHalf}>
+                          <View style={reg.photoGeneral ? s.regPhotoHalf : s.regPhotoFull}>
                             <Image src={reg.photoPlaca} style={s.regImgSmall} />
                             <Text style={s.regCaption}>Placa de datos</Text>
                           </View>
