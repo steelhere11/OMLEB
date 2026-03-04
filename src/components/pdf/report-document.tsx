@@ -91,6 +91,7 @@ export interface PdfReportData {
   numeroRevision: number;
   revisionActual: number;
   lastRevision: { fecha: string; autor: string } | null;
+  ordenCreatedAt: string;
   reporteUpdatedAt: string;
   fechaCierre: string | null;
 }
@@ -1034,7 +1035,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         <View style={s.infoGrid}>
           <View style={s.infoRow}>
             <View style={s.infoCell}>
-              <Text style={s.infoLabel}>Fecha de Inicio</Text>
+              <Text style={s.infoLabel}>Fecha del Reporte</Text>
               <Text style={s.infoValue}>{fechaFormatted}</Text>
             </View>
             <View style={s.infoCell}>
@@ -1048,6 +1049,18 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
           </View>
           <View style={s.infoRow}>
             <View style={s.infoCell}>
+              <Text style={s.infoLabel}>Fecha de Inicio</Text>
+              <Text style={s.infoValue}>
+                {data.ordenCreatedAt
+                  ? new Date(data.ordenCreatedAt).toLocaleDateString("es-MX", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    })
+                  : "—"}
+              </Text>
+            </View>
+            <View style={s.infoCell}>
               <Text style={s.infoLabel}>Fecha de Cierre</Text>
               <Text style={s.infoValue}>
                 {data.fechaCierre
@@ -1059,10 +1072,6 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                   : "—"}
               </Text>
             </View>
-            <View style={s.infoCell}>
-              <Text style={s.infoLabel}>Cliente</Text>
-              <Text style={s.infoValue}>{data.cliente.nombre}</Text>
-            </View>
           </View>
           <View style={s.infoRow}>
             <View style={s.infoCell}>
@@ -1072,6 +1081,12 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
               </Text>
             </View>
             <View style={s.infoCell}>
+              <Text style={s.infoLabel}>Cliente</Text>
+              <Text style={s.infoValue}>{data.cliente.nombre}</Text>
+            </View>
+          </View>
+          <View style={s.infoRow}>
+            <View style={s.infoCellFull}>
               <Text style={s.infoLabel}>Direccion</Text>
               <Text style={s.infoValue}>{data.sucursal.direccion}</Text>
             </View>

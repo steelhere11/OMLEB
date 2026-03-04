@@ -889,6 +889,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
             orden={{
               numero_orden: orden?.numero_orden ?? "",
               descripcion_problema: orden?.descripcion_problema ?? "",
+              created_at: orden?.created_at ?? reporte.created_at,
             }}
             sucursal={{
               nombre: sucursal?.nombre ?? "",
