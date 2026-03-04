@@ -810,44 +810,67 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
               equipo_id: c.equipo_id,
               created_at: c.created_at,
             }))}
-            equipmentEntries={reporte.reporte_equipos.map((entry) => ({
-              equipo: {
-                id: entry.equipo_id,
-                numero_etiqueta:
-                  entry.equipos?.numero_etiqueta ?? "Equipo desconocido",
-                marca: entry.equipos?.marca ?? null,
-                modelo: entry.equipos?.modelo ?? null,
-              },
-              tipo_trabajo: entry.tipo_trabajo,
-              diagnostico: entry.diagnostico,
-              trabajo_realizado: entry.trabajo_realizado,
-              observaciones: entry.observaciones,
-              steps: entry.reporte_pasos.map((paso) => ({
-                id: paso.id,
-                nombre:
-                  paso.plantillas_pasos?.nombre ??
-                  paso.fallas_correctivas?.nombre ??
-                  paso.nombre_custom ??
-                  "Paso",
-                completado: paso.completado,
-                notas: paso.notas,
-                lecturas: paso.lecturas ?? null,
-                lecturas_meta:
-                  paso.plantillas_pasos?.lecturas_requeridas ?? null,
-                isCustom: !paso.plantillas_pasos && !paso.fallas_correctivas && !!paso.nombre_custom,
-                orden: paso.plantillas_pasos?.orden ?? (paso.fallas_correctivas ? 9000 : 9999),
-              })).sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999)),
-              photos: (photosByEquipo.get(entry.equipo_id) ?? []).map(
-                (foto) => ({
-                  url: foto.url,
-                  etiqueta: foto.etiqueta,
-                  metadata_gps: foto.metadata_gps,
-                  metadata_fecha: foto.metadata_fecha,
-                  reporte_paso_id: foto.reporte_paso_id,
-                  tipo_media: foto.tipo_media ?? "foto",
-                })
-              ),
-            })).sort((a, b) => {
+            equipmentEntries={(() => {
+              // Track which equipo_ids have already claimed orphan photos
+              // so non-step photos don't duplicate across entries sharing the same equipo_id
+              const claimedOrphanEquipos = new Set<string>();
+
+              return reporte.reporte_equipos.map((entry) => {
+                // Collect this entry's step IDs to filter photos correctly
+                const entryStepIds = new Set(entry.reporte_pasos.map((p) => p.id));
+                const isFirstForEquipo = !claimedOrphanEquipos.has(entry.equipo_id);
+                claimedOrphanEquipos.add(entry.equipo_id);
+
+                const allEquipoPhotos = photosByEquipo.get(entry.equipo_id) ?? [];
+                // Only include photos that belong to this entry's steps,
+                // or non-step photos (only for the first entry per equipo_id)
+                const filteredPhotos = allEquipoPhotos.filter((foto) => {
+                  if (foto.reporte_paso_id) {
+                    return entryStepIds.has(foto.reporte_paso_id);
+                  }
+                  return isFirstForEquipo;
+                });
+
+                return {
+                  equipo: {
+                    id: entry.equipo_id,
+                    numero_etiqueta:
+                      entry.equipos?.numero_etiqueta ?? "Equipo desconocido",
+                    marca: entry.equipos?.marca ?? null,
+                    modelo: entry.equipos?.modelo ?? null,
+                  },
+                  tipo_trabajo: entry.tipo_trabajo,
+                  diagnostico: entry.diagnostico,
+                  trabajo_realizado: entry.trabajo_realizado,
+                  observaciones: entry.observaciones,
+                  steps: entry.reporte_pasos.map((paso) => ({
+                    id: paso.id,
+                    nombre:
+                      paso.plantillas_pasos?.nombre ??
+                      paso.fallas_correctivas?.nombre ??
+                      paso.nombre_custom ??
+                      "Paso",
+                    completado: paso.completado,
+                    notas: paso.notas,
+                    lecturas: paso.lecturas ?? null,
+                    lecturas_meta:
+                      paso.plantillas_pasos?.lecturas_requeridas ?? null,
+                    isCustom: !paso.plantillas_pasos && !paso.fallas_correctivas && !!paso.nombre_custom,
+                    orden: paso.plantillas_pasos?.orden ?? (paso.fallas_correctivas ? 9000 : 9999),
+                  })).sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999)),
+                  photos: filteredPhotos.map(
+                    (foto) => ({
+                      url: foto.url,
+                      etiqueta: foto.etiqueta,
+                      metadata_gps: foto.metadata_gps,
+                      metadata_fecha: foto.metadata_fecha,
+                      reporte_paso_id: foto.reporte_paso_id,
+                      tipo_media: foto.tipo_media ?? "foto",
+                    })
+                  ),
+                };
+              });
+            })().sort((a, b) => {
               const cmp = a.equipo.numero_etiqueta.localeCompare(
                 b.equipo.numero_etiqueta, "es", { numeric: true, sensitivity: "base" }
               );
