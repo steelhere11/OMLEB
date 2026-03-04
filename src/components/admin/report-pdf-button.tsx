@@ -305,16 +305,27 @@ export default function ReportPdfButton({
           }
         }
 
+        // Build step list with photos assigned
+        const stepsWithPhotos = (entry.steps ?? []).map((step) => ({
+          ...step,
+          photosBase64: stepPhotosMap.get(step.id) ?? [],
+        }));
+
+        // Safety net: photos linked to step IDs not in the step list → orphan
+        const knownStepIds = new Set((entry.steps ?? []).map((s) => s.id));
+        for (const [pasoId, photos] of stepPhotosMap.entries()) {
+          if (!knownStepIds.has(pasoId)) {
+            orphanPhotos.push(...photos);
+          }
+        }
+
         return {
           equipo: entry.equipo,
           tipo_trabajo: entry.tipo_trabajo,
           diagnostico: entry.diagnostico,
           trabajo_realizado: entry.trabajo_realizado,
           observaciones: entry.observaciones,
-          steps: (entry.steps ?? []).map((step) => ({
-            ...step,
-            photosBase64: stepPhotosMap.get(step.id) ?? [],
-          })),
+          steps: stepsWithPhotos,
           orphanPhotosBase64: orphanPhotos,
           photosBase64: allPhotos, // backward compat
         };

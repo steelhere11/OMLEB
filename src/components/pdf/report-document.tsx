@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Svg,
   Path,
+  Circle,
 } from "@react-pdf/renderer";
 import "./pdf-fonts"; // Side-effect: registers Inter font family
 import type { PhotoBase64 } from "./pdf-utils";
@@ -838,9 +839,17 @@ function StepBlock({ step }: { step: PdfStepData }) {
   return (
     <View style={s.stepBlock} wrap={true}>
       <View style={s.stepHeaderRow}>
-        <View style={s.stepCheckIcon}>
-          <CheckIcon />
-        </View>
+        {step.completado ? (
+          <View style={s.stepCheckIcon}>
+            <CheckIcon />
+          </View>
+        ) : (
+          <View style={s.stepCheckIcon}>
+            <Svg width={10} height={10} viewBox="0 0 24 24">
+              <Circle cx={12} cy={12} r={9} stroke={GRAY_300} strokeWidth={2} />
+            </Svg>
+          </View>
+        )}
         <Text style={s.stepNameText}>{step.nombre}</Text>
       </View>
 
@@ -1230,11 +1239,16 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                     </>
                   )}
 
-                  {/* Steps — all completed under unified section */}
+                  {/* Steps — show all steps that have content (completed, photos, notes, or readings) */}
                   {(() => {
-                    const completed = entry.steps.filter((st) => st.completado).sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
-                    const templateSteps = completed.filter((st) => !st.isCustom);
-                    const customSteps = completed.filter((st) => st.isCustom);
+                    const stepsWithContent = entry.steps.filter((st) =>
+                      st.completado ||
+                      st.photosBase64.length > 0 ||
+                      st.notas ||
+                      (st.lecturas && Object.keys(st.lecturas).length > 0)
+                    ).sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
+                    const templateSteps = stepsWithContent.filter((st) => !st.isCustom);
+                    const customSteps = stepsWithContent.filter((st) => st.isCustom);
 
                     return (
                       <>
@@ -1261,7 +1275,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                                 letterSpacing: 0.5,
                               }}
                             >
-                              Verificaciones completadas
+                              {templateSteps.every((st) => st.completado) ? "Verificaciones completadas" : "Verificaciones"}
                             </Text>
                           </View>
                         )}
