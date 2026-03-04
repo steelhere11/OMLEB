@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { OrdenServicio, OrdenServicioEstatus, Equipo, ReporteEstatus } from "@/types";
 import { OrdenDeleteButton } from "@/components/admin/orden-delete-button";
+import { CreateReportButton } from "@/components/admin/create-report-button";
 
 type OrdenDetail = OrdenServicio & {
   sucursales: { nombre: string; numero: string } | null;
@@ -263,9 +264,12 @@ export default async function OrdenDetailPage({
 
         {/* Reportes */}
         <div className="rounded-[10px] border border-admin-border bg-admin-surface p-5">
-          <h2 className="mb-3 text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
-            Reportes ({reporteList.length})
-          </h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
+              Reportes ({reporteList.length})
+            </h2>
+            <CreateReportButton ordenServicioId={id} />
+          </div>
           {reporteList.length === 0 ? (
             <p className="text-[13px] text-text-3">
               Aun no se han generado reportes para esta orden

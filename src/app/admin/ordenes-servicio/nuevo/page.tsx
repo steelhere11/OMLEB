@@ -2,7 +2,12 @@ import { createClient } from "@/lib/supabase/server";
 import type { Sucursal, Cliente, User, TipoEquipo } from "@/types";
 import { CreateOrdenForm } from "./create-form";
 
-export default async function NuevaOrdenPage() {
+export default async function NuevaOrdenPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sucursal_id?: string }>;
+}) {
+  const { sucursal_id } = await searchParams;
   const supabase = await createClient();
 
   // Fetch branches, clients, users, and equipment types in parallel
@@ -32,6 +37,7 @@ export default async function NuevaOrdenPage() {
       clientes={clientes}
       users={users}
       tiposEquipo={tiposEquipo}
+      defaultSucursalId={sucursal_id}
     />
   );
 }

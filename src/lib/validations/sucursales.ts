@@ -11,6 +11,7 @@ export const sucursalSchema = z.object({
   direccion: z
     .string({ error: "La direccion es requerida" })
     .min(1, { error: "La direccion es requerida" }),
+  cliente_id: z.string().uuid().nullable().optional(),
 });
 
 export type SucursalInput = z.infer<typeof sucursalSchema>;

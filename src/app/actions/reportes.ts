@@ -132,9 +132,9 @@ export async function getOrCreateTodayReport(
   };
 }
 
-// ── Deep Copy from Previous Report (private) ────────────────────────────
+// ── Deep Copy from Previous Report ────────────────────────────────────
 
-async function deepCopyFromPreviousReport(
+export async function deepCopyFromPreviousReport(
   supabase: SupabaseClient,
   ordenServicioId: string,
   newReporteId: string,

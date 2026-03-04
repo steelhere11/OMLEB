@@ -24,10 +24,12 @@ export async function createSucursal(
   }
 
   // 2. Validate with Zod
+  const clienteIdRaw = formData.get("cliente_id") as string | null;
   const rawData = {
     nombre: formData.get("nombre"),
     numero: formData.get("numero"),
     direccion: formData.get("direccion"),
+    cliente_id: clienteIdRaw && clienteIdRaw !== "" ? clienteIdRaw : null,
   };
 
   const result = sucursalSchema.safeParse(rawData);
@@ -68,10 +70,12 @@ export async function updateSucursal(
   }
 
   // 2. Validate with Zod
+  const clienteIdRaw = formData.get("cliente_id") as string | null;
   const rawData = {
     nombre: formData.get("nombre"),
     numero: formData.get("numero"),
     direccion: formData.get("direccion"),
+    cliente_id: clienteIdRaw && clienteIdRaw !== "" ? clienteIdRaw : null,
   };
 
   const result = sucursalSchema.safeParse(rawData);

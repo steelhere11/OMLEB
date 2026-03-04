@@ -2,25 +2,23 @@
 
 import { useActionState } from "react";
 import Link from "next/link";
-import { updateSucursal } from "@/app/actions/sucursales";
+import { createSucursal } from "@/app/actions/sucursales";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import type { ActionState } from "@/types/actions";
-import type { Sucursal, Cliente } from "@/types";
+import type { Cliente } from "@/types";
 
-interface EditSucursalFormProps {
-  sucursal: Sucursal;
+interface CreateSucursalFormProps {
   clientes: Cliente[];
 }
 
-export function EditSucursalForm({ sucursal, clientes }: EditSucursalFormProps) {
-  const updateWithId = updateSucursal.bind(null, sucursal.id);
+export function CreateSucursalForm({ clientes }: CreateSucursalFormProps) {
   const [state, formAction, isPending] = useActionState<
     ActionState | null,
     FormData
-  >(updateWithId, null);
+  >(createSucursal, null);
 
   return (
     <div className="mx-auto max-w-[480px]">
@@ -47,7 +45,7 @@ export function EditSucursalForm({ sucursal, clientes }: EditSucursalFormProps) 
       </Link>
 
       <h1 className="mb-6 text-[22px] font-bold tracking-[-0.025em] text-text-0">
-        Editar Sucursal
+        Crear Sucursal
       </h1>
 
       <div className="rounded-[10px] border border-admin-border bg-admin-surface p-6">
@@ -62,7 +60,6 @@ export function EditSucursalForm({ sucursal, clientes }: EditSucursalFormProps) 
               type="text"
               placeholder="Nombre de la sucursal"
               required
-              defaultValue={sucursal.nombre}
               error={state?.fieldErrors?.nombre?.[0]}
               className="mt-1.5 admin-input"
             />
@@ -78,7 +75,6 @@ export function EditSucursalForm({ sucursal, clientes }: EditSucursalFormProps) 
               type="text"
               placeholder="Ej: 1234"
               required
-              defaultValue={sucursal.numero}
               error={state?.fieldErrors?.numero?.[0]}
               className="mt-1.5 admin-input"
             />
@@ -94,7 +90,6 @@ export function EditSucursalForm({ sucursal, clientes }: EditSucursalFormProps) 
               type="text"
               placeholder="Direccion completa de la sucursal"
               required
-              defaultValue={sucursal.direccion}
               error={state?.fieldErrors?.direccion?.[0]}
               className="mt-1.5 admin-input"
             />
@@ -107,7 +102,6 @@ export function EditSucursalForm({ sucursal, clientes }: EditSucursalFormProps) 
             <Select
               id="cliente_id"
               name="cliente_id"
-              defaultValue={sucursal.cliente_id ?? ""}
               className="mt-1.5 admin-select"
             >
               <option value="">Sin cliente asignado</option>
@@ -127,7 +121,7 @@ export function EditSucursalForm({ sucursal, clientes }: EditSucursalFormProps) 
           )}
 
           <Button type="submit" variant="outline" fullWidth loading={isPending}>
-            Guardar Cambios
+            Crear Sucursal
           </Button>
         </form>
       </div>

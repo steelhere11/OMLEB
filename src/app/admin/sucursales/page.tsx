@@ -3,15 +3,19 @@ import { createClient } from "@/lib/supabase/server";
 import type { Sucursal } from "@/types";
 import { SucursalDeleteButton } from "@/components/admin/sucursal-delete-button";
 
+type SucursalWithCliente = Sucursal & {
+  clientes: { nombre: string } | null;
+};
+
 export default async function SucursalesPage() {
   const supabase = await createClient();
 
   const { data: sucursales } = await supabase
     .from("sucursales")
-    .select("*")
+    .select("*, clientes(nombre)")
     .order("created_at", { ascending: false });
 
-  const list = (sucursales as Sucursal[] | null) ?? [];
+  const list = (sucursales as SucursalWithCliente[] | null) ?? [];
 
   // Fetch cascade impact data per sucursal
   const sucursalIds = list.map((s) => s.id);
@@ -107,8 +111,9 @@ export default async function SucursalesPage() {
         <div className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-surface">
           {/* Header row */}
           <div className="flex items-center border-b border-admin-border-subtle px-[14px] py-[10px] text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
-            <div className="w-[200px]">Nombre</div>
-            <div className="w-[100px]">Numero</div>
+            <div className="w-[180px]">Nombre</div>
+            <div className="w-[80px]">Numero</div>
+            <div className="w-[140px]">Cliente</div>
             <div className="flex-1">Direccion</div>
             <div className="w-[200px] text-right">Acciones</div>
           </div>
@@ -119,11 +124,21 @@ export default async function SucursalesPage() {
               key={sucursal.id}
               className={`flex items-center px-[14px] py-[9px] transition-colors duration-[80ms] hover:bg-admin-surface-hover${i > 0 ? " row-inset-divider" : ""}`}
             >
-              <div className="w-[200px] text-[13px] font-medium text-text-0">
-                {sucursal.nombre}
+              <div className="w-[180px]">
+                <Link
+                  href={`/admin/sucursales/${sucursal.id}`}
+                  className="text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
+                >
+                  {sucursal.nombre}
+                </Link>
               </div>
-              <div className="w-[100px] font-mono text-[13px] text-text-1">
+              <div className="w-[80px] font-mono text-[13px] text-text-1">
                 {sucursal.numero}
+              </div>
+              <div className="w-[140px] text-[13px] text-text-2">
+                {sucursal.clientes?.nombre ?? (
+                  <span className="text-text-3">Sin cliente</span>
+                )}
               </div>
               <div className="flex-1 text-[13px] text-text-1">
                 {sucursal.direccion}

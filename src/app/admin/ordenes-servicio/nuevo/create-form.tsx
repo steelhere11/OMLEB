@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useCallback } from "react";
+import { useActionState, useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { createOrdenServicio } from "@/app/actions/ordenes-servicio";
 import { createEquipo } from "@/app/actions/equipos";
@@ -18,6 +18,7 @@ interface CreateOrdenFormProps {
   clientes: Cliente[];
   users: User[];
   tiposEquipo: TipoEquipo[];
+  defaultSucursalId?: string;
 }
 
 export function CreateOrdenForm({
@@ -25,13 +26,21 @@ export function CreateOrdenForm({
   clientes,
   users,
   tiposEquipo,
+  defaultSucursalId,
 }: CreateOrdenFormProps) {
   const [state, formAction, isPending] = useActionState<
     ActionState | null,
     FormData
   >(createOrdenServicio, null);
 
-  const [selectedSucursalId, setSelectedSucursalId] = useState("");
+  const [selectedSucursalId, setSelectedSucursalId] = useState(defaultSucursalId ?? "");
+  const [autoClienteId, setAutoClienteId] = useState<string | null>(() => {
+    if (defaultSucursalId) {
+      const branch = branches.find((b) => b.id === defaultSucursalId);
+      return branch?.cliente_id ?? null;
+    }
+    return null;
+  });
   const [branchEquipment, setBranchEquipment] = useState<Equipo[]>([]);
   const [selectedEquipoIds, setSelectedEquipoIds] = useState<Set<string>>(
     new Set()
@@ -48,6 +57,10 @@ export function CreateOrdenForm({
       setSelectedEquipoIds(new Set());
       setBranchEquipment([]);
 
+      // Auto-populate client from branch
+      const branch = branches.find((b) => b.id === sucursalId);
+      setAutoClienteId(branch?.cliente_id ?? null);
+
       if (!sucursalId) return;
 
       setLoadingEquipment(true);
@@ -60,8 +73,25 @@ export function CreateOrdenForm({
       setBranchEquipment((data as Equipo[] | null) ?? []);
       setLoadingEquipment(false);
     },
-    []
+    [branches]
   );
+
+  // Load equipment on mount if defaultSucursalId is provided
+  useEffect(() => {
+    if (defaultSucursalId) {
+      (async () => {
+        setLoadingEquipment(true);
+        const supabase = createClient();
+        const { data } = await supabase
+          .from("equipos")
+          .select("*")
+          .eq("sucursal_id", defaultSucursalId)
+          .order("numero_etiqueta");
+        setBranchEquipment((data as Equipo[] | null) ?? []);
+        setLoadingEquipment(false);
+      })();
+    }
+  }, [defaultSucursalId]);
 
   const toggleEquipo = (id: string) => {
     setSelectedEquipoIds((prev) => {
@@ -171,20 +201,48 @@ export function CreateOrdenForm({
             <Label htmlFor="cliente_id" required className="text-[13px] text-text-1">
               Cliente
             </Label>
-            <Select
-              id="cliente_id"
-              name="cliente_id"
-              required
-              error={state?.fieldErrors?.cliente_id?.[0]}
-              className="mt-1.5 admin-select"
-            >
-              <option value="">Seleccionar cliente...</option>
-              {clientes.map((cliente) => (
-                <option key={cliente.id} value={cliente.id}>
-                  {cliente.nombre}
-                </option>
-              ))}
-            </Select>
+            {autoClienteId ? (
+              <>
+                <input type="hidden" name="cliente_id" value={autoClienteId} />
+                <Select
+                  id="cliente_id"
+                  disabled
+                  value={autoClienteId}
+                  className="mt-1.5 admin-select opacity-60"
+                >
+                  {clientes.map((cliente) => (
+                    <option key={cliente.id} value={cliente.id}>
+                      {cliente.nombre}
+                    </option>
+                  ))}
+                </Select>
+                <p className="mt-1 text-[11px] text-text-3">
+                  Cliente asignado automaticamente por la sucursal
+                </p>
+              </>
+            ) : (
+              <>
+                <Select
+                  id="cliente_id"
+                  name="cliente_id"
+                  required
+                  error={state?.fieldErrors?.cliente_id?.[0]}
+                  className="mt-1.5 admin-select"
+                >
+                  <option value="">Seleccionar cliente...</option>
+                  {clientes.map((cliente) => (
+                    <option key={cliente.id} value={cliente.id}>
+                      {cliente.nombre}
+                    </option>
+                  ))}
+                </Select>
+                {selectedSucursalId && (
+                  <p className="mt-1 text-[11px] text-status-warning">
+                    Esta sucursal no tiene cliente asignado
+                  </p>
+                )}
+              </>
+            )}
           </div>
 
           {/* Descripcion del problema */}

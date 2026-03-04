@@ -24,6 +24,7 @@ export interface Sucursal {
   nombre: string;
   numero: string;
   direccion: string;
+  cliente_id: string | null;
   created_at: string;
   updated_at: string;
 }

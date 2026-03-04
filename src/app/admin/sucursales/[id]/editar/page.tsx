@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
-import type { Sucursal } from "@/types";
+import type { Sucursal, Cliente } from "@/types";
 import { EditSucursalForm } from "./edit-form";
 
 export default async function EditarSucursalPage({
@@ -11,13 +11,17 @@ export default async function EditarSucursalPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: sucursal } = await supabase
-    .from("sucursales")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const [sucursalRes, clientesRes] = await Promise.all([
+    supabase.from("sucursales").select("*").eq("id", id).single(),
+    supabase.from("clientes").select("*").order("nombre"),
+  ]);
 
-  if (!sucursal) notFound();
+  if (!sucursalRes.data) notFound();
 
-  return <EditSucursalForm sucursal={sucursal as Sucursal} />;
+  return (
+    <EditSucursalForm
+      sucursal={sucursalRes.data as Sucursal}
+      clientes={(clientesRes.data as Cliente[] | null) ?? []}
+    />
+  );
 }
