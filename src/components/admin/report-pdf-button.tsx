@@ -44,6 +44,7 @@ interface ReportPdfButtonProps {
     logo_url: string | null;
   };
   teamMembers: { nombre: string; rol: string }[];
+  teamOverride?: string | null;
   /** Registration-phase photos (etiqueta=llegada, sitio, equipo_general, placa) */
   registrationPhotos: Array<{
     url: string;
@@ -184,6 +185,7 @@ export default function ReportPdfButton({
   sucursal,
   cliente,
   teamMembers,
+  teamOverride,
   registrationPhotos,
   registrationEquipment,
   comments,
@@ -313,6 +315,7 @@ export default function ReportPdfButton({
       fecha: reporte.fecha,
       estatus: reporte.estatus,
       teamMembers,
+      teamOverride: teamOverride ?? undefined,
       arrivalPhotos,
       sitePhotos,
       registrationEntries: pdfRegistrationEntries,

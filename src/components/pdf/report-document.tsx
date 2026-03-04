@@ -58,6 +58,7 @@ export interface PdfReportData {
   fecha: string;
   estatus: string;
   teamMembers: { nombre: string; rol: string }[];
+  teamOverride?: string;
   arrivalPhotos: { data: string; gps: string | null; fecha: string | null; isVideo: boolean }[];
   sitePhotos: { data: string; gps: string | null; fecha: string | null; isVideo: boolean }[];
   registrationEntries: PdfRegistrationEntry[];
@@ -982,8 +983,9 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
     }
   );
 
-  const teamStr =
-    data.teamMembers.length > 0
+  const teamStr = data.teamOverride
+    ? data.teamOverride
+    : data.teamMembers.length > 0
       ? data.teamMembers
           .map((m) => `${m.nombre} (${rolLabels[m.rol] ?? m.rol})`)
           .join(", ")

@@ -795,6 +795,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                 nombre: m.users!.nombre,
                 rol: m.users!.rol,
               }))}
+            teamOverride={(reporte as unknown as Record<string, unknown>).team_override as string | null | undefined}
             registrationPhotos={reporte.reporte_fotos
               .filter((f) =>
                 f.etiqueta === "llegada" ||
