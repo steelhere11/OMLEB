@@ -151,6 +151,36 @@ export async function updatePlantillaPaso(
   redirect("/admin/mantenimientos-preventivos");
 }
 
+// ── Reorder ─────────────────────────────────────────────────────
+
+export async function reorderPlantillaPasos(
+  steps: { id: string; orden: number }[]
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  const admin = createAdminClient();
+  for (const step of steps) {
+    const { error } = await admin
+      .from("plantillas_pasos")
+      .update({ orden: step.orden })
+      .eq("id", step.id);
+
+    if (error) {
+      return { error: "Error al reordenar pasos: " + error.message };
+    }
+  }
+
+  revalidatePath("/admin/mantenimientos-preventivos");
+  return { success: true, message: "Orden actualizado" };
+}
+
 // ── Delete ──────────────────────────────────────────────────────
 
 export async function deletePlantillaPaso(
