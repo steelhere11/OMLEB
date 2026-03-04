@@ -2012,28 +2012,25 @@ function StepRow({
         className="flex items-center gap-2 cursor-pointer select-none"
         onClick={() => setExpanded((v) => !v)}
       >
-        {/* Completado indicator */}
-        <div className="shrink-0">
-          {paso.completado ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-status-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          ) : (
-            <div className="h-4 w-4 rounded-full border-2 border-text-3" />
-          )}
-        </div>
+        {/* Completado indicator (only for workflow steps, not diagnoses) */}
+        {!isDiagnosis && (
+          <div className="shrink-0">
+            {paso.completado ? (
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-status-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <div className="h-4 w-4 rounded-full border-2 border-text-3" />
+            )}
+          </div>
+        )}
 
         {/* Name */}
-        <p className="text-[13px] font-medium text-text-0 truncate">{name}</p>
+        <p className={`truncate ${isDiagnosis ? "text-[13px] font-semibold italic text-text-0" : "text-[13px] font-medium text-text-0"}`}>{name}</p>
 
-        {isDiagnosis && (
-          <span className="shrink-0 rounded-full bg-admin-surface-raised px-1.5 py-0.5 text-[10px] font-semibold text-text-2">
-            Diagnostico
-          </span>
-        )}
         {isCustom && (
-          <span className="shrink-0 rounded-full bg-purple-100 px-1.5 py-0.5 text-[10px] font-semibold text-purple-700">
-            Personalizado
+          <span className="shrink-0 text-[10px] font-medium uppercase tracking-wide text-text-3">
+            personalizado
           </span>
         )}
 
