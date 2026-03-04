@@ -25,6 +25,7 @@ interface WorkflowStepCardProps {
       lecturas: Record<string, number | string>;
     }
   ) => void;
+  onEnsureStep: (plantillaPasoId: string) => Promise<string | null>;
   isCompleted: boolean;
   autoExpand: boolean;
   reporteId: string;
@@ -37,6 +38,7 @@ export function WorkflowStepCard({
   totalSteps,
   savedProgress,
   onProgressChange,
+  onEnsureStep,
   isCompleted,
   autoExpand,
   reporteId,
@@ -60,6 +62,24 @@ export function WorkflowStepCard({
   const [showVideoCapture, setShowVideoCapture] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Track the resolved step ID (may be set before savedProgress updates)
+  const resolvedStepIdRef = useRef<string | null>(savedProgress?.id ?? null);
+  useEffect(() => {
+    if (savedProgress?.id) {
+      resolvedStepIdRef.current = savedProgress.id;
+    }
+  }, [savedProgress?.id]);
+
+  // Ensure step row exists in DB before photo uploads
+  const ensureStepId = useCallback(async (): Promise<string | null> => {
+    if (resolvedStepIdRef.current) return resolvedStepIdRef.current;
+    const stepId = await onEnsureStep(paso.id);
+    if (stepId) {
+      resolvedStepIdRef.current = stepId;
+    }
+    return stepId;
+  }, [onEnsureStep, paso.id]);
 
   // Load existing photos for this step
   useEffect(() => {
@@ -110,9 +130,11 @@ export function WorkflowStepCard({
     setLecturas((prev) => ({ ...prev, [nombre]: value }));
   };
 
-  // Photo handlers
-  const handleLabelClick = (etapa: string) => {
+  // Photo handlers — ensure step exists before allowing photo uploads
+  const handleLabelClick = async (etapa: string) => {
     if (isCompleted) return;
+    const stepId = await ensureStepId();
+    if (!stepId) return;
     setActiveLabel(etapa);
     setShowSourcePicker(true);
   };
@@ -140,7 +162,7 @@ export function WorkflowStepCard({
           id: result.fotoId,
           reporte_id: reporteId,
           equipo_id: equipoId,
-          reporte_paso_id: savedProgress?.id ?? null,
+          reporte_paso_id: resolvedStepIdRef.current,
           url: result.url,
           etiqueta: (activeLabel?.toLowerCase() ?? "antes") as ReporteFoto["etiqueta"],
           tipo_media: "foto" as const,
@@ -153,7 +175,7 @@ export function WorkflowStepCard({
       ]);
       setShowCamera(false);
     },
-    [reporteId, equipoId, savedProgress?.id, activeLabel]
+    [reporteId, equipoId, activeLabel]
   );
 
   const handleVideoCapture = useCallback(
@@ -164,7 +186,7 @@ export function WorkflowStepCard({
           id: result.fotoId,
           reporte_id: reporteId,
           equipo_id: equipoId,
-          reporte_paso_id: savedProgress?.id ?? null,
+          reporte_paso_id: resolvedStepIdRef.current,
           url: result.url,
           etiqueta: (activeLabel?.toLowerCase() ?? "antes") as ReporteFoto["etiqueta"],
           tipo_media: "video" as const,
@@ -177,7 +199,7 @@ export function WorkflowStepCard({
       ]);
       setShowVideoCapture(false);
     },
-    [reporteId, equipoId, savedProgress?.id, activeLabel]
+    [reporteId, equipoId, activeLabel]
   );
 
   const handleGalleryFiles = useCallback(
@@ -187,6 +209,7 @@ export function WorkflowStepCard({
 
       setIsUploading(true);
       const label = activeLabel?.toLowerCase() ?? "antes";
+      const stepId = resolvedStepIdRef.current;
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -196,7 +219,7 @@ export function WorkflowStepCard({
           {
             reporteId,
             equipoId,
-            reportePasoId: savedProgress?.id ?? null,
+            reportePasoId: stepId,
             etiqueta: label,
             gps: null,
             fecha: new Date(),
@@ -210,7 +233,7 @@ export function WorkflowStepCard({
               id: result.fotoId,
               reporte_id: reporteId,
               equipo_id: equipoId,
-              reporte_paso_id: savedProgress?.id ?? null,
+              reporte_paso_id: resolvedStepIdRef.current,
               url: result.url,
               etiqueta: label as ReporteFoto["etiqueta"],
               tipo_media: isVideo ? "video" as const : "foto" as const,
@@ -228,7 +251,7 @@ export function WorkflowStepCard({
       // Reset the input so the same file(s) can be selected again
       if (fileInputRef.current) fileInputRef.current.value = "";
     },
-    [reporteId, equipoId, savedProgress?.id, activeLabel]
+    [reporteId, equipoId, activeLabel]
   );
 
   const handleDeletePhoto = useCallback(async (fotoId: string) => {
@@ -424,7 +447,7 @@ export function WorkflowStepCard({
           label={activeLabel}
           reporteId={reporteId}
           equipoId={equipoId}
-          reportePasoId={savedProgress?.id ?? null}
+          reportePasoId={resolvedStepIdRef.current}
           onCapture={handleCameraCapture}
           onClose={() => {
             setShowCamera(false);
@@ -439,7 +462,7 @@ export function WorkflowStepCard({
           label={activeLabel}
           reporteId={reporteId}
           equipoId={equipoId}
-          reportePasoId={savedProgress?.id ?? null}
+          reportePasoId={resolvedStepIdRef.current}
           onCapture={handleVideoCapture}
           onClose={() => {
             setShowVideoCapture(false);

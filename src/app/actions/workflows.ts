@@ -111,7 +111,7 @@ export async function saveStepProgress(
     notas?: string;
     lecturas?: Record<string, number | string>;
   }
-): Promise<ActionState> {
+): Promise<ActionState & { stepId?: string }> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -147,16 +147,105 @@ export async function saveStepProgress(
     if (error) {
       return { error: "Error al guardar progreso: " + error.message };
     }
+
+    revalidatePath("/tecnico");
+    return { success: true, message: "Progreso guardado", stepId: existing.id };
   } else {
-    const { error } = await supabase.from("reporte_pasos").insert(row);
+    const { data: newRow, error } = await supabase
+      .from("reporte_pasos")
+      .insert(row)
+      .select("id")
+      .single();
 
     if (error) {
       return { error: "Error al guardar progreso: " + error.message };
     }
-  }
 
-  revalidatePath("/tecnico");
-  return { success: true, message: "Progreso guardado" };
+    revalidatePath("/tecnico");
+    return { success: true, message: "Progreso guardado", stepId: newRow.id };
+  }
+}
+
+// ── Ensure Step Progress Row Exists (for photo uploads) ─────────────────
+
+export async function ensureStepProgress(
+  reporteEquipoId: string,
+  plantillaPasoId: string
+): Promise<string | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  // Check if already exists
+  const { data: existing } = await supabase
+    .from("reporte_pasos")
+    .select("id")
+    .eq("reporte_equipo_id", reporteEquipoId)
+    .eq("plantilla_paso_id", plantillaPasoId)
+    .maybeSingle();
+
+  if (existing) return existing.id;
+
+  // Create minimal row
+  const { data: newRow, error } = await supabase
+    .from("reporte_pasos")
+    .insert({
+      reporte_equipo_id: reporteEquipoId,
+      plantilla_paso_id: plantillaPasoId,
+      completado: false,
+      notas: null,
+      lecturas: {},
+      completed_at: null,
+    })
+    .select("id")
+    .single();
+
+  if (error) return null;
+  return newRow.id;
+}
+
+// ── Ensure Corrective Step Exists (for photo uploads) ────────────────────
+
+export async function ensureCorrectiveStep(
+  reporteEquipoId: string,
+  fallaCorrectivaId: string
+): Promise<string | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  // Check if already exists
+  const { data: existing } = await supabase
+    .from("reporte_pasos")
+    .select("id")
+    .eq("reporte_equipo_id", reporteEquipoId)
+    .eq("falla_correctiva_id", fallaCorrectivaId)
+    .maybeSingle();
+
+  if (existing) return existing.id;
+
+  // Create minimal row
+  const { data: newRow, error } = await supabase
+    .from("reporte_pasos")
+    .insert({
+      reporte_equipo_id: reporteEquipoId,
+      falla_correctiva_id: fallaCorrectivaId,
+      completado: false,
+      notas: null,
+      lecturas: {},
+      completed_at: null,
+    })
+    .select("id")
+    .single();
+
+  if (error) return null;
+  return newRow.id;
 }
 
 // ── Save Corrective Selection ───────────────────────────────────────────

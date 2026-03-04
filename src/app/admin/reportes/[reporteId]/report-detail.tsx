@@ -14,7 +14,7 @@ import {
   adminRemoveEquipmentEntry,
   adminUpdateSignature,
 } from "@/app/actions/reportes";
-import { adminFlagPhoto, adminDeletePhoto, adminUploadPhoto, adminUpdateEtiqueta } from "@/app/actions/fotos";
+import { adminFlagPhoto, adminDeletePhoto, adminUploadPhoto, adminUpdateEtiqueta, backfillOrphanPhotos } from "@/app/actions/fotos";
 import { ReporteDeleteButton } from "@/components/admin/reporte-delete-button";
 import { AdminPhotoCard } from "@/components/admin/admin-photo-card";
 import { AdminPhotoUpload } from "@/components/admin/admin-photo-upload";
@@ -885,6 +885,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
               descripcion: m.descripcion,
             }))}
           />
+          <BackfillPhotosButton reporteId={reporte.id} />
           <ApproveButton
             reporteId={reporte.id}
             isApproved={reporte.finalizado_por_admin}
@@ -892,6 +893,36 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
         </div>
       </div>
     </div>
+  );
+}
+
+// ---------- Backfill Orphan Photos Button ----------
+
+function BackfillPhotosButton({ reporteId }: { reporteId: string }) {
+  const [isPending, startTransition] = useTransition();
+  const [result, setResult] = useState<string | null>(null);
+  const router = useRouter();
+
+  return (
+    <button
+      type="button"
+      disabled={isPending}
+      onClick={() => {
+        startTransition(async () => {
+          const res = await backfillOrphanPhotos(reporteId);
+          if (res.success) {
+            setResult(res.message ?? `${res.fixed} fotos reasignadas`);
+            router.refresh();
+          } else {
+            setResult(res.error ?? "Error");
+          }
+          setTimeout(() => setResult(null), 4000);
+        });
+      }}
+      className="rounded-lg border border-admin-border bg-admin-surface px-3 py-1.5 text-[12px] font-medium text-text-2 transition-colors hover:bg-admin-hover disabled:opacity-50"
+    >
+      {isPending ? "Reasignando..." : result ?? "Reasignar fotos huerfanas"}
+    </button>
   );
 }
 

@@ -5,6 +5,7 @@ import {
   getWorkflowTemplates,
   getStepProgress,
   saveStepProgress,
+  ensureStepProgress,
 } from "@/app/actions/workflows";
 import { WorkflowStepCard } from "./workflow-step-card";
 import { CustomStepCard } from "./custom-step-card";
@@ -93,9 +94,52 @@ export function WorkflowPreventive({
         return next;
       });
 
-      await saveStepProgress(reporteEquipoId, pasoId, data);
+      const result = await saveStepProgress(reporteEquipoId, pasoId, data);
+
+      // Update progress map with real DB ID
+      if (result.success && result.stepId) {
+        setProgress((prev) => {
+          const next = new Map(prev);
+          const existing = next.get(pasoId);
+          if (existing) {
+            next.set(pasoId, { ...existing, id: result.stepId! });
+          }
+          return next;
+        });
+      }
     },
     [reporteEquipoId]
+  );
+
+  // Ensure a step row exists in DB (for photo uploads before step is saved)
+  const handleEnsureStep = useCallback(
+    async (plantillaPasoId: string): Promise<string | null> => {
+      // Check if we already have the ID
+      const existing = progress.get(plantillaPasoId);
+      if (existing?.id) return existing.id;
+
+      const stepId = await ensureStepProgress(reporteEquipoId, plantillaPasoId);
+      if (stepId) {
+        setProgress((prev) => {
+          const next = new Map(prev);
+          const existingEntry = next.get(plantillaPasoId);
+          next.set(plantillaPasoId, {
+            id: stepId,
+            reporte_equipo_id: reporteEquipoId,
+            plantilla_paso_id: plantillaPasoId,
+            falla_correctiva_id: null,
+            nombre_custom: null,
+            completado: existingEntry?.completado ?? false,
+            notas: existingEntry?.notas ?? null,
+            lecturas: existingEntry?.lecturas ?? {},
+            completed_at: existingEntry?.completed_at ?? null,
+          });
+          return next;
+        });
+      }
+      return stepId;
+    },
+    [reporteEquipoId, progress]
   );
 
   const handleCustomStepAdded = useCallback((step: ReportePaso) => {
@@ -229,6 +273,7 @@ export function WorkflowPreventive({
             totalSteps={totalSteps}
             savedProgress={progress.get(step.id) ?? null}
             onProgressChange={handleProgressChange}
+            onEnsureStep={handleEnsureStep}
             isCompleted={isCompleted}
             autoExpand={index === firstIncompleteIndex}
             reporteId={reporteId}

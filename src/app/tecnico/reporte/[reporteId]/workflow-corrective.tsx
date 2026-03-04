@@ -5,6 +5,7 @@ import {
   getCorrectiveIssues,
   getStepProgress,
   saveCorrectiveSelection,
+  ensureCorrectiveStep,
 } from "@/app/actions/workflows";
 import { getPhotosForStep } from "@/app/actions/fotos";
 import { deletePhotoAction } from "@/app/actions/fotos";
@@ -133,15 +134,52 @@ export function WorkflowCorrective({
     }
   };
 
-  // Get the reporte_paso_id for a given falla_correctiva_id
+  // Get or create the reporte_paso_id for a given falla_correctiva_id
+  const resolvedStepIds = useRef<Map<string, string>>(new Map());
+
+  // Keep resolved IDs in sync with step progress
+  useEffect(() => {
+    for (const p of stepProgress) {
+      if (p.falla_correctiva_id && p.id) {
+        resolvedStepIds.current.set(p.falla_correctiva_id, p.id);
+      }
+    }
+  }, [stepProgress]);
+
   const getStepId = (fallaId: string): string | null => {
-    const step = stepProgress.find((s) => s.falla_correctiva_id === fallaId);
-    return step?.id ?? null;
+    return resolvedStepIds.current.get(fallaId) ?? null;
   };
 
-  // Photo handlers
-  const handleLabelClick = (issueId: string, etapa: string) => {
+  const ensureStepId = async (fallaId: string): Promise<string | null> => {
+    const existing = resolvedStepIds.current.get(fallaId);
+    if (existing) return existing;
+    const stepId = await ensureCorrectiveStep(reporteEquipoId, fallaId);
+    if (stepId) {
+      resolvedStepIds.current.set(fallaId, stepId);
+      // Update stepProgress so getStepId works for camera/video components
+      setStepProgress((prev) => [
+        ...prev,
+        {
+          id: stepId,
+          reporte_equipo_id: reporteEquipoId,
+          plantilla_paso_id: null,
+          falla_correctiva_id: fallaId,
+          nombre_custom: null,
+          completado: false,
+          notas: null,
+          lecturas: {},
+          completed_at: null,
+        },
+      ]);
+    }
+    return stepId;
+  };
+
+  // Photo handlers — ensure step exists before allowing photo uploads
+  const handleLabelClick = async (issueId: string, etapa: string) => {
     if (isCompleted) return;
+    const stepId = await ensureStepId(issueId);
+    if (!stepId) return;
     setActiveIssueId(issueId);
     setActiveLabel(etapa);
     setShowSourcePicker(true);
