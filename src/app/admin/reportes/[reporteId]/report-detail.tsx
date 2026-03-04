@@ -642,6 +642,41 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
         />
       )}
 
+      {/* Papeleta */}
+      {(() => {
+        const papeletaFotos = reporte.reporte_fotos.filter(
+          (f) => f.etiqueta === "papeleta"
+        );
+        if (papeletaFotos.length === 0) return null;
+        return (
+          <div>
+            <h2 className="mb-3 text-[15px] font-semibold text-text-0">
+              Papeleta
+            </h2>
+            <div className="rounded-[10px] border border-admin-border bg-admin-surface p-4">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                {papeletaFotos.map((foto) => (
+                  <a
+                    key={foto.id}
+                    href={foto.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative overflow-hidden rounded-lg border border-admin-border-subtle"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={foto.url}
+                      alt="Papeleta"
+                      className="aspect-[4/3] w-full object-cover transition-transform duration-150 group-hover:scale-105"
+                    />
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Comments */}
       <CommentSection
         comments={comments.filter((c) => !c.equipo_id)}
@@ -2121,6 +2156,13 @@ function StepRow({
                       <option value="antes">Antes</option>
                       <option value="durante">Durante</option>
                       <option value="despues">Despues</option>
+                      <option value="dano">Dano</option>
+                      <option value="placa">Placa</option>
+                      <option value="progreso">Progreso</option>
+                      <option value="llegada">Llegada</option>
+                      <option value="sitio">Sitio</option>
+                      <option value="equipo_general">Equipo General</option>
+                      <option value="papeleta">Papeleta</option>
                     </select>
                   </label>
                   <button

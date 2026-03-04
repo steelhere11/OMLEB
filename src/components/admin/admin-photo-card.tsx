@@ -44,6 +44,7 @@ const etiquetaLabels: Record<string, string> = {
   llegada: "Llegada",
   sitio: "Sitio",
   equipo_general: "Equipo General",
+  papeleta: "Papeleta",
 };
 
 const STATUS_OPTIONS: FotoEstatusRevision[] = [
@@ -63,6 +64,7 @@ const ETIQUETA_OPTIONS: { value: FotoEtiqueta; label: string }[] = [
   { value: "llegada", label: "Llegada" },
   { value: "sitio", label: "Sitio" },
   { value: "equipo_general", label: "Equipo General" },
+  { value: "papeleta", label: "Papeleta" },
 ];
 
 // ── Props ──────────────────────────────────────────────────────────────────

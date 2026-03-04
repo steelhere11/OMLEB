@@ -15,6 +15,10 @@ const ETIQUETA_OPTIONS: { value: FotoEtiqueta; label: string }[] = [
   { value: "dano", label: "Dano" },
   { value: "placa", label: "Placa" },
   { value: "progreso", label: "Progreso" },
+  { value: "llegada", label: "Llegada" },
+  { value: "sitio", label: "Sitio" },
+  { value: "equipo_general", label: "Equipo General" },
+  { value: "papeleta", label: "Papeleta" },
 ];
 
 // ── Props ──────────────────────────────────────────────────────────────────
