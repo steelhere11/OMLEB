@@ -1118,7 +1118,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                     <Image src={photo.data} style={s.photoImg} />
                   )}
                   <Text style={s.photoCaption}>
-                    Llegada
+                    {`Llegada ${idx + 1}`}
                     {photo.fecha
                       ? ` - ${new Date(photo.fecha).toLocaleString("es-MX", {
                           day: "2-digit",
@@ -1151,7 +1151,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                     <Image src={photo.data} style={s.photoImg} />
                   )}
                   <Text style={s.photoCaption}>
-                    Sitio
+                    {`Sitio ${idx + 1}`}
                     {photo.fecha
                       ? ` - ${new Date(photo.fecha).toLocaleString("es-MX", {
                           day: "2-digit",
