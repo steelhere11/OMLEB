@@ -1690,21 +1690,19 @@ function StepList({
   }
 
   const moveStep = useCallback((index: number, direction: "up" | "down") => {
-    setOrderedSteps((prev) => {
-      const next = [...prev];
-      const swapIdx = direction === "up" ? index - 1 : index + 1;
-      if (swapIdx < 0 || swapIdx >= next.length) return prev;
-      [next[index], next[swapIdx]] = [next[swapIdx], next[index]];
+    const swapIdx = direction === "up" ? index - 1 : index + 1;
+    if (swapIdx < 0 || swapIdx >= orderedSteps.length) return;
 
-      // Persist the new order
-      const updates = next.map((step, i) => ({ id: step.id, orden: i + 1 }));
-      startReorderTransition(async () => {
-        await adminReorderSteps(updates);
-      });
+    const next = [...orderedSteps];
+    [next[index], next[swapIdx]] = [next[swapIdx], next[index]];
+    setOrderedSteps(next);
 
-      return next;
+    // Persist the new order (outside state setter)
+    const updates = next.map((step, i) => ({ id: step.id, orden: i + 1 }));
+    startReorderTransition(async () => {
+      await adminReorderSteps(updates);
     });
-  }, []);
+  }, [orderedSteps, startReorderTransition]);
 
   return (
     <div className="mt-3">
