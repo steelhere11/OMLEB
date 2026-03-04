@@ -1295,14 +1295,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                                     {step.nombre}
                                   </Text>
                                 </View>
-                                {/* Description from fallas_correctivas.diagnostico */}
-                                {step.diagnosticoDescripcion && (
-                                  <View style={{ paddingHorizontal: 10, paddingTop: 4 }}>
-                                    <Text style={{ fontSize: 8, color: GRAY_500, lineHeight: 1.4 }}>
-                                      {step.diagnosticoDescripcion}
-                                    </Text>
-                                  </View>
-                                )}
+                                {/* fallas_correctivas.diagnostico intentionally omitted from PDF */}
                                 {/* Notes */}
                                 {step.notas && (
                                   <View style={{
