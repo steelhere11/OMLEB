@@ -84,6 +84,7 @@ export interface PdfReportData {
     photosBase64: PhotoBase64[];
   }>;
   materials: Array<{ cantidad: number; unidad: string; descripcion: string }>;
+  papeletaPhotos?: PhotoBase64[];
   firmaBase64: string | null;
   nombreEncargado: string | null;
   numeroRevision: number;
@@ -1533,6 +1534,25 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                 <Text style={s.sigName}>{data.nombreEncargado}</Text>
               )}
               <Text style={s.sigLabel}>Encargado de Sucursal</Text>
+            </View>
+          </>
+        )}
+
+        {/* Papeleta */}
+        {(data.papeletaPhotos ?? []).length > 0 && (
+          <>
+            <Text style={s.sectionTitle}>Papeleta</Text>
+            <View style={s.photoGrid}>
+              {(data.papeletaPhotos ?? []).map((photo, pIdx) => (
+                <View key={pIdx} style={s.photoBox}>
+                  <Image src={photo.data} style={s.photoImg} />
+                  {photo.fecha && (
+                    <Text style={s.photoCaption}>
+                      {new Date(photo.fecha).toLocaleString("es-MX")}
+                    </Text>
+                  )}
+                </View>
+              ))}
             </View>
           </>
         )}

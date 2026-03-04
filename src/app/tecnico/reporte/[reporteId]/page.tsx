@@ -221,6 +221,14 @@ export default async function ReportePage({
     };
   });
 
+  // --- Papeleta photos ---
+  const { data: papeletaPhotos } = await supabase
+    .from("reporte_fotos")
+    .select("id, reporte_id, equipo_id, reporte_paso_id, url, etiqueta, tipo_media, estatus_revision, nota_admin, metadata_gps, metadata_fecha, created_at")
+    .eq("reporte_id", reporteId)
+    .eq("etiqueta", "papeleta")
+    .order("created_at", { ascending: true });
+
   // --- Admin feedback data fetching ---
 
   // Fetch admin comments for this report (technicians have RLS read access)
@@ -361,6 +369,7 @@ export default async function ReportePage({
       }
       existingOrdenSitePhoto={existingOrdenSitePhoto}
       registrationEntries={registrationEntries}
+      papeletaPhotos={(papeletaPhotos as ReporteFoto[]) ?? []}
       adminComments={adminComments}
       flaggedPhotos={flaggedPhotoSummaries}
       equipoListForComments={equipoListForComments}

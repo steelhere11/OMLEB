@@ -109,6 +109,12 @@ interface ReportPdfButtonProps {
     }>;
   }>;
   materials: Array<{ cantidad: number; unidad: string; descripcion: string }>;
+  papeletaPhotos?: Array<{
+    url: string;
+    metadata_gps: string | null;
+    metadata_fecha: string | null;
+    tipo_media?: string;
+  }>;
 }
 
 // ---------- Helpers ----------
@@ -181,6 +187,7 @@ export default function ReportPdfButton({
   comments,
   equipmentEntries,
   materials,
+  papeletaPhotos,
 }: ReportPdfButtonProps) {
   const [generating, setGenerating] = useState(false);
   const [generatingZip, setGeneratingZip] = useState(false);
@@ -266,6 +273,28 @@ export default function ReportPdfButton({
       };
     });
 
+    // 3d. Pre-fetch papeleta photos
+    let papeletaPhotosBase64: PhotoBase64[] = [];
+    if (papeletaPhotos && papeletaPhotos.length > 0) {
+      const fetched = await Promise.allSettled(
+        papeletaPhotos.map(async (p) => {
+          const data = await fetchImageAsBase64(p.url);
+          return {
+            data: data as string,
+            etiqueta: "papeleta",
+            gps: p.metadata_gps,
+            fecha: p.metadata_fecha,
+            reportePasoId: null,
+          } satisfies PhotoBase64;
+        })
+      );
+      for (const r of fetched) {
+        if (r.status === "fulfilled" && r.value.data) {
+          papeletaPhotosBase64.push(r.value);
+        }
+      }
+    }
+
     // 4. Transform data into PdfReportData shape — distribute photos into steps
     return {
       orden,
@@ -333,6 +362,7 @@ export default function ReportPdfButton({
         };
       }),
       materials,
+      papeletaPhotos: papeletaPhotosBase64,
       firmaBase64: reporte.firma_encargado,
       nombreEncargado: reporte.nombre_encargado,
       numeroRevision: reporte.numero_revision,
@@ -474,6 +504,17 @@ export default function ReportPdfButton({
             tipoMedia: rp.tipo_media,
           });
         }
+      }
+
+      // Papeleta photos
+      for (let i = 0; i < (papeletaPhotos ?? []).length; i++) {
+        const pp = papeletaPhotos![i];
+        photoFetchTasks.push({
+          folder: "Papeleta",
+          name: `papeleta_${i + 1}`,
+          url: pp.url,
+          tipoMedia: pp.tipo_media,
+        });
       }
 
       // 4. Fetch all photos in parallel

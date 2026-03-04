@@ -202,6 +202,7 @@ const etiquetaLabels: Record<string, string> = {
   dano: "Dano",
   placa: "Placa",
   progreso: "Progreso",
+  papeleta: "Papeleta",
 };
 
 const COMMON_UNITS = ["Pieza", "Metro", "Litro", "Kilogramo", "Rollo", "Tramo"];
@@ -888,6 +889,14 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
               unidad: m.unidad,
               descripcion: m.descripcion,
             }))}
+            papeletaPhotos={reporte.reporte_fotos
+              .filter((f) => f.etiqueta === "papeleta")
+              .map((f) => ({
+                url: f.url,
+                metadata_gps: f.metadata_gps,
+                metadata_fecha: f.metadata_fecha,
+                tipo_media: f.tipo_media ?? "foto",
+              }))}
           />
           <BackfillPhotosButton reporteId={reporte.id} />
           <ApproveButton

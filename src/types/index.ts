@@ -108,7 +108,7 @@ export interface ReporteEquipo {
   registro_completado: boolean;
 }
 
-export type FotoEtiqueta = "antes" | "durante" | "despues" | "dano" | "placa" | "progreso" | "llegada" | "sitio" | "equipo_general" | "anotado";
+export type FotoEtiqueta = "antes" | "durante" | "despues" | "dano" | "placa" | "progreso" | "llegada" | "sitio" | "equipo_general" | "anotado" | "papeleta";
 
 export type TipoMedia = "foto" | "video";
 

@@ -11,6 +11,7 @@ import { EquipmentRegistrationSection } from "./equipment-registration-section";
 import { EquipmentSection } from "./equipment-section";
 import { MaterialsSection } from "./materials-section";
 import { StatusSection } from "./status-section";
+import { PapeletaSection } from "./papeleta-section";
 import { AdminFeedbackBanner } from "@/components/tecnico/admin-feedback-banner";
 import { CommentSection } from "@/components/admin/comment-section";
 import type {
@@ -53,6 +54,8 @@ interface ReportFormProps {
   } | null;
   existingOrdenSitePhoto: { url: string } | null;
   registrationEntries: RegistrationEntry[];
+  // Papeleta photos
+  papeletaPhotos: ReporteFoto[];
   // Admin feedback props
   adminComments: CommentWithAuthor[];
   flaggedPhotos: FlaggedPhotoSummary[];
@@ -86,6 +89,7 @@ export function ReportForm({
   sitePhoto,
   existingOrdenSitePhoto,
   registrationEntries,
+  papeletaPhotos,
   adminComments,
   flaggedPhotos,
   equipoListForComments,
@@ -399,6 +403,13 @@ export function ReportForm({
           isCompleted={isCompleted}
         />
       </PhaseGate>
+
+      {/* ======== Papeleta Section ======== */}
+      <PapeletaSection
+        reporteId={reporteId}
+        existingPhotos={papeletaPhotos}
+        isCompleted={isCompleted}
+      />
 
       {/* Admin comments section (read-only for technicians) */}
       {adminComments.length > 0 && (
