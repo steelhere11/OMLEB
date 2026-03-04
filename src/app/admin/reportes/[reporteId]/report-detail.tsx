@@ -859,6 +859,8 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                       paso.plantillas_pasos?.lecturas_requeridas ?? null,
                     isCustom: !paso.plantillas_pasos && !paso.fallas_correctivas && !!paso.nombre_custom,
                     orden: paso.orden ?? paso.plantillas_pasos?.orden ?? (paso.fallas_correctivas ? 9000 : 9999),
+                    isDiagnosis: !!paso.fallas_correctivas,
+                    diagnosticoDescripcion: paso.fallas_correctivas?.diagnostico ?? null,
                   })).sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999)),
                   photos: filteredPhotos.map(
                     (foto) => ({
@@ -1689,29 +1691,70 @@ function StepList({
     }
   }
 
-  const moveStep = useCallback((index: number, direction: "up" | "down") => {
+  // Split diagnosis steps from workflow steps
+  const diagnosisSteps = orderedSteps.filter((p) => !!p.fallas_correctivas);
+  const workflowSteps = orderedSteps.filter((p) => !p.fallas_correctivas);
+
+  const moveStep = useCallback((index: number, direction: "up" | "down", pool: ReportePasoData[]) => {
     const swapIdx = direction === "up" ? index - 1 : index + 1;
-    if (swapIdx < 0 || swapIdx >= orderedSteps.length) return;
+    if (swapIdx < 0 || swapIdx >= pool.length) return;
 
-    const next = [...orderedSteps];
-    [next[index], next[swapIdx]] = [next[swapIdx], next[index]];
-    setOrderedSteps(next);
+    // Compute new full order by swapping within the pool
+    const newPool = [...pool];
+    [newPool[index], newPool[swapIdx]] = [newPool[swapIdx], newPool[index]];
 
-    // Persist the new order (outside state setter)
-    const updates = next.map((step, i) => ({ id: step.id, orden: i + 1 }));
+    // Rebuild full ordered list: diagnosis first, then workflow (preserving overall structure)
+    const isDiagPool = pool === diagnosisSteps;
+    const newAll = isDiagPool ? [...newPool, ...workflowSteps] : [...diagnosisSteps, ...newPool];
+    setOrderedSteps(newAll);
+
+    // Persist the new order
+    const updates = newAll.map((step, i) => ({ id: step.id, orden: i + 1 }));
     startReorderTransition(async () => {
       await adminReorderSteps(updates);
     });
-  }, [orderedSteps, startReorderTransition]);
+  }, [orderedSteps, diagnosisSteps, workflowSteps, startReorderTransition]);
 
   return (
     <div className="mt-3">
+      {/* Diagnosis section */}
+      {diagnosisSteps.length > 0 && (
+        <>
+          <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-amber-700">
+            Diagnostico
+            {reordering && <span className="ml-2 text-[10px] font-normal text-text-3">Guardando orden...</span>}
+          </h4>
+          <div className="space-y-2 mb-4">
+            {diagnosisSteps.map((paso, index) => (
+              <StepRow
+                key={paso.id}
+                paso={paso}
+                stagePhotos={photosByStep.get(paso.id) ?? []}
+                onFlagPhoto={onFlagPhoto}
+                onDeletePhoto={onDeletePhoto}
+                onUpdateEtiqueta={onUpdateEtiqueta}
+                onDeleteStep={onDeleteStep}
+                isEditing={editingStepId === paso.id}
+                onEdit={() => onEditStep(paso.id)}
+                onCancelEdit={onCancelEditStep}
+                onSaved={onStepSaved}
+                reporteId={reporteId}
+                equipoId={entry.equipo_id}
+                onMoveUp={index > 0 ? () => moveStep(index, "up", diagnosisSteps) : null}
+                onMoveDown={index < diagnosisSteps.length - 1 ? () => moveStep(index, "down", diagnosisSteps) : null}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Workflow steps section */}
       <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
         Pasos del Flujo de Trabajo
         {reordering && <span className="ml-2 text-[10px] font-normal text-text-3">Guardando orden...</span>}
       </h4>
       <div className="space-y-2">
-        {orderedSteps.map((paso, index) => (
+        {workflowSteps.map((paso, index) => (
           <StepRow
             key={paso.id}
             paso={paso}
@@ -1726,8 +1769,8 @@ function StepList({
             onSaved={onStepSaved}
             reporteId={reporteId}
             equipoId={entry.equipo_id}
-            onMoveUp={index > 0 ? () => moveStep(index, "up") : null}
-            onMoveDown={index < orderedSteps.length - 1 ? () => moveStep(index, "down") : null}
+            onMoveUp={index > 0 ? () => moveStep(index, "up", workflowSteps) : null}
+            onMoveDown={index < workflowSteps.length - 1 ? () => moveStep(index, "down", workflowSteps) : null}
           />
         ))}
         <AdminCustomStepForm
@@ -1807,6 +1850,7 @@ function StepRow({
   const [showDeleteStepConfirm, setShowDeleteStepConfirm] = useState(false);
   const [deletingStep, startDeleteStepTransition] = useTransition();
   const isCustom = !paso.plantillas_pasos && !paso.fallas_correctivas && !!paso.nombre_custom;
+  const isDiagnosis = !!paso.fallas_correctivas;
   const name =
     paso.plantillas_pasos?.nombre ??
     paso.fallas_correctivas?.nombre ??
@@ -1839,7 +1883,7 @@ function StepRow({
   }, [isEditing, showUpload]);
 
   return (
-    <div className="rounded-[6px] border border-admin-border-subtle px-3 py-2">
+    <div className={`rounded-[6px] border px-3 py-2 ${isDiagnosis ? "border-amber-300 bg-amber-50/30" : "border-admin-border-subtle"}`}>
       {/* Always-visible header */}
       <div
         className="flex items-center gap-2 cursor-pointer select-none"
@@ -1859,6 +1903,11 @@ function StepRow({
         {/* Name */}
         <p className="text-[13px] font-medium text-text-0 truncate">{name}</p>
 
+        {isDiagnosis && (
+          <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+            Diagnostico
+          </span>
+        )}
         {isCustom && (
           <span className="shrink-0 rounded-full bg-purple-100 px-1.5 py-0.5 text-[10px] font-semibold text-purple-700">
             Personalizado
@@ -1934,7 +1983,7 @@ function StepRow({
             </svg>
             Foto
           </button>
-          {isCustom && (
+          {isCustom && !isDiagnosis && (
             <button
               type="button"
               onClick={() => setShowDeleteStepConfirm(true)}
@@ -1974,6 +2023,12 @@ function StepRow({
             />
           ) : (
             <>
+              {/* Diagnosis description subtitle */}
+              {isDiagnosis && paso.fallas_correctivas?.diagnostico && (
+                <p className="mb-2 text-[12px] text-text-2 italic">
+                  {paso.fallas_correctivas.diagnostico}
+                </p>
+              )}
               {/* Delete step confirmation */}
               {showDeleteStepConfirm && (
                 <div className="mb-2 rounded border border-red-300 bg-red-50 px-3 py-2">

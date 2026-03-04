@@ -31,6 +31,8 @@ export interface PdfStepData {
   photosBase64: PhotoBase64[];
   isCustom?: boolean;
   orden?: number;
+  isDiagnosis?: boolean;
+  diagnosticoDescripcion?: string | null;
 }
 
 export interface PdfRegistrationEntry {
@@ -1247,11 +1249,85 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                       st.notas ||
                       (st.lecturas && Object.keys(st.lecturas).length > 0)
                     ).sort((a, b) => (a.orden ?? 9999) - (b.orden ?? 9999));
-                    const templateSteps = stepsWithContent.filter((st) => !st.isCustom);
+                    const diagnosisSteps = stepsWithContent.filter((st) => st.isDiagnosis);
+                    const templateSteps = stepsWithContent.filter((st) => !st.isCustom && !st.isDiagnosis);
                     const customSteps = stepsWithContent.filter((st) => st.isCustom);
 
                     return (
                       <>
+                        {/* Diagnosis section — rendered above verificaciones */}
+                        {diagnosisSteps.length > 0 && (
+                          <View style={{ marginTop: 6 }}>
+                            {diagnosisSteps.map((step) => (
+                              <View key={step.id} style={{ marginHorizontal: 8, marginBottom: 6 }} wrap={true}>
+                                {/* Header row: DIAGNÓSTICO label + falla name */}
+                                <View
+                                  style={{
+                                    backgroundColor: "#fef3c7",
+                                    borderLeft: "3pt solid #d97706",
+                                    borderRadius: 4,
+                                    paddingVertical: 6,
+                                    paddingHorizontal: 10,
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                  }}
+                                >
+                                  <Text
+                                    style={{
+                                      fontSize: 10,
+                                      fontWeight: 700,
+                                      color: "#92400e",
+                                      textTransform: "uppercase",
+                                      letterSpacing: 0.5,
+                                    }}
+                                  >
+                                    Diagnostico
+                                  </Text>
+                                  <Text
+                                    style={{
+                                      fontSize: 10,
+                                      fontWeight: 700,
+                                      color: "#78350f",
+                                    }}
+                                  >
+                                    {step.nombre}
+                                  </Text>
+                                </View>
+                                {/* Description from fallas_correctivas.diagnostico */}
+                                {step.diagnosticoDescripcion && (
+                                  <View style={{ paddingHorizontal: 10, paddingTop: 4 }}>
+                                    <Text style={{ fontSize: 8, color: GRAY_500, lineHeight: 1.4 }}>
+                                      {step.diagnosticoDescripcion}
+                                    </Text>
+                                  </View>
+                                )}
+                                {/* Notes */}
+                                {step.notas && (
+                                  <View style={{
+                                    marginTop: 4,
+                                    marginHorizontal: 10,
+                                    backgroundColor: "#fffbeb",
+                                    borderRadius: 3,
+                                    paddingVertical: 4,
+                                    paddingHorizontal: 8,
+                                  }}>
+                                    <Text style={{ fontSize: 8, color: "#92400e" }}>
+                                      Nota: {step.notas}
+                                    </Text>
+                                  </View>
+                                )}
+                                {/* Photos */}
+                                {step.photosBase64.length > 0 && (
+                                  <View style={{ paddingHorizontal: 2, paddingTop: 4 }}>
+                                    <StepPhotoGrid photos={step.photosBase64} />
+                                  </View>
+                                )}
+                              </View>
+                            ))}
+                          </View>
+                        )}
+
                         {/* Section header for template steps */}
                         {templateSteps.length > 0 && (
                           <View

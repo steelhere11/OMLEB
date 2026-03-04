@@ -96,6 +96,8 @@ interface ReportPdfButtonProps {
       }> | null;
       isCustom?: boolean;
       orden?: number;
+      isDiagnosis?: boolean;
+      diagnosticoDescripcion?: string | null;
     }>;
     photos: Array<{
       url: string;
