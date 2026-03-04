@@ -123,6 +123,22 @@ const s = StyleSheet.create({
     paddingBottom: 50,
     color: GRAY_900,
   },
+  // Watermark
+  watermark: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  watermarkImg: {
+    width: 250,
+    height: 250,
+    objectFit: "contain" as const,
+    opacity: 0.06,
+  },
   // Header
   header: {
     flexDirection: "row",
@@ -983,6 +999,13 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         style={s.page}
         wrap={true}
       >
+        {/* Watermark — centered logo on every page */}
+        {data.companyLogoBase64 && (
+          <View style={s.watermark} fixed>
+            <Image src={data.companyLogoBase64} style={s.watermarkImg} />
+          </View>
+        )}
+
         {/* Header */}
         <View style={s.header} fixed>
           {data.companyLogoBase64 ? (
