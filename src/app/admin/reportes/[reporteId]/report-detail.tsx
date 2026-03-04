@@ -137,6 +137,7 @@ interface ReporteData {
   ordenes_servicio: {
     numero_orden: string;
     descripcion_problema: string;
+    created_at: string;
     clientes: { nombre: string; logo_url: string | null } | null;
   } | null;
   sucursales: {
@@ -749,6 +750,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
               nombre_encargado: reporte.nombre_encargado,
               numero_revision: reporte.numero_revision,
               revision_actual: reporte.revision_actual,
+              updated_at: reporte.updated_at,
             }}
             lastRevision={revisions.length > 0 ? {
               fecha: revisions[0].created_at,
@@ -757,6 +759,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
             orden={{
               numero_orden: orden?.numero_orden ?? "",
               descripcion_problema: orden?.descripcion_problema ?? "",
+              created_at: orden?.created_at ?? "",
             }}
             sucursal={{
               nombre: sucursal?.nombre ?? "",

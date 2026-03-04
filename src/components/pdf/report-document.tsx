@@ -90,6 +90,8 @@ export interface PdfReportData {
   numeroRevision: number;
   revisionActual: number;
   lastRevision: { fecha: string; autor: string } | null;
+  ordenCreatedAt: string;
+  reporteUpdatedAt: string;
 }
 
 // ---------- Colors ----------
@@ -879,23 +881,14 @@ function StepBlock({ step }: { step: PdfStepData }) {
 // ---------- Summary Bar ----------
 
 function SummaryBar({ data }: { data: PdfReportData }) {
-  const totalEquipos = data.equipmentEntries.length;
+  const totalEquipos = data.registrationEntries.length;
+  const totalServicios = data.equipmentEntries.length;
   let prevCount = 0;
   let corrCount = 0;
-  let totalSteps = 0;
-  let completedSteps = 0;
-  let totalPhotos = 0;
 
   for (const entry of data.equipmentEntries) {
     if (entry.tipo_trabajo === "correctivo") corrCount++;
     else prevCount++;
-
-    for (const step of entry.steps) {
-      totalSteps++;
-      if (step.completado) completedSteps++;
-      totalPhotos += step.photosBase64.length;
-    }
-    totalPhotos += entry.orphanPhotosBase64.length;
   }
 
   return (
@@ -906,25 +899,18 @@ function SummaryBar({ data }: { data: PdfReportData }) {
       </View>
       <View style={s.summaryDivider} />
       <View style={s.summaryItem}>
+        <Text style={s.summaryValue}>{totalServicios}</Text>
+        <Text style={s.summaryLabel}>servicios</Text>
+      </View>
+      <View style={s.summaryDivider} />
+      <View style={s.summaryItem}>
         <Text style={s.summaryValue}>{prevCount}</Text>
-        <Text style={s.summaryLabel}>preventivo</Text>
+        <Text style={s.summaryLabel}>preventivos</Text>
       </View>
       <View style={s.summaryDivider} />
       <View style={s.summaryItem}>
         <Text style={s.summaryValue}>{corrCount}</Text>
-        <Text style={s.summaryLabel}>correctivo</Text>
-      </View>
-      <View style={s.summaryDivider} />
-      <View style={s.summaryItem}>
-        <Text style={s.summaryValue}>
-          {completedSteps}/{totalSteps}
-        </Text>
-        <Text style={s.summaryLabel}>pasos</Text>
-      </View>
-      <View style={s.summaryDivider} />
-      <View style={s.summaryItem}>
-        <Text style={s.summaryValue}>{totalPhotos}</Text>
-        <Text style={s.summaryLabel}>fotos</Text>
+        <Text style={s.summaryLabel}>correctivos</Text>
       </View>
     </View>
   );
@@ -984,7 +970,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
           <View style={s.headerCenter}>
             <Text style={s.headerTitle}>Reporte de Mantenimiento</Text>
             <Text style={s.headerOrden}>
-              ODS: {data.orden.numero_orden}  |  Rev {data.numeroRevision}
+              {data.orden.numero_orden}  |  Rev {data.numeroRevision}
               {data.revisionActual > 0 ? `  |  Edicion ${data.revisionActual}` : ""}
             </Text>
           </View>
@@ -999,7 +985,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         <View style={s.infoGrid}>
           <View style={s.infoRow}>
             <View style={s.infoCell}>
-              <Text style={s.infoLabel}>Fecha</Text>
+              <Text style={s.infoLabel}>Fecha del Reporte</Text>
               <Text style={s.infoValue}>{fechaFormatted}</Text>
             </View>
             <View style={s.infoCell}>
@@ -1008,6 +994,32 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                 style={[s.badgeEstatus, getStatusBadgeStyle(data.estatus)]}
               >
                 {statusLabels[data.estatus] ?? data.estatus}
+              </Text>
+            </View>
+          </View>
+          <View style={s.infoRow}>
+            <View style={s.infoCell}>
+              <Text style={s.infoLabel}>Fecha de Inicio</Text>
+              <Text style={s.infoValue}>
+                {data.ordenCreatedAt
+                  ? new Date(data.ordenCreatedAt).toLocaleDateString("es-MX", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    })
+                  : "—"}
+              </Text>
+            </View>
+            <View style={s.infoCell}>
+              <Text style={s.infoLabel}>Fecha de Cierre</Text>
+              <Text style={s.infoValue}>
+                {data.estatus === "completado" && data.reporteUpdatedAt
+                  ? new Date(data.reporteUpdatedAt).toLocaleDateString("es-MX", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    })
+                  : "—"}
               </Text>
             </View>
           </View>
@@ -1168,7 +1180,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         {data.equipmentEntries.length > 0 && (
           <>
             <Text style={s.sectionTitle}>
-              Equipos Atendidos ({data.equipmentEntries.length})
+              Servicios Realizados ({data.equipmentEntries.length})
             </Text>
             {data.equipmentEntries.map((entry, idx) => {
               const completedCount = entry.steps.filter(
