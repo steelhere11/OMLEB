@@ -134,11 +134,10 @@ const s = StyleSheet.create({
     alignItems: "center",
   },
   watermarkImg: {
-    width: 650,
-    height: 650,
+    width: 500,
+    height: 500,
     objectFit: "contain" as const,
     opacity: 0.08,
-    transform: "rotate(-40deg)",
   },
   // Header
   header: {
