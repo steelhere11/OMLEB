@@ -224,8 +224,8 @@ export default function ReportPdfButton({
     );
 
     // 3b. Pre-fetch registration photos (arrival, site, equipo_general, placa)
-    let arrivalPhotoData: { data: string; gps: string | null; fecha: string | null; isVideo: boolean } | null = null;
-    let sitePhotoData: { data: string; gps: string | null; fecha: string | null; isVideo: boolean } | null = null;
+    const arrivalPhotos: { data: string; gps: string | null; fecha: string | null; isVideo: boolean }[] = [];
+    const sitePhotos: { data: string; gps: string | null; fecha: string | null; isVideo: boolean }[] = [];
     const regPhotoMap = new Map<string, { general: string | null; placa: string | null }>();
 
     if (registrationPhotos && registrationPhotos.length > 0) {
@@ -243,10 +243,10 @@ export default function ReportPdfButton({
         // Videos won't have base64 data — skip non-video entries that failed to fetch
         if (!isVideo && !p.data) continue;
         const imgData = (p.data ?? "") as string;
-        if (p.etiqueta === "llegada" && !arrivalPhotoData) {
-          arrivalPhotoData = { data: imgData, gps: p.metadata_gps, fecha: p.metadata_fecha, isVideo };
-        } else if (p.etiqueta === "sitio" && !sitePhotoData) {
-          sitePhotoData = { data: imgData, gps: p.metadata_gps, fecha: p.metadata_fecha, isVideo };
+        if (p.etiqueta === "llegada") {
+          arrivalPhotos.push({ data: imgData, gps: p.metadata_gps, fecha: p.metadata_fecha, isVideo });
+        } else if (p.etiqueta === "sitio") {
+          sitePhotos.push({ data: imgData, gps: p.metadata_gps, fecha: p.metadata_fecha, isVideo });
         } else if (p.etiqueta === "equipo_general" && p.equipo_id) {
           const existing = regPhotoMap.get(p.equipo_id) ?? { general: null, placa: null };
           if (!existing.general) existing.general = imgData;
@@ -313,8 +313,8 @@ export default function ReportPdfButton({
       fecha: reporte.fecha,
       estatus: reporte.estatus,
       teamMembers,
-      arrivalPhoto: arrivalPhotoData,
-      sitePhoto: sitePhotoData,
+      arrivalPhotos,
+      sitePhotos,
       registrationEntries: pdfRegistrationEntries,
       comments: (comments ?? []).map((c) => ({
         contenido: c.contenido,

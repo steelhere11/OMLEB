@@ -58,8 +58,8 @@ export interface PdfReportData {
   fecha: string;
   estatus: string;
   teamMembers: { nombre: string; rol: string }[];
-  arrivalPhoto: { data: string; gps: string | null; fecha: string | null; isVideo: boolean } | null;
-  sitePhoto: { data: string; gps: string | null; fecha: string | null; isVideo: boolean } | null;
+  arrivalPhotos: { data: string; gps: string | null; fecha: string | null; isVideo: boolean }[];
+  sitePhotos: { data: string; gps: string | null; fecha: string | null; isVideo: boolean }[];
   registrationEntries: PdfRegistrationEntry[];
   comments: Array<{
     contenido: string;
@@ -1106,59 +1106,67 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
         <SummaryBar data={data} />
 
         {/* Evidencia de Llegada */}
-        {data.arrivalPhoto && (
+        {data.arrivalPhotos.length > 0 && (
           <>
             <Text style={s.sectionTitle}>Evidencia de Llegada</Text>
-            <View style={s.regPhotoFull}>
-              {data.arrivalPhoto.isVideo ? (
-                <VideoPlaceholder />
-              ) : (
-                <Image src={data.arrivalPhoto.data} style={s.regImg} />
-              )}
-              <Text style={s.regCaption}>
-                Foto de llegada
-                {data.arrivalPhoto.fecha
-                  ? ` - ${new Date(data.arrivalPhoto.fecha).toLocaleString("es-MX", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}`
-                  : ""}
-              </Text>
-              {data.arrivalPhoto.gps && (
-                <Text style={s.regCaption}>GPS: {data.arrivalPhoto.gps}</Text>
-              )}
+            <View style={s.photoGrid}>
+              {data.arrivalPhotos.map((photo, idx) => (
+                <View key={idx} style={s.photoBox}>
+                  {photo.isVideo ? (
+                    <VideoPlaceholder />
+                  ) : (
+                    <Image src={photo.data} style={s.photoImg} />
+                  )}
+                  <Text style={s.photoCaption}>
+                    Llegada
+                    {photo.fecha
+                      ? ` - ${new Date(photo.fecha).toLocaleString("es-MX", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}`
+                      : ""}
+                  </Text>
+                  {photo.gps && (
+                    <Text style={s.photoCaption}>GPS: {photo.gps}</Text>
+                  )}
+                </View>
+              ))}
             </View>
           </>
         )}
 
         {/* Panoramica del Sitio */}
-        {data.sitePhoto && (
+        {data.sitePhotos.length > 0 && (
           <>
             <Text style={s.sectionTitle}>Panoramica del Sitio</Text>
-            <View style={s.regPhotoFull}>
-              {data.sitePhoto.isVideo ? (
-                <VideoPlaceholder />
-              ) : (
-                <Image src={data.sitePhoto.data} style={s.regImg} />
-              )}
-              <Text style={s.regCaption}>
-                Foto panoramica del sitio
-                {data.sitePhoto.fecha
-                  ? ` - ${new Date(data.sitePhoto.fecha).toLocaleString("es-MX", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}`
-                  : ""}
-              </Text>
-              {data.sitePhoto.gps && (
-                <Text style={s.regCaption}>GPS: {data.sitePhoto.gps}</Text>
-              )}
+            <View style={s.photoGrid}>
+              {data.sitePhotos.map((photo, idx) => (
+                <View key={idx} style={s.photoBox}>
+                  {photo.isVideo ? (
+                    <VideoPlaceholder />
+                  ) : (
+                    <Image src={photo.data} style={s.photoImg} />
+                  )}
+                  <Text style={s.photoCaption}>
+                    Sitio
+                    {photo.fecha
+                      ? ` - ${new Date(photo.fecha).toLocaleString("es-MX", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}`
+                      : ""}
+                  </Text>
+                  {photo.gps && (
+                    <Text style={s.photoCaption}>GPS: {photo.gps}</Text>
+                  )}
+                </View>
+              ))}
             </View>
           </>
         )}
