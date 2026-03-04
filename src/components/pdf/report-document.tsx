@@ -986,6 +986,12 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
     }
   );
 
+  const fechaReporteFormatted = new Date().toLocaleDateString("es-MX", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
   const teamStr = data.teamOverride
     ? data.teamOverride
     : data.teamMembers.length > 0
@@ -1036,7 +1042,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
           <View style={s.infoRow}>
             <View style={s.infoCell}>
               <Text style={s.infoLabel}>Fecha del Reporte</Text>
-              <Text style={s.infoValue}>{fechaFormatted}</Text>
+              <Text style={s.infoValue}>{fechaReporteFormatted}</Text>
             </View>
             <View style={s.infoCell}>
               <Text style={s.infoLabel}>Estatus</Text>
@@ -1050,15 +1056,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
           <View style={s.infoRow}>
             <View style={s.infoCell}>
               <Text style={s.infoLabel}>Fecha de Inicio</Text>
-              <Text style={s.infoValue}>
-                {data.ordenCreatedAt
-                  ? new Date(data.ordenCreatedAt).toLocaleDateString("es-MX", {
-                      day: "2-digit",
-                      month: "long",
-                      year: "numeric",
-                    })
-                  : "—"}
-              </Text>
+              <Text style={s.infoValue}>{fechaFormatted}</Text>
             </View>
             <View style={s.infoCell}>
               <Text style={s.infoLabel}>Fecha de Cierre</Text>
