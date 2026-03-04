@@ -137,7 +137,7 @@ const s = StyleSheet.create({
     width: 500,
     height: 500,
     objectFit: "contain" as const,
-    opacity: 0.06,
+    opacity: 0.04,
   },
   // Header
   header: {
