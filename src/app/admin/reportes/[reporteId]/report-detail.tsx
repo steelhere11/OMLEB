@@ -1843,7 +1843,7 @@ function StepList({
       {/* Diagnosis section */}
       {diagnosisSteps.length > 0 && (
         <>
-          <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-amber-700">
+          <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
             Diagnostico
             {reordering && <span className="ml-2 text-[10px] font-normal text-text-3">Guardando orden...</span>}
           </h4>
@@ -2006,7 +2006,7 @@ function StepRow({
   }, [isEditing, showUpload]);
 
   return (
-    <div className={`rounded-[6px] border px-3 py-2 ${isDiagnosis ? "border-amber-300 bg-amber-50/30" : "border-admin-border-subtle"}`}>
+    <div className="rounded-[6px] border border-admin-border-subtle px-3 py-2">
       {/* Always-visible header */}
       <div
         className="flex items-center gap-2 cursor-pointer select-none"
@@ -2027,7 +2027,7 @@ function StepRow({
         <p className="text-[13px] font-medium text-text-0 truncate">{name}</p>
 
         {isDiagnosis && (
-          <span className="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+          <span className="shrink-0 rounded-full bg-admin-surface-raised px-1.5 py-0.5 text-[10px] font-semibold text-text-2">
             Diagnostico
           </span>
         )}
