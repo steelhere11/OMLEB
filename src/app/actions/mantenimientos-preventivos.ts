@@ -165,7 +165,20 @@ export async function reorderPlantillaPasos(
     return { error: "No autorizado" };
   }
 
+  // Two-pass update to avoid unique constraint violations on (tipo_equipo_slug, tipo_mantenimiento, orden).
+  // Pass 1: set all to negative temporary values so no conflicts exist.
+  // Pass 2: set to the real target values.
   const admin = createAdminClient();
+  for (const step of steps) {
+    const { error } = await admin
+      .from("plantillas_pasos")
+      .update({ orden: -step.orden })
+      .eq("id", step.id);
+
+    if (error) {
+      return { error: "Error al reordenar pasos: " + error.message };
+    }
+  }
   for (const step of steps) {
     const { error } = await admin
       .from("plantillas_pasos")
