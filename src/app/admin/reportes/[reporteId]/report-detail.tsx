@@ -375,9 +375,6 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
     photosByEquipo.set(key, existing);
   }
 
-  // General photos (not tied to equipment)
-  const generalPhotos = photosByEquipo.get("__general__") ?? [];
-
   // Photo status summary
   const allPhotos = reporte.reporte_fotos;
   const pendienteCount = allPhotos.filter((f) => f.estatus_revision === "pendiente").length;
@@ -628,6 +625,26 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
         </div>
       </div>
 
+      {/* Registro de Equipos (registration photos: placa + equipo_general per equipment) */}
+      <RegistroEquiposSection
+        reporteId={reporte.id}
+        equipmentEntries={reporte.reporte_equipos
+          .filter((e) => e.equipos)
+          .map((e) => ({
+            equipo_id: e.equipo_id,
+            numero_etiqueta: e.equipos!.numero_etiqueta,
+            marca: e.equipos!.marca,
+            modelo: e.equipos!.modelo,
+          }))}
+        fotos={reporte.reporte_fotos.filter(
+          (f) => f.etiqueta === "equipo_general" || f.etiqueta === "placa"
+        )}
+        onFlagPhoto={handleFlagPhoto}
+        onDeletePhoto={handleDeletePhoto}
+        onUpdateEtiqueta={handleUpdateEtiqueta}
+        onSaved={() => router.refresh()}
+      />
+
       {/* Llegadas */}
       <LlegadasAdminSection
         reporteId={reporte.id}
@@ -705,38 +722,6 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
           )}
         </div>
       )}
-
-      {/* General photos (not tied to equipment) */}
-      <div>
-        <h2 className="mb-3 text-[15px] font-semibold text-text-0">
-          Fotos Generales ({generalPhotos.length})
-        </h2>
-        <div className="rounded-[10px] border border-admin-border bg-admin-surface p-4">
-          {generalPhotos.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-              {generalPhotos.map((foto) => (
-                <AdminPhotoCard
-                  key={foto.id}
-                  foto={foto}
-                  onFlag={handleFlagPhoto}
-                  onDelete={handleDeletePhoto}
-                  onUpdateEtiqueta={handleUpdateEtiqueta}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-center text-[13px] text-text-3">
-              Sin fotos generales
-            </p>
-          )}
-          <div className="mt-3">
-            <AdminPhotoUpload
-              reporteId={reporte.id}
-              equipos={equiposList}
-            />
-          </div>
-        </div>
-      </div>
 
       {/* Materials */}
       <MaterialsSection
@@ -1083,6 +1068,147 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+// ---------- Registro de Equipos Section ----------
+
+function RegistroEquiposSection({
+  reporteId,
+  equipmentEntries,
+  fotos,
+  onFlagPhoto,
+  onDeletePhoto,
+  onUpdateEtiqueta,
+  onSaved,
+}: {
+  reporteId: string;
+  equipmentEntries: Array<{
+    equipo_id: string;
+    numero_etiqueta: string;
+    marca: string | null;
+    modelo: string | null;
+  }>;
+  fotos: ReporteFotoData[];
+  onFlagPhoto: (fotoId: string, estatus: FotoEstatusRevision, nota?: string) => Promise<void>;
+  onDeletePhoto: (fotoId: string) => Promise<void>;
+  onUpdateEtiqueta: (fotoId: string, etiqueta: string | null) => Promise<void>;
+  onSaved: () => void;
+}) {
+  // Group registration photos by equipo_id
+  const photosByEquipo = new Map<string, ReporteFotoData[]>();
+  for (const foto of fotos) {
+    if (!foto.equipo_id) continue;
+    const arr = photosByEquipo.get(foto.equipo_id) ?? [];
+    arr.push(foto);
+    photosByEquipo.set(foto.equipo_id, arr);
+  }
+
+  // De-duplicate equipment (same equipo_id may appear in both preventivo + correctivo entries)
+  const seen = new Set<string>();
+  const uniqueEquipment = equipmentEntries.filter((e) => {
+    if (seen.has(e.equipo_id)) return false;
+    seen.add(e.equipo_id);
+    return true;
+  });
+
+  return (
+    <div>
+      <h2 className="mb-3 text-[15px] font-semibold text-text-0">
+        Registro de Equipos ({uniqueEquipment.length})
+      </h2>
+      {uniqueEquipment.length === 0 ? (
+        <div className="rounded-[10px] border border-admin-border bg-admin-surface p-4 text-center">
+          <p className="text-[13px] text-text-3">Sin equipos en este reporte</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {uniqueEquipment.map((equipo) => {
+            const equipoPhotos = photosByEquipo.get(equipo.equipo_id) ?? [];
+            const placaPhotos = equipoPhotos.filter((f) => f.etiqueta === "placa");
+            const generalPhotos = equipoPhotos.filter((f) => f.etiqueta === "equipo_general");
+
+            return (
+              <div
+                key={equipo.equipo_id}
+                className="rounded-[10px] border border-admin-border bg-admin-surface p-4"
+              >
+                {/* Equipment header */}
+                <div className="mb-3">
+                  <p className="text-[13px] font-semibold text-text-0">
+                    {equipo.numero_etiqueta}
+                  </p>
+                  {(equipo.marca || equipo.modelo) && (
+                    <p className="text-[12px] text-text-3">
+                      {[equipo.marca, equipo.modelo].filter(Boolean).join(" — ")}
+                    </p>
+                  )}
+                </div>
+
+                {/* Two-column grid: Equipo General | Placa */}
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Equipo General column */}
+                  <div>
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.04em] text-text-2">
+                      Equipo General
+                    </p>
+                    {generalPhotos.length > 0 ? (
+                      <div className="space-y-2">
+                        {generalPhotos.map((foto) => (
+                          <AdminPhotoCard
+                            key={foto.id}
+                            foto={foto}
+                            onFlag={onFlagPhoto}
+                            onDelete={onDeletePhoto}
+                            onUpdateEtiqueta={onUpdateEtiqueta}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex h-24 items-center justify-center rounded-lg border-2 border-dashed border-admin-border-subtle bg-admin-surface-hover/50">
+                        <p className="text-[11px] text-text-3">Sin foto</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Placa column */}
+                  <div>
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.04em] text-text-2">
+                      Placa
+                    </p>
+                    {placaPhotos.length > 0 ? (
+                      <div className="space-y-2">
+                        {placaPhotos.map((foto) => (
+                          <AdminPhotoCard
+                            key={foto.id}
+                            foto={foto}
+                            onFlag={onFlagPhoto}
+                            onDelete={onDeletePhoto}
+                            onUpdateEtiqueta={onUpdateEtiqueta}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex h-24 items-center justify-center rounded-lg border-2 border-dashed border-admin-border-subtle bg-admin-surface-hover/50">
+                        <p className="text-[11px] text-text-3">Sin foto</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Upload button for this equipment */}
+                <div className="mt-3">
+                  <AdminPhotoUpload
+                    reporteId={reporteId}
+                    equipoId={equipo.equipo_id}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
