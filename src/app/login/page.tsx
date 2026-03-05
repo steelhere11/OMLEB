@@ -5,6 +5,7 @@ export default function TechnicianLoginPage() {
     <LoginShell
       subtitle="Portal del Tecnico"
       placeholderEmail="tecnico@omleb.com"
+      variant="light"
     />
   );
 }

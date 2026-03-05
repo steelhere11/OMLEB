@@ -14,7 +14,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   const email = user?.email ?? "";
 
   return (
-    <div className="min-h-dvh bg-admin-bg">
+    <div data-theme="dark" className="min-h-dvh bg-admin-bg">
       <Sidebar userName={nombre} userEmail={email} />
 
       {/* Main content: offset by sidebar on desktop, by top bar on mobile */}

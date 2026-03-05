@@ -28,8 +28,8 @@
   --color-sidebar-bg: #141416;
   --color-sidebar-border: #1e1e21;
 
-  /* ── Accent (restrained — active indicators, links, focus rings) ── */
-  --color-accent: #94a3b8;
+  /* ── Accent (brand blue — active indicators, links, focus rings) ── */
+  --color-accent: oklch(0.55 0.15 250);
 
   /* ── Admin text scale ── */
   --color-text-0: #fafafa;
@@ -163,7 +163,7 @@ body {
 .admin-input:focus,
 .admin-textarea:focus,
 .admin-select:focus {
-  box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.25);
+  box-shadow: 0 0 0 2px oklch(0.55 0.15 250 / 0.25);
   --tw-ring-shadow: 0 0 #0000;
   --tw-ring-offset-shadow: 0 0 #0000;
   border-color: var(--color-admin-border);
@@ -177,27 +177,33 @@ body {
   color: var(--color-status-error);
 }
 
-/* Custom dark scrollbars */
-::-webkit-scrollbar {
+/* Custom dark scrollbars — scoped to admin side */
+.admin-scroll::-webkit-scrollbar,
+[data-theme="dark"]::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
-::-webkit-scrollbar-track {
+.admin-scroll::-webkit-scrollbar-track,
+[data-theme="dark"]::-webkit-scrollbar-track {
   background: transparent;
 }
-::-webkit-scrollbar-thumb {
+.admin-scroll::-webkit-scrollbar-thumb,
+[data-theme="dark"]::-webkit-scrollbar-thumb {
   background: #3f3f46;
   border-radius: 3px;
 }
-::-webkit-scrollbar-thumb:hover {
+.admin-scroll::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"]::-webkit-scrollbar-thumb:hover {
   background: #52525b;
 }
-::-webkit-scrollbar-corner {
+.admin-scroll::-webkit-scrollbar-corner,
+[data-theme="dark"]::-webkit-scrollbar-corner {
   background: transparent;
 }
 
-/* Firefox */
-* {
+/* Firefox — scoped to admin side */
+.admin-scroll,
+[data-theme="dark"] {
   scrollbar-width: thin;
   scrollbar-color: #3f3f46 transparent;
 }

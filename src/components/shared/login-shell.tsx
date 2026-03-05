@@ -7,89 +7,57 @@ import { login, type AuthState } from "@/app/actions/auth";
 interface LoginShellProps {
   subtitle: string;
   placeholderEmail: string;
+  variant?: "dark" | "light";
 }
 
-export function LoginShell({ subtitle, placeholderEmail }: LoginShellProps) {
+export function LoginShell({ subtitle, placeholderEmail, variant = "dark" }: LoginShellProps) {
   const [state, formAction, isPending] = useActionState<
     AuthState | null,
     FormData
   >(login, null);
 
+  const dark = variant === "dark";
+
   return (
-    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#0b0b0f] px-4 py-8 font-[family-name:var(--font-dm-sans)]">
-      {/* Geometric pattern background — interlocking rounded squares at 3% opacity */}
+    <div
+      className={[
+        "relative flex min-h-dvh items-center justify-center overflow-hidden px-4 py-8 font-[family-name:var(--font-dm-sans)]",
+        dark ? "bg-[#0b0b0f]" : "bg-tech-bg",
+      ].join(" ")}
+    >
+      {/* Tiled OMLEB logo background */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        className="pointer-events-none absolute inset-0"
+        style={{
+          backgroundImage: "url(/logo.png)",
+          backgroundSize: "120px",
+          backgroundRepeat: "repeat",
+          opacity: dark ? 0.03 : 0.04,
+          filter: dark ? "brightness(0) invert(1)" : undefined,
+        }}
         aria-hidden="true"
-      >
-        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern
-              id="geo"
-              x="0"
-              y="0"
-              width="80"
-              height="80"
-              patternUnits="userSpaceOnUse"
-            >
-              <rect
-                x="8"
-                y="8"
-                width="32"
-                height="32"
-                rx="6"
-                fill="none"
-                stroke="white"
-                strokeWidth="1.5"
-              />
-              <rect
-                x="20"
-                y="20"
-                width="32"
-                height="32"
-                rx="6"
-                fill="none"
-                stroke="white"
-                strokeWidth="1.5"
-              />
-              <rect
-                x="40"
-                y="8"
-                width="32"
-                height="32"
-                rx="6"
-                fill="none"
-                stroke="white"
-                strokeWidth="1.5"
-              />
-              <rect
-                x="8"
-                y="40"
-                width="32"
-                height="32"
-                rx="6"
-                fill="none"
-                stroke="white"
-                strokeWidth="1.5"
-              />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#geo)" />
-        </svg>
-      </div>
+      />
 
       {/* Soft radial glow behind card */}
       <div
         className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
-          background:
-            "radial-gradient(circle, oklch(0.48 0.15 250 / 0.08) 0%, transparent 70%)",
+          background: dark
+            ? "radial-gradient(circle, oklch(0.48 0.15 250 / 0.08) 0%, transparent 70%)"
+            : "radial-gradient(circle, oklch(0.55 0.15 250 / 0.06) 0%, transparent 70%)",
         }}
         aria-hidden="true"
       />
 
       {/* Card */}
-      <div className="relative z-10 w-full max-w-[380px] rounded-[10px] border border-white/[0.08] bg-white/[0.04] p-8 backdrop-blur-sm">
+      <div
+        className={[
+          "relative z-10 w-full max-w-[380px] rounded-[10px] border p-8",
+          dark
+            ? "border-white/[0.08] bg-white/[0.04] backdrop-blur-sm"
+            : "border-tech-border bg-tech-surface shadow-sm",
+        ].join(" ")}
+      >
         {/* Logo + Wordmark */}
         <div className="mb-8 flex flex-col items-center">
           <Image
@@ -97,13 +65,26 @@ export function LoginShell({ subtitle, placeholderEmail }: LoginShellProps) {
             alt="OMLEB"
             width={64}
             height={64}
-            className="mb-4 brightness-0 invert opacity-90"
+            className={[
+              "mb-4",
+              dark ? "brightness-0 invert opacity-90" : "",
+            ].join(" ")}
             priority
           />
-          <h1 className="text-[28px] font-bold tracking-[-0.02em] text-white/90">
+          <h1
+            className={[
+              "text-[28px] font-bold tracking-[-0.02em]",
+              dark ? "text-white/90" : "text-tech-text-primary",
+            ].join(" ")}
+          >
             OMLEB
           </h1>
-          <p className="mt-1 text-[13px] font-medium tracking-wide text-white/40">
+          <p
+            className={[
+              "mt-1 text-[13px] font-medium tracking-wide",
+              dark ? "text-white/40" : "text-tech-text-muted",
+            ].join(" ")}
+          >
             {subtitle}
           </p>
         </div>
@@ -113,7 +94,10 @@ export function LoginShell({ subtitle, placeholderEmail }: LoginShellProps) {
           <div>
             <label
               htmlFor="email"
-              className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-white/40"
+              className={[
+                "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em]",
+                dark ? "text-white/40" : "text-tech-text-muted",
+              ].join(" ")}
             >
               Correo electronico
             </label>
@@ -124,14 +108,22 @@ export function LoginShell({ subtitle, placeholderEmail }: LoginShellProps) {
               autoComplete="email"
               placeholder={placeholderEmail}
               required
-              className="block w-full rounded-[6px] border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 text-[14px] text-white/90 placeholder:text-white/20 outline-none transition-colors focus:border-white/20 focus:ring-1 focus:ring-white/10"
+              className={[
+                "block w-full rounded-[6px] border px-3.5 py-2.5 text-[14px] outline-none transition-colors",
+                dark
+                  ? "border-white/[0.08] bg-white/[0.04] text-white/90 placeholder:text-white/20 focus:border-white/20 focus:ring-1 focus:ring-white/10"
+                  : "border-tech-border bg-tech-bg text-tech-text-primary placeholder:text-tech-text-muted focus:border-brand-400 focus:ring-1 focus:ring-brand-400/30",
+              ].join(" ")}
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em] text-white/40"
+              className={[
+                "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.08em]",
+                dark ? "text-white/40" : "text-tech-text-muted",
+              ].join(" ")}
             >
               Contrasena
             </label>
@@ -142,7 +134,12 @@ export function LoginShell({ subtitle, placeholderEmail }: LoginShellProps) {
               autoComplete="current-password"
               placeholder="••••••••"
               required
-              className="block w-full rounded-[6px] border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 text-[14px] text-white/90 placeholder:text-white/20 outline-none transition-colors focus:border-white/20 focus:ring-1 focus:ring-white/10"
+              className={[
+                "block w-full rounded-[6px] border px-3.5 py-2.5 text-[14px] outline-none transition-colors",
+                dark
+                  ? "border-white/[0.08] bg-white/[0.04] text-white/90 placeholder:text-white/20 focus:border-white/20 focus:ring-1 focus:ring-white/10"
+                  : "border-tech-border bg-tech-bg text-tech-text-primary placeholder:text-tech-text-muted focus:border-brand-400 focus:ring-1 focus:ring-brand-400/30",
+              ].join(" ")}
             />
             {state?.error && (
               <p className="mt-1.5 text-[12px] text-red-400">{state.error}</p>
@@ -152,7 +149,12 @@ export function LoginShell({ subtitle, placeholderEmail }: LoginShellProps) {
           <button
             type="submit"
             disabled={isPending}
-            className="flex w-full items-center justify-center rounded-[6px] border border-[oklch(0.55_0.15_250)] bg-transparent px-4 py-2.5 text-[14px] font-semibold text-[oklch(0.65_0.12_250)] transition-colors hover:bg-[oklch(0.55_0.15_250_/_0.1)] active:bg-[oklch(0.55_0.15_250_/_0.15)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className={[
+              "flex w-full items-center justify-center rounded-[6px] px-4 py-2.5 text-[14px] font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+              dark
+                ? "border border-[oklch(0.55_0.15_250)] bg-transparent text-[oklch(0.65_0.12_250)] hover:bg-[oklch(0.55_0.15_250_/_0.1)] active:bg-[oklch(0.55_0.15_250_/_0.15)]"
+                : "bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700",
+            ].join(" ")}
           >
             {isPending ? (
               <svg
