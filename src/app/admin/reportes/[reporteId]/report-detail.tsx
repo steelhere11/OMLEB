@@ -670,7 +670,11 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
               <EquipmentCard
                 key={entry.id}
                 entry={entry}
-                photos={photosByEquipo.get(entry.equipo_id) ?? []}
+                photos={(photosByEquipo.get(entry.equipo_id) ?? []).filter((f) =>
+                  entry.tipo_trabajo === "correctivo"
+                    ? f.etiqueta !== "placa" && f.etiqueta !== "equipo_general"
+                    : true
+                )}
                 isEditing={editingEntryId === entry.id}
                 onEdit={() => setEditingEntryId(entry.id)}
                 onCancelEdit={() => setEditingEntryId(null)}
