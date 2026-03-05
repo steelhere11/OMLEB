@@ -386,6 +386,7 @@ export function ReportForm({
           isCompleted={isCompleted}
           onUnsavedChange={setHasUnsavedChanges}
           onEntriesChange={setEquipmentCount}
+          flaggedPhotos={flaggedPhotos}
         />
 
         {/* Divider */}

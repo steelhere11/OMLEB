@@ -8,6 +8,7 @@ export type CommentWithAuthor = ReporteComentario & {
 
 export type FlaggedPhotoSummary = {
   fotoId: string;
+  equipoId: string | null;
   etiqueta: string;
   equipoLabel: string;
   stepName?: string;
@@ -317,6 +318,7 @@ export default async function ReportePage({
     };
     return {
       fotoId: raw.id,
+      equipoId: raw.equipo_id,
       etiqueta: raw.etiqueta ?? "",
       equipoLabel: raw.equipo_id ? (equipoLabelMap.get(raw.equipo_id) ?? "Equipo") : "General",
       stepName: raw.reporte_paso_id ? stepNameMap.get(raw.reporte_paso_id) : undefined,

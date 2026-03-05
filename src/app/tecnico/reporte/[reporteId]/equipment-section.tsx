@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { saveEquipmentEntry, removeEquipmentEntry } from "@/app/actions/reportes";
+import { getPhotoCountsByEquipment } from "@/app/actions/fotos";
 import { EquipmentEntryForm } from "./equipment-entry-form";
 import { AddEquipmentModal } from "./add-equipment-modal";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import type { ReporteEquipo, Equipo, TipoEquipo } from "@/types";
+import type { FlaggedPhotoSummary } from "./page";
 
 interface EquipmentSectionProps {
   reporteId: string;
@@ -18,6 +20,7 @@ interface EquipmentSectionProps {
   isCompleted: boolean;
   onUnsavedChange?: (hasChanges: boolean) => void;
   onEntriesChange?: (count: number) => void;
+  flaggedPhotos?: FlaggedPhotoSummary[];
 }
 
 export function EquipmentSection({
@@ -30,6 +33,7 @@ export function EquipmentSection({
   isCompleted,
   onUnsavedChange,
   onEntriesChange,
+  flaggedPhotos = [],
 }: EquipmentSectionProps) {
   const [entries, setEntries] =
     useState<(ReporteEquipo & { equipos: Equipo & { tipos_equipo?: { slug: string; nombre: string } | null } })[]>(initialEntries);
@@ -38,6 +42,16 @@ export function EquipmentSection({
   const [isRemoving, startRemoveTransition] = useTransition();
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedEquipoId, setSelectedEquipoId] = useState("");
+  const [photoCounts, setPhotoCounts] = useState<Record<string, number>>({});
+
+  // Fetch photo counts per equipment
+  useEffect(() => {
+    let cancelled = false;
+    getPhotoCountsByEquipment(reporteId).then((counts) => {
+      if (!cancelled) setPhotoCounts(counts);
+    });
+    return () => { cancelled = true; };
+  }, [reporteId]);
 
   // Sync entries when server data changes (e.g. after revalidatePath)
   const prevInitialRef = useRef(initialEntries);
@@ -293,6 +307,8 @@ export function EquipmentSection({
                   onUnsavedChange={onUnsavedChange}
                   hasOtherWorkType={hasOtherWorkType}
                   onAddOtherWorkType={() => handleAddOtherWorkType(entry.equipo_id, entry.tipo_trabajo)}
+                  photoCount={photoCounts[entry.equipo_id] ?? 0}
+                  flaggedCount={flaggedPhotos.filter((fp) => fp.equipoId === entry.equipo_id).length}
                 />
               );
             })}

@@ -78,6 +78,35 @@ export async function getPhotosForEquipment(
   return (data as ReporteFoto[]) ?? [];
 }
 
+// ── Get Photo Counts by Equipment for a Report ─────────────────────────
+
+export async function getPhotoCountsByEquipment(
+  reporteId: string
+): Promise<Record<string, number>> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return {};
+
+  const { data, error } = await supabase
+    .from("reporte_fotos")
+    .select("equipo_id")
+    .eq("reporte_id", reporteId)
+    .not("equipo_id", "is", null);
+
+  if (error || !data) return {};
+
+  const counts: Record<string, number> = {};
+  for (const row of data) {
+    if (row.equipo_id) {
+      counts[row.equipo_id] = (counts[row.equipo_id] ?? 0) + 1;
+    }
+  }
+  return counts;
+}
+
 // ── Delete Photo ───────────────────────────────────────────────────────
 
 export async function deletePhotoAction(

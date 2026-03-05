@@ -23,6 +23,8 @@ interface EquipmentEntryFormProps {
   onUnsavedChange?: (hasChanges: boolean) => void;
   hasOtherWorkType: boolean;
   onAddOtherWorkType?: () => void;
+  photoCount?: number;
+  flaggedCount?: number;
 }
 
 export function EquipmentEntryForm({
@@ -34,6 +36,8 @@ export function EquipmentEntryForm({
   onUnsavedChange,
   hasOtherWorkType,
   onAddOtherWorkType,
+  photoCount = 0,
+  flaggedCount = 0,
 }: EquipmentEntryFormProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [tipoTrabajo, setTipoTrabajo] = useState<TipoTrabajo>(
@@ -115,6 +119,27 @@ export function EquipmentEntryForm({
             )}
           </div>
         </div>
+
+        {/* Flagged photos indicator */}
+        {flaggedCount > 0 && (
+          <span className="mr-1 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            {flaggedCount}
+          </span>
+        )}
+
+        {/* Photo count badge */}
+        {photoCount > 0 && flaggedCount === 0 && (
+          <span className="mr-1 inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-600">
+            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            {photoCount}
+          </span>
+        )}
 
         {/* Work type indicator */}
         <span

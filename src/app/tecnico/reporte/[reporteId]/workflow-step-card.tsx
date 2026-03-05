@@ -263,16 +263,70 @@ export function WorkflowStepCard({
   const lecturasRequeridas = paso.lecturas_requeridas ?? [];
   const hasReadingsOrNotes = lecturasRequeridas.length > 0 || true; // always show notas
 
+  // Quick-complete: long-press on collapsed header for simple steps
+  const canQuickComplete =
+    !isCompleted &&
+    !completado &&
+    evidencia.length === 0 &&
+    lecturasRequeridas.length === 0;
+
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [quickCompleteFlash, setQuickCompleteFlash] = useState(false);
+
+  const handlePointerDown = useCallback(() => {
+    if (!canQuickComplete || expanded) return;
+    longPressTimerRef.current = setTimeout(() => {
+      longPressTimerRef.current = null;
+      // Haptic feedback
+      if (navigator.vibrate) navigator.vibrate(50);
+      // Mark complete
+      setCompletado(true);
+      setSaving(true);
+      onProgressChange(paso.id, { completado: true, notas, lecturas });
+      setTimeout(() => setSaving(false), 600);
+      // Flash animation
+      setQuickCompleteFlash(true);
+      setTimeout(() => setQuickCompleteFlash(false), 700);
+    }, 600);
+  }, [canQuickComplete, expanded, paso.id, notas, lecturas, onProgressChange]);
+
+  const handlePointerUpOrLeave = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+    };
+  }, []);
+
   return (
     <div
-      className={`rounded-card border bg-tech-surface overflow-hidden ${
-        completado ? "border-l-4 border-l-green-500 border-tech-border" : "border-tech-border"
+      className={`rounded-card border bg-tech-surface overflow-hidden transition-colors ${
+        quickCompleteFlash
+          ? "border-l-4 border-l-green-500 border-green-300 bg-green-50"
+          : completado
+            ? "border-l-4 border-l-green-500 border-tech-border"
+            : "border-tech-border"
       }`}
     >
       {/* Header */}
       <button
         type="button"
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => {
+          // If long-press just fired (completado changed), don't toggle expand
+          if (!longPressTimerRef.current && !quickCompleteFlash) {
+            setExpanded(!expanded);
+          }
+        }}
+        onPointerDown={canQuickComplete ? handlePointerDown : undefined}
+        onPointerUp={canQuickComplete ? handlePointerUpOrLeave : undefined}
+        onPointerLeave={canQuickComplete ? handlePointerUpOrLeave : undefined}
+        onContextMenu={canQuickComplete ? (e) => e.preventDefault() : undefined}
         className="flex w-full items-center gap-3 p-4 text-left transition-colors active:bg-gray-50"
       >
         {/* Step number circle */}
@@ -300,11 +354,19 @@ export function WorkflowStepCard({
           <p className="text-label text-tech-text-muted">
             Paso {stepNumber} de {totalSteps}
             {!paso.es_obligatorio && " -- Opcional"}
+            {canQuickComplete && !expanded && " · Mantener para completar"}
           </p>
         </div>
 
+        {/* Flagged photos indicator */}
+        {photos.some((p) => p.estatus_revision === "retomar" || p.estatus_revision === "rechazada") && (
+          <span className="flex-shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-700">
+            {photos.filter((p) => p.estatus_revision === "retomar" || p.estatus_revision === "rechazada").length} !
+          </span>
+        )}
+
         {/* Media count indicator */}
-        {photos.length > 0 && (
+        {photos.length > 0 && !photos.some((p) => p.estatus_revision === "retomar" || p.estatus_revision === "rechazada") && (
           <span className="flex-shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-600">
             {photos.length} archivo{photos.length !== 1 ? "s" : ""}
           </span>
