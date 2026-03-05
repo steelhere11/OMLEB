@@ -714,66 +714,66 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
           )}
         </div>
 
-        {reporte.reporte_equipos.length === 0 ? (
-          <div className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-surface">
-            <div className="p-4 text-center">
-              <p className="text-[13px] text-text-3">Sin equipos registrados</p>
-            </div>
-            {/* Add equipment footer */}
-            <div className="row-inset-divider flex flex-wrap items-center gap-2 px-[14px] py-[10px]">
-              <select
-                value={selectedAddEquipoId}
-                onChange={(e) => setSelectedAddEquipoId(e.target.value)}
-                disabled={unaddedEquipment.length === 0 || addEquipoPending}
-                className="min-w-[180px] flex-1 rounded-lg border border-admin-border bg-admin-surface px-3 py-1.5 text-[13px] text-text-0 disabled:opacity-50"
-              >
-                <option value="">
-                  {unaddedEquipment.length === 0
-                    ? "Todos los equipos ya agregados"
-                    : "Seleccionar equipo..."}
+        <div className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-surface">
+          {/* Add equipment controls — top row */}
+          <div className="flex flex-wrap items-center gap-2 px-[14px] py-[10px]">
+            <select
+              value={selectedAddEquipoId}
+              onChange={(e) => setSelectedAddEquipoId(e.target.value)}
+              disabled={unaddedEquipment.length === 0 || addEquipoPending}
+              className="min-w-[180px] flex-1 rounded-lg border border-admin-border bg-admin-surface px-3 py-1.5 text-[13px] text-text-0 disabled:opacity-50"
+            >
+              <option value="">
+                {unaddedEquipment.length === 0
+                  ? "Todos los equipos ya agregados"
+                  : "Seleccionar equipo..."}
+              </option>
+              {unaddedEquipment.map((eq) => (
+                <option key={eq.id} value={eq.id}>
+                  {eq.numero_etiqueta}
+                  {eq.marca || eq.modelo
+                    ? ` — ${[eq.marca, eq.modelo].filter(Boolean).join(" ")}`
+                    : ""}
+                  {eq.tipos_equipo ? ` (${eq.tipos_equipo.nombre})` : ""}
                 </option>
-                {unaddedEquipment.map((eq) => (
-                  <option key={eq.id} value={eq.id}>
-                    {eq.numero_etiqueta}
-                    {eq.marca || eq.modelo
-                      ? ` — ${[eq.marca, eq.modelo].filter(Boolean).join(" ")}`
-                      : ""}
-                    {eq.tipos_equipo ? ` (${eq.tipos_equipo.nombre})` : ""}
-                  </option>
-                ))}
-              </select>
+              ))}
+            </select>
+            <button
+              type="button"
+              disabled={!selectedAddEquipoId || addEquipoPending}
+              onClick={() => {
+                if (!selectedAddEquipoId) return;
+                startAddEquipoTransition(async () => {
+                  const result = await adminAddEquipmentToReport(reporte.id, selectedAddEquipoId);
+                  if (result.error) {
+                    alert(result.error);
+                  } else {
+                    setSelectedAddEquipoId("");
+                    router.refresh();
+                  }
+                });
+              }}
+              className="rounded-lg bg-accent px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
+            >
+              {addEquipoPending ? "Agregando..." : "Agregar"}
+            </button>
+            {ordenServicioId && (
               <button
                 type="button"
-                disabled={!selectedAddEquipoId || addEquipoPending}
-                onClick={() => {
-                  if (!selectedAddEquipoId) return;
-                  startAddEquipoTransition(async () => {
-                    const result = await adminAddEquipmentToReport(reporte.id, selectedAddEquipoId);
-                    if (result.error) {
-                      alert(result.error);
-                    } else {
-                      setSelectedAddEquipoId("");
-                      router.refresh();
-                    }
-                  });
-                }}
-                className="rounded-lg bg-accent px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
+                onClick={() => setShowCreateEquipoModal(true)}
+                className="rounded-lg border border-admin-border px-3 py-1.5 text-[13px] font-medium text-text-1 transition-colors hover:bg-admin-hover"
               >
-                {addEquipoPending ? "Agregando..." : "Agregar"}
+                + Crear Equipo Nuevo
               </button>
-              {ordenServicioId && (
-                <button
-                  type="button"
-                  onClick={() => setShowCreateEquipoModal(true)}
-                  className="rounded-lg border border-admin-border px-3 py-1.5 text-[13px] font-medium text-text-1 transition-colors hover:bg-admin-hover"
-                >
-                  + Crear Equipo Nuevo
-                </button>
-              )}
-            </div>
+            )}
           </div>
+
+        {reporte.reporte_equipos.length === 0 ? (
+            <div className="row-inset-divider p-4 text-center">
+              <p className="text-[13px] text-text-3">Sin equipos registrados</p>
+            </div>
         ) : (
-          <div className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-surface">
+          <>
             {reporte.reporte_equipos.map((entry, idx) => {
               // Filter photos to only those belonging to THIS entry's steps
               const entryStepIds = new Set(entry.reporte_pasos.map((p) => p.id));
@@ -803,7 +803,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                   <button
                     type="button"
                     onClick={() => toggleEntry(entry.id)}
-                    className={`flex w-full items-center gap-2 px-[14px] py-[10px] text-left group transition-colors duration-[80ms] hover:bg-admin-surface-hover${idx > 0 ? " row-inset-divider" : ""}`}
+                    className="flex w-full items-center gap-2 px-[14px] py-[10px] text-left group transition-colors duration-[80ms] hover:bg-admin-surface-hover row-inset-divider"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -864,60 +864,9 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
               );
             })}
 
-            {/* Add equipment footer */}
-            <div className="row-inset-divider flex flex-wrap items-center gap-2 px-[14px] py-[10px]">
-              <select
-                value={selectedAddEquipoId}
-                onChange={(e) => setSelectedAddEquipoId(e.target.value)}
-                disabled={unaddedEquipment.length === 0 || addEquipoPending}
-                className="min-w-[180px] flex-1 rounded-lg border border-admin-border bg-admin-surface px-3 py-1.5 text-[13px] text-text-0 disabled:opacity-50"
-              >
-                <option value="">
-                  {unaddedEquipment.length === 0
-                    ? "Todos los equipos ya agregados"
-                    : "Seleccionar equipo..."}
-                </option>
-                {unaddedEquipment.map((eq) => (
-                  <option key={eq.id} value={eq.id}>
-                    {eq.numero_etiqueta}
-                    {eq.marca || eq.modelo
-                      ? ` — ${[eq.marca, eq.modelo].filter(Boolean).join(" ")}`
-                      : ""}
-                    {eq.tipos_equipo ? ` (${eq.tipos_equipo.nombre})` : ""}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                disabled={!selectedAddEquipoId || addEquipoPending}
-                onClick={() => {
-                  if (!selectedAddEquipoId) return;
-                  startAddEquipoTransition(async () => {
-                    const result = await adminAddEquipmentToReport(reporte.id, selectedAddEquipoId);
-                    if (result.error) {
-                      alert(result.error);
-                    } else {
-                      setSelectedAddEquipoId("");
-                      router.refresh();
-                    }
-                  });
-                }}
-                className="rounded-lg bg-accent px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
-              >
-                {addEquipoPending ? "Agregando..." : "Agregar"}
-              </button>
-              {ordenServicioId && (
-                <button
-                  type="button"
-                  onClick={() => setShowCreateEquipoModal(true)}
-                  className="rounded-lg border border-admin-border px-3 py-1.5 text-[13px] font-medium text-text-1 transition-colors hover:bg-admin-hover"
-                >
-                  + Crear Equipo Nuevo
-                </button>
-              )}
-            </div>
-          </div>
+          </>
         )}
+        </div>
       </div>
 
       {/* Photo status summary */}

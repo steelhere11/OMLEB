@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GroupedEquipoTypeSelect } from "@/components/ui/grouped-equipo-type-select";
+import { REFRIGERANTES, VOLTAJES, FASES } from "@/lib/constants/nameplate-options";
+import { UBICACIONES_BBVA } from "@/lib/constants/ubicaciones";
+import { FORMA_FACTORES, SLUGS_WITH_FORMA_FACTOR } from "@/lib/constants/equipment-taxonomy";
 import type { TipoEquipo } from "@/types";
 import type { ActionState } from "@/types/actions";
 
@@ -43,6 +46,10 @@ export function AddEquipmentModal({
   const otroTipo = tiposEquipo.find((t) => t.slug === "otro");
   const isOtroSelected = selectedTipoId === otroTipo?.id;
 
+  // Resolve slug for forma_factor visibility
+  const selectedTipo = tiposEquipo.find((t) => t.id === selectedTipoId);
+  const showFormaFactor = selectedTipo?.slug ? SLUGS_WITH_FORMA_FACTOR.has(selectedTipo.slug) : false;
+
   // Handle success: notify parent and close
   useEffect(() => {
     if (state?.success && state.data && !prevSuccessRef.current) {
@@ -71,10 +78,10 @@ export function AddEquipmentModal({
 
   const adminInputClass = "block w-full rounded-lg border border-admin-border bg-admin-bg px-3 py-2 text-[13px] text-text-0 placeholder:text-text-3 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent";
   const adminInputErrorClass = "block w-full rounded-lg border border-red-500/50 bg-admin-bg px-3 py-2 text-[13px] text-text-0 placeholder:text-text-3 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-red-400/40";
-
   const adminSelectClass = "block w-full rounded-lg border border-admin-border bg-admin-bg px-3 py-2 text-[13px] text-text-0 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent";
-
   const techSelectClass = "block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base min-h-[48px] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 focus:border-brand-500";
+
+  const adminLabelClass = "mb-1 text-[12px] text-text-1";
 
   // Admin uses raw <input> to avoid Input component's hardcoded light-theme base classes
   function AdminInput({ id, name, placeholder, required, error, value, onChange }: {
@@ -97,6 +104,16 @@ export function AddEquipmentModal({
     );
   }
 
+  function AdminSelect({ id, name, children }: {
+    id?: string; name: string; children: React.ReactNode;
+  }) {
+    return (
+      <select id={id} name={name} className={adminSelectClass}>
+        {children}
+      </select>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
@@ -108,7 +125,7 @@ export function AddEquipmentModal({
       {/* Modal */}
       <div className={
         isAdmin
-          ? "relative w-full max-w-md rounded-[10px] border border-admin-border bg-admin-surface p-5 shadow-xl"
+          ? "relative w-full max-w-lg rounded-[10px] border border-admin-border bg-admin-surface p-5 shadow-xl max-h-[90vh] overflow-y-auto"
           : "relative w-full max-w-lg rounded-xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto"
       }>
         {/* Header */}
@@ -180,7 +197,7 @@ export function AddEquipmentModal({
 
           {/* Numero/Etiqueta (required) */}
           <div>
-            <Label htmlFor="modal-numero-etiqueta" required className={isAdmin ? "mb-1 text-[12px] text-text-1" : "mb-1.5"}>
+            <Label htmlFor="modal-numero-etiqueta" required className={isAdmin ? adminLabelClass : "mb-1.5"}>
               Etiqueta / Numero
             </Label>
             {isAdmin ? (
@@ -204,7 +221,7 @@ export function AddEquipmentModal({
 
           {/* Tipo de equipo (grouped dropdown) */}
           <div>
-            <Label htmlFor="modal-tipo-equipo" className={isAdmin ? "mb-1 text-[12px] text-text-1" : "mb-1.5"}>
+            <Label htmlFor="modal-tipo-equipo" className={isAdmin ? adminLabelClass : "mb-1.5"}>
               Tipo de Equipo
             </Label>
             <GroupedEquipoTypeSelect
@@ -238,11 +255,26 @@ export function AddEquipmentModal({
             )}
           </div>
 
+          {/* Forma Factor — only when tipo_equipo has forma factor */}
+          {isAdmin && showFormaFactor && (
+            <div>
+              <Label htmlFor="modal-forma-factor" className={adminLabelClass}>
+                Forma / Factor
+              </Label>
+              <AdminSelect id="modal-forma-factor" name="forma_factor">
+                <option value="">Seleccionar...</option>
+                {FORMA_FACTORES.map((ff) => (
+                  <option key={ff.value} value={ff.value}>{ff.label}</option>
+                ))}
+              </AdminSelect>
+            </div>
+          )}
+
           {/* Marca / Modelo — side by side for admin, stacked for tech */}
           {isAdmin ? (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="modal-marca" className="mb-1 text-[12px] text-text-1">
+                <Label htmlFor="modal-marca" className={adminLabelClass}>
                   Marca
                 </Label>
                 <AdminInput
@@ -253,7 +285,7 @@ export function AddEquipmentModal({
                 />
               </div>
               <div>
-                <Label htmlFor="modal-modelo" className="mb-1 text-[12px] text-text-1">
+                <Label htmlFor="modal-modelo" className={adminLabelClass}>
                   Modelo
                 </Label>
                 <AdminInput
@@ -293,7 +325,7 @@ export function AddEquipmentModal({
 
           {/* Numero de serie (optional) */}
           <div>
-            <Label htmlFor="modal-numero-serie" className={isAdmin ? "mb-1 text-[12px] text-text-1" : "mb-1.5"}>
+            <Label htmlFor="modal-numero-serie" className={isAdmin ? adminLabelClass : "mb-1.5"}>
               Numero de Serie
             </Label>
             {isAdmin ? (
@@ -312,6 +344,75 @@ export function AddEquipmentModal({
               />
             )}
           </div>
+
+          {/* Admin-only: additional nameplate fields */}
+          {isAdmin && (
+            <>
+              {/* Capacidad */}
+              <div>
+                <Label htmlFor="modal-capacidad" className={adminLabelClass}>
+                  Capacidad
+                </Label>
+                <AdminInput
+                  id="modal-capacidad"
+                  name="capacidad"
+                  placeholder="Ej: 5 Ton, 60000 BTU"
+                />
+              </div>
+
+              {/* Refrigerante / Voltaje side by side */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="modal-refrigerante" className={adminLabelClass}>
+                    Refrigerante
+                  </Label>
+                  <AdminSelect id="modal-refrigerante" name="refrigerante">
+                    <option value="">Seleccionar...</option>
+                    {REFRIGERANTES.map((r) => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
+                  </AdminSelect>
+                </div>
+                <div>
+                  <Label htmlFor="modal-voltaje" className={adminLabelClass}>
+                    Voltaje
+                  </Label>
+                  <AdminSelect id="modal-voltaje" name="voltaje">
+                    <option value="">Seleccionar...</option>
+                    {VOLTAJES.map((v) => (
+                      <option key={v.value} value={v.value}>{v.label}</option>
+                    ))}
+                  </AdminSelect>
+                </div>
+              </div>
+
+              {/* Fase / Ubicacion side by side */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="modal-fase" className={adminLabelClass}>
+                    Fase
+                  </Label>
+                  <AdminSelect id="modal-fase" name="fase">
+                    <option value="">Seleccionar...</option>
+                    {FASES.map((f) => (
+                      <option key={f.value} value={f.value}>{f.label}</option>
+                    ))}
+                  </AdminSelect>
+                </div>
+                <div>
+                  <Label htmlFor="modal-ubicacion" className={adminLabelClass}>
+                    Ubicacion
+                  </Label>
+                  <AdminSelect id="modal-ubicacion" name="ubicacion">
+                    <option value="">Seleccionar...</option>
+                    {UBICACIONES_BBVA.map((u) => (
+                      <option key={u.value} value={u.value}>{u.label}</option>
+                    ))}
+                  </AdminSelect>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Actions */}
           <div className={`flex gap-3 ${isAdmin ? "pt-1" : "pt-2"}`}>
