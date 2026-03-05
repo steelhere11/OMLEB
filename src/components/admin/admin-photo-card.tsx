@@ -78,11 +78,13 @@ interface AdminPhotoCardProps {
   ) => Promise<void>;
   onDelete: (fotoId: string) => Promise<void>;
   onUpdateEtiqueta: (fotoId: string, etiqueta: string | null) => Promise<void>;
+  /** Compact mode: smaller thumbnail, no etiqueta selector */
+  compact?: boolean;
 }
 
 // ── Component ──────────────────────────────────────────────────────────────
 
-export function AdminPhotoCard({ foto, onFlag, onDelete, onUpdateEtiqueta }: AdminPhotoCardProps) {
+export function AdminPhotoCard({ foto, onFlag, onDelete, onUpdateEtiqueta, compact }: AdminPhotoCardProps) {
   const [selectedStatus, setSelectedStatus] = useState<FotoEstatusRevision>(
     foto.estatus_revision
   );
@@ -168,7 +170,7 @@ export function AdminPhotoCard({ foto, onFlag, onDelete, onUpdateEtiqueta }: Adm
         {/* Photo thumbnail with status badge */}
         <div className="relative">
           <div
-            className="relative aspect-[4/3] cursor-pointer overflow-hidden bg-admin-bg"
+            className={`relative cursor-pointer overflow-hidden bg-admin-bg ${compact ? "h-28" : "aspect-[4/3]"}`}
             onClick={() => setLightbox(true)}
           >
             {isVideo ? (
@@ -254,25 +256,27 @@ export function AdminPhotoCard({ foto, onFlag, onDelete, onUpdateEtiqueta }: Adm
 
         {/* Info & controls */}
         <div className="space-y-2 p-2.5">
-          {/* Etiqueta selector */}
-          <div>
-            <label className="mb-0.5 block text-[10px] font-medium uppercase tracking-[0.04em] text-text-2">
-              Etiqueta
-            </label>
-            <select
-              value={selectedEtiqueta}
-              onChange={(e) => handleEtiquetaChange(e.target.value)}
-              disabled={etiquetaPending}
-              className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px] text-text-1"
-            >
-              <option value="">Sin etiqueta</option>
-              {ETIQUETA_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          {/* Etiqueta selector (hidden in compact mode — etiqueta is contextual) */}
+          {!compact && (
+            <div>
+              <label className="mb-0.5 block text-[10px] font-medium uppercase tracking-[0.04em] text-text-2">
+                Etiqueta
+              </label>
+              <select
+                value={selectedEtiqueta}
+                onChange={(e) => handleEtiquetaChange(e.target.value)}
+                disabled={etiquetaPending}
+                className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px] text-text-1"
+              >
+                <option value="">Sin etiqueta</option>
+                {ETIQUETA_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Metadata */}
           {foto.metadata_fecha && (

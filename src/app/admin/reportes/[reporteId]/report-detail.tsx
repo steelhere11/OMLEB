@@ -1304,6 +1304,7 @@ function RegistroPhotoSlot({
             <AdminPhotoCard
               key={foto.id}
               foto={foto}
+              compact
               onFlag={onFlagPhoto}
               onDelete={onDeletePhoto}
               onUpdateEtiqueta={onUpdateEtiqueta}
@@ -1455,39 +1456,76 @@ function LlegadasAdminSection({
   onUpdateEtiqueta: (fotoId: string, etiqueta: string | null) => Promise<void>;
   onSaved: () => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const llegadaPhotos = fotos.filter((f) => f.etiqueta === "llegada");
   const sitioPhotos = fotos.filter((f) => f.etiqueta === "sitio");
+  const totalPhotos = fotos.length;
 
   return (
     <div>
       <h2 className="mb-3 text-[15px] font-semibold text-text-0">Llegadas</h2>
-      <div className="rounded-[10px] border border-admin-border bg-admin-surface p-4">
-        <div className="grid grid-cols-2 gap-4">
-          {/* Llegada slot */}
-          <RegistroPhotoSlot
-            label="Llegada"
-            etiqueta="llegada"
-            photos={llegadaPhotos}
-            reporteId={reporteId}
-            equipoId=""
-            onFlagPhoto={onFlagPhoto}
-            onDeletePhoto={onDeletePhoto}
-            onUpdateEtiqueta={onUpdateEtiqueta}
-            onSaved={onSaved}
-          />
-          {/* Sitio slot */}
-          <RegistroPhotoSlot
-            label="Sitio"
-            etiqueta="sitio"
-            photos={sitioPhotos}
-            reporteId={reporteId}
-            equipoId=""
-            onFlagPhoto={onFlagPhoto}
-            onDeletePhoto={onDeletePhoto}
-            onUpdateEtiqueta={onUpdateEtiqueta}
-            onSaved={onSaved}
-          />
-        </div>
+      <div className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-surface">
+        {/* Collapsible header */}
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="flex w-full items-center gap-2 px-[14px] py-[10px] text-left group transition-colors duration-[80ms] hover:bg-admin-surface-hover"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={`h-3.5 w-3.5 flex-shrink-0 text-text-3 transition-transform duration-150 ${expanded ? "rotate-90" : ""}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+          <span className="text-[13px] font-semibold text-text-0">
+            Fotos de Llegada y Sitio
+          </span>
+          <span className="ml-auto">
+            {totalPhotos > 0 ? (
+              <span className="rounded-full bg-status-success/10 px-2 py-0.5 text-[11px] font-medium text-status-success">
+                {totalPhotos} foto{totalPhotos !== 1 ? "s" : ""}
+              </span>
+            ) : (
+              <span className="rounded-full bg-admin-surface-elevated px-2 py-0.5 text-[11px] font-medium text-text-3">
+                Sin fotos
+              </span>
+            )}
+          </span>
+        </button>
+
+        {/* Expanded content */}
+        {expanded && (
+          <div className="border-t border-admin-border-subtle bg-admin-bg px-4 py-3">
+            <div className="grid grid-cols-2 gap-4">
+              <RegistroPhotoSlot
+                label="Llegada"
+                etiqueta="llegada"
+                photos={llegadaPhotos}
+                reporteId={reporteId}
+                equipoId=""
+                onFlagPhoto={onFlagPhoto}
+                onDeletePhoto={onDeletePhoto}
+                onUpdateEtiqueta={onUpdateEtiqueta}
+                onSaved={onSaved}
+              />
+              <RegistroPhotoSlot
+                label="Sitio"
+                etiqueta="sitio"
+                photos={sitioPhotos}
+                reporteId={reporteId}
+                equipoId=""
+                onFlagPhoto={onFlagPhoto}
+                onDeletePhoto={onDeletePhoto}
+                onUpdateEtiqueta={onUpdateEtiqueta}
+                onSaved={onSaved}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
