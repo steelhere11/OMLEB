@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { adminUploadPhoto } from "@/app/actions/fotos";
@@ -30,6 +30,14 @@ interface AdminPhotoUploadProps {
   pasos?: Array<{ id: string; nombre: string }>;
 }
 
+// ── Types ──────────────────────────────────────────────────────────────────
+
+interface SelectedFile {
+  file: File;
+  previewUrl: string | null;
+  isVideo: boolean;
+}
+
 // ── Component ──────────────────────────────────────────────────────────────
 
 export function AdminPhotoUpload({
@@ -42,74 +50,128 @@ export function AdminPhotoUpload({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [open, setOpen] = useState(false);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isVideo, setIsVideo] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<SelectedFile[]>([]);
   const [selectedEquipoId, setSelectedEquipoId] = useState(fixedEquipoId ?? "");
   const [selectedEtiqueta, setSelectedEtiqueta] = useState<string>("");
   const [selectedPasoId, setSelectedPasoId] = useState("");
-  const [isPending, startTransition] = useTransition();
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const cleanupPreviews = useCallback((files: SelectedFile[]) => {
+    files.forEach((f) => {
+      if (f.previewUrl) URL.revokeObjectURL(f.previewUrl);
+    });
+  }, []);
 
-    setSelectedFile(file);
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
     setFeedback(null);
 
-    const isVid = file.type.startsWith("video/");
-    setIsVideo(isVid);
+    const newFiles: SelectedFile[] = Array.from(files).map((file) => {
+      const isVid = file.type.startsWith("video/");
+      return {
+        file,
+        previewUrl: isVid ? null : URL.createObjectURL(file),
+        isVideo: isVid,
+      };
+    });
 
-    if (!isVid) {
-      const url = URL.createObjectURL(file);
-      setPreview(url);
-    } else {
-      setPreview(null);
-    }
+    setSelectedFiles((prev) => {
+      // Don't clean up old previews — they're still displayed
+      return [...prev, ...newFiles];
+    });
+
+    // Reset input so the same files can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
-  function handleUpload() {
-    if (!selectedFile) return;
-
-    const formData = new FormData();
-    formData.set("reporteId", reporteId);
-    formData.set("file", selectedFile);
-
-    const eqId = fixedEquipoId ?? selectedEquipoId;
-    if (eqId) formData.set("equipoId", eqId);
-    if (selectedEtiqueta) formData.set("etiqueta", selectedEtiqueta);
-    if (selectedPasoId) formData.set("reportePasoId", selectedPasoId);
-
-    startTransition(async () => {
-      const result = await adminUploadPhoto(formData);
-      if (result.error) {
-        setFeedback({ type: "error", text: result.error });
-      } else {
-        setFeedback({ type: "success", text: "Foto subida exitosamente" });
-        // Reset form
-        setSelectedFile(null);
-        setPreview(null);
-        setIsVideo(false);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        setTimeout(() => {
-          setOpen(false);
-          setFeedback(null);
-          router.refresh();
-        }, 1200);
-      }
+  function removeFile(index: number) {
+    setSelectedFiles((prev) => {
+      const removed = prev[index];
+      if (removed.previewUrl) URL.revokeObjectURL(removed.previewUrl);
+      return prev.filter((_, i) => i !== index);
     });
   }
 
-  function handleClose() {
-    setOpen(false);
-    setSelectedFile(null);
-    setPreview(null);
-    setIsVideo(false);
+  async function handleUpload() {
+    if (selectedFiles.length === 0) return;
+
+    setIsUploading(true);
     setFeedback(null);
+
+    const total = selectedFiles.length;
+    let successCount = 0;
+    const failed: string[] = [];
+
+    for (let i = 0; i < total; i++) {
+      setUploadProgress(`Subiendo ${i + 1} de ${total}...`);
+
+      const { file } = selectedFiles[i];
+      const formData = new FormData();
+      formData.set("reporteId", reporteId);
+      formData.set("file", file);
+
+      const eqId = fixedEquipoId ?? selectedEquipoId;
+      if (eqId) formData.set("equipoId", eqId);
+      if (selectedEtiqueta) formData.set("etiqueta", selectedEtiqueta);
+      if (selectedPasoId) formData.set("reportePasoId", selectedPasoId);
+
+      try {
+        const result = await adminUploadPhoto(formData);
+        if (result.error) {
+          failed.push(file.name);
+        } else {
+          successCount++;
+        }
+      } catch {
+        failed.push(file.name);
+      }
+    }
+
+    setIsUploading(false);
+    setUploadProgress(null);
+
+    if (failed.length > 0 && successCount > 0) {
+      setFeedback({
+        type: "error",
+        text: `${successCount} subida${successCount !== 1 ? "s" : ""}, ${failed.length} fallida${failed.length !== 1 ? "s" : ""}: ${failed.join(", ")}`,
+      });
+    } else if (failed.length > 0) {
+      setFeedback({
+        type: "error",
+        text: `Error al subir: ${failed.join(", ")}`,
+      });
+    } else {
+      setFeedback({
+        type: "success",
+        text: `${successCount} foto${successCount !== 1 ? "s" : ""} subida${successCount !== 1 ? "s" : ""} exitosamente`,
+      });
+    }
+
+    // Reset form and refresh
+    cleanupPreviews(selectedFiles);
+    setSelectedFiles([]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+
+    setTimeout(() => {
+      setOpen(false);
+      setFeedback(null);
+      router.refresh();
+    }, 1500);
+  }
+
+  function handleClose() {
+    cleanupPreviews(selectedFiles);
+    setOpen(false);
+    setSelectedFiles([]);
+    setFeedback(null);
+    setUploadProgress(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -143,43 +205,80 @@ export function AdminPhotoUpload({
     <div className="rounded-[8px] border border-admin-border bg-admin-surface p-3 space-y-3">
       <div className="flex items-center justify-between">
         <h4 className="text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
-          Subir Archivo
+          Subir Archivos
         </h4>
         <button
           type="button"
           onClick={handleClose}
-          className="text-[12px] text-text-2 transition-colors hover:text-text-0"
+          disabled={isUploading}
+          className="text-[12px] text-text-2 transition-colors hover:text-text-0 disabled:opacity-50"
         >
           Cancelar
         </button>
       </div>
 
-      {/* File input */}
+      {/* File input — multiple */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*,video/*"
+        multiple
         onChange={handleFileChange}
+        disabled={isUploading}
         className="w-full text-[12px] text-text-2 file:mr-2 file:rounded-[6px] file:border-0 file:bg-admin-surface-elevated file:px-3 file:py-1.5 file:text-[12px] file:font-medium file:text-text-1"
       />
 
-      {/* Preview */}
-      {preview && !isVideo && (
-        <div className="relative h-32 w-32 overflow-hidden rounded-[6px] border border-admin-border-subtle bg-admin-bg">
-          <Image
-            src={preview}
-            alt="Vista previa"
-            fill
-            className="object-cover"
-            sizes="128px"
-          />
-        </div>
-      )}
-      {isVideo && selectedFile && (
-        <div className="rounded-[6px] border border-admin-border-subtle bg-admin-bg px-3 py-2">
-          <span className="text-[12px] text-text-2">
-            Video: {selectedFile.name}
-          </span>
+      {/* Preview grid */}
+      {selectedFiles.length > 0 && (
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+          {selectedFiles.map((sf, idx) => (
+            <div
+              key={`${sf.file.name}-${idx}`}
+              className="group relative overflow-hidden rounded-[6px] border border-admin-border-subtle bg-admin-bg"
+            >
+              {sf.previewUrl ? (
+                <div className="relative aspect-square">
+                  <Image
+                    src={sf.previewUrl}
+                    alt={sf.file.name}
+                    fill
+                    className="object-cover"
+                    sizes="96px"
+                  />
+                </div>
+              ) : (
+                <div className="flex aspect-square items-center justify-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-text-3"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"
+                    />
+                  </svg>
+                </div>
+              )}
+              {/* Remove button */}
+              {!isUploading && (
+                <button
+                  type="button"
+                  onClick={() => removeFile(idx)}
+                  className="absolute right-0.5 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-black/60 text-[9px] font-bold text-white opacity-0 transition-opacity group-hover:opacity-100"
+                >
+                  &times;
+                </button>
+              )}
+              <p className="truncate px-1 py-0.5 text-[9px] text-text-3">
+                {sf.file.name}
+              </p>
+            </div>
+          ))}
         </div>
       )}
 
@@ -192,6 +291,7 @@ export function AdminPhotoUpload({
           <select
             value={selectedEquipoId}
             onChange={(e) => setSelectedEquipoId(e.target.value)}
+            disabled={isUploading}
             className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px] text-text-1"
           >
             <option value="">General</option>
@@ -212,6 +312,7 @@ export function AdminPhotoUpload({
         <select
           value={selectedEtiqueta}
           onChange={(e) => setSelectedEtiqueta(e.target.value)}
+          disabled={isUploading}
           className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px] text-text-1"
         >
           <option value="">Sin etiqueta</option>
@@ -232,6 +333,7 @@ export function AdminPhotoUpload({
           <select
             value={selectedPasoId}
             onChange={(e) => setSelectedPasoId(e.target.value)}
+            disabled={isUploading}
             className="w-full rounded-[6px] border border-admin-border bg-admin-surface px-2 py-1 text-[12px] text-text-1"
           >
             <option value="">Sin paso especifico</option>
@@ -244,15 +346,19 @@ export function AdminPhotoUpload({
         </div>
       )}
 
-      {/* Upload button + feedback */}
+      {/* Upload button + progress + feedback */}
       <div className="flex items-center gap-3">
         <button
           type="button"
           onClick={handleUpload}
-          disabled={!selectedFile || isPending}
+          disabled={selectedFiles.length === 0 || isUploading}
           className="rounded-[6px] bg-accent px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
         >
-          {isPending ? "Subiendo..." : "Subir"}
+          {isUploading
+            ? uploadProgress
+            : selectedFiles.length > 1
+              ? `Subir ${selectedFiles.length} archivos`
+              : "Subir"}
         </button>
         {feedback && (
           <span

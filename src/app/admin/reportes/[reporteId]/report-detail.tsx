@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState, useTransition, useEffect, useCallback } from "react";
+import { useState, useActionState, useTransition, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { ReporteEstatus, TipoTrabajo, FotoEtiqueta, FotoEstatusRevision, TipoEquipo } from "@/types";
 import dynamic from "next/dynamic";
@@ -1096,6 +1096,17 @@ function RegistroEquiposSection({
   onUpdateEtiqueta: (fotoId: string, etiqueta: string | null) => Promise<void>;
   onSaved: () => void;
 }) {
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const toggleEquipo = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
   // Group registration photos by equipo_id
   const photosByEquipo = new Map<string, ReporteFotoData[]>();
   for (const foto of fotos) {
@@ -1105,7 +1116,7 @@ function RegistroEquiposSection({
     photosByEquipo.set(foto.equipo_id, arr);
   }
 
-  // De-duplicate equipment (same equipo_id may appear in both preventivo + correctivo entries)
+  // De-duplicate equipment
   const seen = new Set<string>();
   const uniqueEquipment = equipmentEntries.filter((e) => {
     if (seen.has(e.equipo_id)) return false;
@@ -1113,102 +1124,216 @@ function RegistroEquiposSection({
     return true;
   });
 
+  const allExpanded = uniqueEquipment.length > 0 && uniqueEquipment.every((e) => expandedIds.has(e.equipo_id));
+  const toggleAll = () => {
+    if (allExpanded) {
+      setExpandedIds(new Set());
+    } else {
+      setExpandedIds(new Set(uniqueEquipment.map((e) => e.equipo_id)));
+    }
+  };
+
   return (
     <div>
-      <h2 className="mb-3 text-[15px] font-semibold text-text-0">
-        Registro de Equipos ({uniqueEquipment.length})
-      </h2>
+      <div className="mb-3 flex items-baseline justify-between">
+        <h2 className="text-[15px] font-semibold text-text-0">
+          Registro de Equipos ({uniqueEquipment.length})
+        </h2>
+        {uniqueEquipment.length > 1 && (
+          <button
+            type="button"
+            onClick={toggleAll}
+            className="text-[12px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
+          >
+            {allExpanded ? "Colapsar todo" : "Expandir todo"}
+          </button>
+        )}
+      </div>
       {uniqueEquipment.length === 0 ? (
         <div className="rounded-[10px] border border-admin-border bg-admin-surface p-4 text-center">
           <p className="text-[13px] text-text-3">Sin equipos en este reporte</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {uniqueEquipment.map((equipo) => {
+        <div className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-surface">
+          {uniqueEquipment.map((equipo, idx) => {
             const equipoPhotos = photosByEquipo.get(equipo.equipo_id) ?? [];
             const placaPhotos = equipoPhotos.filter((f) => f.etiqueta === "placa");
             const generalPhotos = equipoPhotos.filter((f) => f.etiqueta === "equipo_general");
+            const totalPhotos = placaPhotos.length + generalPhotos.length;
+            const isExpanded = expandedIds.has(equipo.equipo_id);
 
             return (
-              <div
-                key={equipo.equipo_id}
-                className="rounded-[10px] border border-admin-border bg-admin-surface p-4"
-              >
-                {/* Equipment header */}
-                <div className="mb-3">
-                  <p className="text-[13px] font-semibold text-text-0">
+              <div key={equipo.equipo_id}>
+                {/* Collapsible row header */}
+                <button
+                  type="button"
+                  onClick={() => toggleEquipo(equipo.equipo_id)}
+                  className={`flex w-full items-center gap-2 px-[14px] py-[10px] text-left group transition-colors duration-[80ms] hover:bg-admin-surface-hover${idx > 0 ? " row-inset-divider" : ""}`}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-3.5 w-3.5 flex-shrink-0 text-text-3 transition-transform duration-150 ${isExpanded ? "rotate-90" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                  <span className="text-[13px] font-semibold text-text-0 group-hover:text-text-0 transition-colors duration-[80ms]">
                     {equipo.numero_etiqueta}
-                  </p>
+                  </span>
                   {(equipo.marca || equipo.modelo) && (
-                    <p className="text-[12px] text-text-3">
+                    <span className="text-[12px] text-text-3">
                       {[equipo.marca, equipo.modelo].filter(Boolean).join(" — ")}
-                    </p>
+                    </span>
                   )}
-                </div>
-
-                {/* Two-column grid: Equipo General | Placa */}
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Equipo General column */}
-                  <div>
-                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.04em] text-text-2">
-                      Equipo General
-                    </p>
-                    {generalPhotos.length > 0 ? (
-                      <div className="space-y-2">
-                        {generalPhotos.map((foto) => (
-                          <AdminPhotoCard
-                            key={foto.id}
-                            foto={foto}
-                            onFlag={onFlagPhoto}
-                            onDelete={onDeletePhoto}
-                            onUpdateEtiqueta={onUpdateEtiqueta}
-                          />
-                        ))}
-                      </div>
+                  <span className="ml-auto flex items-center gap-1.5">
+                    {totalPhotos > 0 ? (
+                      <span className="rounded-full bg-status-success/10 px-2 py-0.5 text-[11px] font-medium text-status-success">
+                        {totalPhotos} foto{totalPhotos !== 1 ? "s" : ""}
+                      </span>
                     ) : (
-                      <div className="flex h-24 items-center justify-center rounded-lg border-2 border-dashed border-admin-border-subtle bg-admin-surface-hover/50">
-                        <p className="text-[11px] text-text-3">Sin foto</p>
-                      </div>
+                      <span className="rounded-full bg-admin-surface-elevated px-2 py-0.5 text-[11px] font-medium text-text-3">
+                        Sin fotos
+                      </span>
                     )}
-                  </div>
+                  </span>
+                </button>
 
-                  {/* Placa column */}
-                  <div>
-                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.04em] text-text-2">
-                      Placa
-                    </p>
-                    {placaPhotos.length > 0 ? (
-                      <div className="space-y-2">
-                        {placaPhotos.map((foto) => (
-                          <AdminPhotoCard
-                            key={foto.id}
-                            foto={foto}
-                            onFlag={onFlagPhoto}
-                            onDelete={onDeletePhoto}
-                            onUpdateEtiqueta={onUpdateEtiqueta}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex h-24 items-center justify-center rounded-lg border-2 border-dashed border-admin-border-subtle bg-admin-surface-hover/50">
-                        <p className="text-[11px] text-text-3">Sin foto</p>
-                      </div>
-                    )}
+                {/* Expanded content */}
+                {isExpanded && (
+                  <div className="border-t border-admin-border-subtle bg-admin-bg px-4 py-3">
+                    <div className="grid grid-cols-2 gap-4">
+                      {/* Equipo General slot */}
+                      <RegistroPhotoSlot
+                        label="Equipo General"
+                        etiqueta="equipo_general"
+                        photos={generalPhotos}
+                        reporteId={reporteId}
+                        equipoId={equipo.equipo_id}
+                        onFlagPhoto={onFlagPhoto}
+                        onDeletePhoto={onDeletePhoto}
+                        onUpdateEtiqueta={onUpdateEtiqueta}
+                        onSaved={onSaved}
+                      />
+                      {/* Placa slot */}
+                      <RegistroPhotoSlot
+                        label="Placa"
+                        etiqueta="placa"
+                        photos={placaPhotos}
+                        reporteId={reporteId}
+                        equipoId={equipo.equipo_id}
+                        onFlagPhoto={onFlagPhoto}
+                        onDeletePhoto={onDeletePhoto}
+                        onUpdateEtiqueta={onUpdateEtiqueta}
+                        onSaved={onSaved}
+                      />
+                    </div>
                   </div>
-                </div>
-
-                {/* Upload button for this equipment */}
-                <div className="mt-3">
-                  <AdminPhotoUpload
-                    reporteId={reporteId}
-                    equipoId={equipo.equipo_id}
-                  />
-                </div>
+                )}
               </div>
             );
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+// ---------- Registro Photo Slot (direct upload per etiqueta) ----------
+
+function RegistroPhotoSlot({
+  label,
+  etiqueta,
+  photos,
+  reporteId,
+  equipoId,
+  onFlagPhoto,
+  onDeletePhoto,
+  onUpdateEtiqueta,
+  onSaved,
+}: {
+  label: string;
+  etiqueta: string;
+  photos: ReporteFotoData[];
+  reporteId: string;
+  equipoId: string;
+  onFlagPhoto: (fotoId: string, estatus: FotoEstatusRevision, nota?: string) => Promise<void>;
+  onDeletePhoto: (fotoId: string) => Promise<void>;
+  onUpdateEtiqueta: (fotoId: string, etiqueta: string | null) => Promise<void>;
+  onSaved: () => void;
+}) {
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  async function handleFiles(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    for (let i = 0; i < files.length; i++) {
+      const formData = new FormData();
+      formData.set("reporteId", reporteId);
+      formData.set("file", files[i]);
+      formData.set("equipoId", equipoId);
+      formData.set("etiqueta", etiqueta);
+      try {
+        await adminUploadPhoto(formData);
+      } catch {
+        // continue with remaining files
+      }
+    }
+    setIsUploading(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    router.refresh();
+  }
+
+  return (
+    <div>
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.04em] text-text-2">
+        {label}
+      </p>
+      {photos.length > 0 ? (
+        <div className="space-y-2">
+          {photos.map((foto) => (
+            <AdminPhotoCard
+              key={foto.id}
+              foto={foto}
+              onFlag={onFlagPhoto}
+              onDelete={onDeletePhoto}
+              onUpdateEtiqueta={onUpdateEtiqueta}
+            />
+          ))}
+        </div>
+      ) : null}
+      {/* Direct upload — click to add photo with auto-tagged etiqueta */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleFiles}
+      />
+      <button
+        type="button"
+        disabled={isUploading}
+        onClick={() => fileInputRef.current?.click()}
+        className={`mt-2 flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-admin-border-subtle px-3 py-3 text-[11px] font-medium text-text-3 transition-colors hover:border-accent hover:text-accent disabled:opacity-50 ${photos.length === 0 ? "h-24" : ""}`}
+      >
+        {isUploading ? (
+          "Subiendo..."
+        ) : (
+          <>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            {photos.length === 0 ? "Agregar foto" : "Agregar otra"}
+          </>
+        )}
+      </button>
     </div>
   );
 }
