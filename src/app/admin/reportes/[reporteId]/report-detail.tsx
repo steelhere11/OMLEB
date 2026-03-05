@@ -3162,6 +3162,11 @@ function StepRow({
                               onFlag={onFlagPhoto}
                               onDelete={onDeletePhoto}
                               onUpdateEtiqueta={onUpdateEtiqueta}
+                              etiquetaOptions={[
+                                { value: "antes", label: "Antes" },
+                                { value: "durante", label: "Durante" },
+                                { value: "despues", label: "Despues" },
+                              ]}
                             />
                           ))}
                         </div>
@@ -3173,18 +3178,6 @@ function StepRow({
 
               {/* Dashed-border upload button (llegadas style) */}
               <div className="mt-2 flex items-center gap-2 pl-6">
-                <select
-                  value={uploadEtiqueta}
-                  onChange={(e) => setUploadEtiqueta(e.target.value)}
-                  className="rounded border border-admin-border-subtle bg-admin-surface px-2 py-1.5 text-[11px] text-text-1"
-                >
-                  <option value="antes">Antes</option>
-                  <option value="durante">Durante</option>
-                  <option value="despues">Despues</option>
-                  <option value="dano">Dano</option>
-                  <option value="placa">Placa</option>
-                  <option value="progreso">Progreso</option>
-                </select>
                 <button
                   type="button"
                   disabled={uploading}
@@ -3202,6 +3195,15 @@ function StepRow({
                     </>
                   )}
                 </button>
+                <select
+                  value={uploadEtiqueta}
+                  onChange={(e) => setUploadEtiqueta(e.target.value)}
+                  className="rounded-lg border-2 border-dashed border-admin-border-subtle bg-admin-surface px-2 py-2.5 text-[11px] text-text-1"
+                >
+                  <option value="antes">Antes</option>
+                  <option value="durante">Durante</option>
+                  <option value="despues">Despues</option>
+                </select>
               </div>
               {uploadError && (
                 <p className="mt-1 pl-6 text-[11px] text-status-error">{uploadError}</p>
