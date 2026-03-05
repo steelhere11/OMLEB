@@ -69,7 +69,7 @@ export function VoiceInput({
 
     const recognition = new SR();
     recognition.lang = "es-MX";
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
@@ -95,7 +95,10 @@ export function VoiceInput({
         // Append final transcript to current value (using refs for fresh values)
         const val = currentValueRef.current;
         const separator = val && !val.endsWith(" ") ? " " : "";
-        onTranscriptRef.current(val + separator + finalTranscript);
+        const newValue = val + separator + finalTranscript;
+        onTranscriptRef.current(newValue);
+        // Update ref immediately so rapid restarts (continuous=false) don't lose text
+        currentValueRef.current = newValue;
         setInterimText("");
       } else {
         setInterimText(interim);
@@ -103,18 +106,31 @@ export function VoiceInput({
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      // "no-speech" and "aborted" are normal — user didn't speak or stopped early
-      if (event.error !== "no-speech" && event.error !== "aborted") {
-        console.warn("Speech recognition error:", event.error);
+      if (event.error === "no-speech" || event.error === "aborted") {
+        // Normal — user paused or session was stopped. onend will handle restart if needed.
+        return;
       }
+      console.warn("Speech recognition error:", event.error);
       setIsListening(false);
       isListeningRef.current = false;
       setInterimText("");
     };
 
     recognition.onend = () => {
+      // With continuous=false, recognition ends after each utterance.
+      // Auto-restart if user hasn't pressed the stop button.
+      if (isListeningRef.current) {
+        try {
+          recognition.start();
+        } catch {
+          // If restart fails (e.g., component unmounting), clean up
+          setIsListening(false);
+          isListeningRef.current = false;
+          setInterimText("");
+        }
+        return;
+      }
       setIsListening(false);
-      isListeningRef.current = false;
       setInterimText("");
     };
 
