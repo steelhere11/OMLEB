@@ -189,10 +189,10 @@ export function StatusSection({
 
     return (
       <div className="space-y-3">
-        <h2 className="text-base font-bold text-gray-900">
+        <h2 className="text-base font-bold text-tech-text-primary">
           Estatus del Reporte
         </h2>
-        <div className="rounded-xl border border-gray-200 bg-white p-4 text-center space-y-3">
+        <div className="rounded-card border border-tech-border bg-tech-surface p-4 text-center space-y-3">
           {displayStatus && (
             <span
               className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium ${displayStatus.color.bg} ${displayStatus.color.text}`}
@@ -201,7 +201,7 @@ export function StatusSection({
               {displayStatus.label}
             </span>
           )}
-          <p className="text-sm text-gray-500">
+          <p className="text-body text-tech-text-muted">
             {justCompleted
               ? "Reporte completado exitosamente"
               : "Este reporte ya fue completado"}
@@ -213,7 +213,7 @@ export function StatusSection({
 
   return (
     <div className="space-y-3">
-      <h2 className="text-base font-bold text-gray-900">
+      <h2 className="text-base font-bold text-tech-text-primary">
         Estatus del Reporte
       </h2>
 
@@ -227,30 +227,30 @@ export function StatusSection({
               type="button"
               onClick={() => handleStatusChange(option.value)}
               className={[
-                "flex items-center gap-3 rounded-xl border-2 p-3 text-left transition-all",
+                "flex items-center gap-3 rounded-card border-2 p-3 text-left transition-all",
                 isSelected
                   ? `${option.color.bg} ${option.color.border} ring-2 ${option.color.ring}`
-                  : "border-gray-200 bg-white active:bg-gray-50",
+                  : "border-tech-border bg-tech-surface active:bg-gray-50",
               ].join(" ")}
             >
               <span
                 className={
-                  isSelected ? option.color.icon : "text-gray-400"
+                  isSelected ? option.color.icon : "text-tech-text-muted"
                 }
               >
                 {option.icon}
               </span>
               <div className="flex-1 min-w-0">
                 <p
-                  className={`text-sm font-semibold ${
-                    isSelected ? option.color.text : "text-gray-700"
+                  className={`text-body font-semibold ${
+                    isSelected ? option.color.text : "text-tech-text-secondary"
                   }`}
                 >
                   {option.label}
                 </p>
                 <p
-                  className={`text-xs ${
-                    isSelected ? option.color.text + " opacity-80" : "text-gray-400"
+                  className={`text-label ${
+                    isSelected ? option.color.text + " opacity-80" : "text-tech-text-muted"
                   }`}
                 >
                   {option.sublabel}

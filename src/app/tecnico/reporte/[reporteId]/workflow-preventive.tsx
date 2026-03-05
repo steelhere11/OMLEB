@@ -165,7 +165,7 @@ export function WorkflowPreventive({
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-16 animate-pulse rounded-xl border border-gray-200 bg-gray-50"
+            className="h-16 animate-pulse rounded-card border border-tech-border bg-gray-50"
           />
         ))}
       </div>
@@ -176,8 +176,8 @@ export function WorkflowPreventive({
   if (steps.length === 0) {
     return (
       <div className="space-y-4">
-        <div className="rounded-lg bg-gray-50 p-3">
-          <p className="text-xs text-gray-500">
+        <div className="rounded-input bg-gray-50 p-3">
+          <p className="text-label text-tech-text-muted">
             No hay plantilla de mantenimiento para este tipo de equipo. Usa los
             campos de texto.
           </p>
@@ -250,10 +250,10 @@ export function WorkflowPreventive({
       {/* Progress bar */}
       <div className="space-y-1">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-medium text-gray-500">
+          <p className="text-label font-medium text-tech-text-muted">
             Progreso del mantenimiento
           </p>
-          <p className="text-xs font-medium text-gray-700">
+          <p className="text-label font-medium text-tech-text-secondary">
             {completedCount} de {totalSteps} pasos
           </p>
         </div>

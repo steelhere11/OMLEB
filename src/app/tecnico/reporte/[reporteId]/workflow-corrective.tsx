@@ -341,7 +341,7 @@ export function WorkflowCorrective({
         {[1, 2, 3].map((i) => (
           <div
             key={i}
-            className="h-16 animate-pulse rounded-xl border border-gray-200 bg-gray-50"
+            className="h-16 animate-pulse rounded-card border border-tech-border bg-gray-50"
           />
         ))}
       </div>
@@ -352,8 +352,8 @@ export function WorkflowCorrective({
   if (issues.length === 0) {
     return (
       <div className="space-y-4">
-        <div className="rounded-lg bg-gray-50 p-3">
-          <p className="text-xs text-gray-500">
+        <div className="rounded-input bg-gray-50 p-3">
+          <p className="text-label text-tech-text-muted">
             No hay fallas registradas para este tipo de equipo. Usa los campos
             de texto.
           </p>
@@ -410,10 +410,10 @@ export function WorkflowCorrective({
     <div className="space-y-4">
       {/* Issue picker section */}
       <div className="space-y-2">
-        <p className="text-sm font-medium text-gray-700">
+        <p className="text-body font-medium text-tech-text-secondary">
           Selecciona las fallas encontradas
         </p>
-        <p className="text-xs text-gray-400">
+        <p className="text-label text-tech-text-muted">
           {selectedIds.size} {selectedIds.size === 1 ? "falla seleccionada" : "fallas seleccionadas"}
         </p>
         <CorrectiveIssuePicker
@@ -427,7 +427,7 @@ export function WorkflowCorrective({
       {/* Selected issues detail */}
       {selectedIssues.length > 0 && (
         <div className="space-y-3">
-          <p className="text-sm font-medium text-gray-700">
+          <p className="text-body font-medium text-tech-text-secondary">
             Detalle de fallas seleccionadas
           </p>
           {selectedIssues.map((issue) => {
@@ -435,17 +435,17 @@ export function WorkflowCorrective({
             return (
               <div
                 key={issue.id}
-                className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 space-y-3"
+                className="rounded-card border border-amber-200 bg-amber-50/50 p-4 space-y-3"
               >
                 {/* Issue name */}
-                <p className="text-sm font-bold text-gray-900">{issue.nombre}</p>
+                <p className="text-body font-bold text-tech-text-primary">{issue.nombre}</p>
 
                 {/* Full diagnostic */}
-                <div className="rounded-lg bg-white p-3">
-                  <p className="text-xs font-medium text-gray-500 mb-1">
+                <div className="rounded-input bg-tech-surface p-3">
+                  <p className="text-label font-medium text-tech-text-muted mb-1">
                     Diagnostico
                   </p>
-                  <p className="text-sm text-gray-700 leading-relaxed">
+                  <p className="text-body text-tech-text-secondary leading-relaxed">
                     {issue.diagnostico}
                   </p>
                 </div>
@@ -470,14 +470,14 @@ export function WorkflowCorrective({
                 {/* Typical materials */}
                 {issue.materiales_tipicos.length > 0 && (
                   <div className="space-y-1.5">
-                    <p className="text-xs font-medium text-gray-500">
+                    <p className="text-label font-medium text-tech-text-muted">
                       Materiales tipicos
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {issue.materiales_tipicos.map((mat, i) => (
                         <span
                           key={i}
-                          className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-600"
+                          className="rounded-full bg-gray-100 px-2.5 py-1 text-label text-tech-text-secondary"
                         >
                           {mat}
                         </span>
@@ -515,7 +515,7 @@ export function WorkflowCorrective({
       {/* Custom steps */}
       {customSteps.length > 0 && (
         <div className="space-y-3">
-          <p className="text-sm font-medium text-gray-700">
+          <p className="text-body font-medium text-tech-text-secondary">
             Pasos adicionales
           </p>
           {customSteps.map((cs, idx) => (

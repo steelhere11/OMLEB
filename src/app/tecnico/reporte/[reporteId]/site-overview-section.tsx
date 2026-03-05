@@ -135,7 +135,7 @@ export function SiteOverviewSection({
   if (existingOrdenPhoto && (isComplete || autoCompleted)) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-gray-500">
+        <p className="text-body text-tech-text-muted">
           Toma una foto panoramica del frente de la sucursal.
         </p>
         <div className="flex items-center gap-3 rounded-lg bg-green-50 border border-green-200 p-3">
@@ -174,7 +174,7 @@ export function SiteOverviewSection({
   if (isComplete && photo) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-gray-500">
+        <p className="text-body text-tech-text-muted">
           Toma una foto panoramica del frente de la sucursal.
         </p>
         <div className="flex items-center gap-3 rounded-lg bg-green-50 border border-green-200 p-3">
@@ -213,7 +213,7 @@ export function SiteOverviewSection({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-gray-500">
+      <p className="text-body text-tech-text-muted">
         Toma una foto panoramica del frente de la sucursal.
       </p>
 

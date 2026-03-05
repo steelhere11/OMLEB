@@ -46,16 +46,16 @@ export function ReadingInput({
   if (lectura.unidad === "Sí/No") {
     return (
       <div className="space-y-1.5">
-        <p className="text-sm font-medium text-gray-700">{lectura.nombre}</p>
+        <p className="text-body font-medium text-tech-text-secondary">{lectura.nombre}</p>
         <div className="flex gap-2">
           <button
             type="button"
             disabled={disabled}
             onClick={() => onChange("Sí")}
-            className={`flex-1 rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 rounded-input border px-4 py-3 text-sm font-medium transition-colors ${
               value === "Sí"
                 ? "border-green-500 bg-green-50 text-green-700"
-                : "border-gray-200 bg-white text-gray-600 active:bg-gray-50"
+                : "border-tech-border bg-tech-surface text-tech-text-secondary active:bg-gray-50"
             } disabled:opacity-50`}
           >
             Sí
@@ -64,10 +64,10 @@ export function ReadingInput({
             type="button"
             disabled={disabled}
             onClick={() => onChange("No")}
-            className={`flex-1 rounded-lg border px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex-1 rounded-input border px-4 py-3 text-sm font-medium transition-colors ${
               value === "No"
                 ? "border-red-500 bg-red-50 text-red-700"
-                : "border-gray-200 bg-white text-gray-600 active:bg-gray-50"
+                : "border-tech-border bg-tech-surface text-tech-text-secondary active:bg-gray-50"
             } disabled:opacity-50`}
           >
             No
@@ -81,7 +81,7 @@ export function ReadingInput({
   if (lectura.unidad === "texto") {
     return (
       <div className="space-y-1.5">
-        <p className="text-sm font-medium text-gray-700">{lectura.nombre}</p>
+        <p className="text-body font-medium text-tech-text-secondary">{lectura.nombre}</p>
         <Input
           value={String(value)}
           onChange={(e) => onChange(e.target.value)}
@@ -96,7 +96,7 @@ export function ReadingInput({
   // Numeric input with range validation
   return (
     <div className="space-y-1.5">
-      <p className="text-sm font-medium text-gray-700">{lectura.nombre}</p>
+      <p className="text-body font-medium text-tech-text-secondary">{lectura.nombre}</p>
       <div className="relative">
         <Input
           type="text"
@@ -115,12 +115,12 @@ export function ReadingInput({
           placeholder="0"
           className={`h-12 pr-14 ${isOutOfRange ? "border-yellow-400" : ""}`}
         />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-body text-tech-text-muted">
           {lectura.unidad}
         </span>
       </div>
       {isOutOfRange && (
-        <p className="text-xs text-yellow-600">
+        <p className="text-label text-yellow-600">
           Fuera de rango normal ({rangeText})
         </p>
       )}

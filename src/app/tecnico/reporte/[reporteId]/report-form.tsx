@@ -204,7 +204,7 @@ export function ReportForm({
       <div className="flex items-center gap-3">
         <Link
           href="/tecnico"
-          className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 transition-colors active:bg-gray-100"
+          className="flex h-10 w-10 items-center justify-center rounded-input text-tech-text-secondary transition-colors active:bg-gray-100"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -222,8 +222,8 @@ export function ReportForm({
           </svg>
         </Link>
         <div className="flex-1">
-          <h1 className="text-lg font-bold text-gray-900">{ordenNumero}</h1>
-          <p className="text-sm text-gray-500">
+          <h1 className="text-section text-tech-text-primary">{ordenNumero}</h1>
+          <p className="text-body text-tech-text-secondary">
             {sucursalNombre}
             {clienteNombre && ` - ${clienteNombre}`}
           </p>
@@ -262,27 +262,27 @@ export function ReportForm({
       />
 
       {/* Report info section */}
-      <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
+      <div className="rounded-card border border-tech-border bg-tech-surface p-4 space-y-3">
         {/* Date */}
-        <p className="text-sm font-medium text-gray-700 capitalize">
+        <p className="text-body font-medium text-tech-text-secondary capitalize">
           {todayFormatted}
         </p>
 
         {/* Orden description */}
         {ordenDescripcion && (
-          <div className="rounded-lg bg-gray-50 p-3">
-            <p className="text-xs font-medium text-gray-500 mb-1">
+          <div className="rounded-input bg-gray-50 p-3">
+            <p className="text-label font-medium text-tech-text-muted mb-1">
               Problema reportado
             </p>
-            <p className="text-sm text-gray-700">{ordenDescripcion}</p>
+            <p className="text-body text-tech-text-secondary">{ordenDescripcion}</p>
           </div>
         )}
 
         {/* Team members */}
         {teamMembers.length > 0 && (
           <div>
-            <p className="text-xs font-medium text-gray-500 mb-1">Equipo</p>
-            <p className="text-sm text-gray-700">
+            <p className="text-label font-medium text-tech-text-muted mb-1">Equipo</p>
+            <p className="text-body text-tech-text-secondary">
               {teamMembers
                 .map((m) => `${m.nombre} (${rolLabels[m.rol] ?? m.rol})`)
                 .join(", ")}
@@ -292,7 +292,7 @@ export function ReportForm({
 
         {/* Current status */}
         <div>
-          <p className="text-xs font-medium text-gray-500 mb-1">Estatus</p>
+          <p className="text-label font-medium text-tech-text-muted mb-1">Estatus</p>
           <span
             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
               currentStatus === "en_progreso"
@@ -318,6 +318,7 @@ export function ReportForm({
         title="Llegada"
         phaseNumber={1}
         isComplete={showAllPhases ? true : arrivalDone}
+        defaultOpen={showAllPhases || !arrivalDone}
       >
         <ArrivalSection
           reporteId={reporteId}
@@ -334,6 +335,7 @@ export function ReportForm({
         title="Panoramica del Sitio"
         phaseNumber={2}
         isComplete={showAllPhases ? true : siteDone}
+        defaultOpen={showAllPhases || (arrivalDone && !siteDone)}
         softWarning={!arrivalDone ? "Recomendado: completa la foto de llegada" : undefined}
       >
         <SiteOverviewSection
@@ -353,6 +355,7 @@ export function ReportForm({
         title="Registro de Equipos"
         phaseNumber={3}
         isComplete={showAllPhases ? true : registrationDone}
+        defaultOpen={showAllPhases || (siteDone && !registrationDone)}
         softWarning={!arrivalDone ? "Recomendado: completa la foto de llegada" : !siteDone ? "Recomendado: toma la foto panoramica del sitio" : undefined}
       >
         <EquipmentRegistrationSection
@@ -369,6 +372,7 @@ export function ReportForm({
         title="Mantenimiento"
         phaseNumber={4}
         isComplete={showAllPhases ? true : false}
+        defaultOpen={showAllPhases || registrationDone}
         softWarning={!arrivalDone ? "Recomendado: completa la foto de llegada" : !registrationDone ? "Recomendado: completa el registro de equipos" : undefined}
       >
         {/* Equipment Section */}
@@ -385,7 +389,7 @@ export function ReportForm({
         />
 
         {/* Divider */}
-        <hr className="my-4 border-gray-200" />
+        <hr className="my-4 border-tech-border" />
 
         {/* Materials Section */}
         <MaterialsSection
@@ -397,7 +401,7 @@ export function ReportForm({
         />
 
         {/* Divider */}
-        <hr className="my-4 border-gray-200" />
+        <hr className="my-4 border-tech-border" />
 
         {/* Status and Submit Section */}
         <StatusSection
@@ -417,7 +421,7 @@ export function ReportForm({
 
       {/* Admin comments section (read-only for technicians) */}
       {adminComments.length > 0 && (
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <div className="rounded-card border border-tech-border bg-tech-surface p-4">
           <CommentSection
             comments={adminComments}
             reporteId={reporteId}

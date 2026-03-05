@@ -60,7 +60,7 @@ export function BottomTabBar() {
   };
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-tech-border bg-tech-surface pb-[env(safe-area-inset-bottom)]">
       <div className="flex h-16">
         {tabs.map((tab) => {
           const active = isActive(tab.href);
@@ -72,7 +72,7 @@ export function BottomTabBar() {
                 "flex flex-1 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-colors",
                 active
                   ? "text-brand-500"
-                  : "text-gray-400 active:text-gray-600",
+                  : "text-tech-text-muted active:text-tech-text-secondary",
               ].join(" ")}
             >
               {tab.icon(active)}

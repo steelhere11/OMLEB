@@ -5,8 +5,8 @@ export default function TecnicoLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-tech-bg">
       {/* Top header */}
-      <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center border-b border-gray-200 bg-white px-4">
-        <span className="text-lg font-bold text-gray-900">OMLEB</span>
+      <header className="fixed inset-x-0 top-0 z-30 flex h-14 items-center border-b border-tech-border bg-tech-surface px-4">
+        <img src="/logo.png" alt="OMLEB" className="h-8 w-auto" />
       </header>
 
       {/* Main content: offset by header (top) and tab bar (bottom) */}

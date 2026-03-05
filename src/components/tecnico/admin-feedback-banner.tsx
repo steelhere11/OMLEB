@@ -33,7 +33,7 @@ export function AdminFeedbackBanner({
   if (!hasRetake && !hasRejected && !hasComments) return null;
 
   return (
-    <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 space-y-3">
+    <div className="rounded-card border border-amber-300 bg-amber-50 p-4 space-y-3">
       {/* Header */}
       <div className="flex items-center gap-2">
         <svg

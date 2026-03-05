@@ -254,9 +254,9 @@ export function CustomStepCard({
 
   return (
     <div
-      className={`rounded-xl border overflow-hidden ${
+      className={`rounded-card border overflow-hidden ${
         completado
-          ? "border-l-4 border-l-green-500 border-gray-200"
+          ? "border-l-4 border-l-green-500 border-tech-border"
           : "border-purple-200 bg-purple-50/20"
       }`}
     >
@@ -297,8 +297,8 @@ export function CustomStepCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p
-              className={`text-sm font-medium ${
-                completado ? "text-green-700" : "text-gray-900"
+              className={`text-body font-medium ${
+                completado ? "text-green-700" : "text-tech-text-primary"
               }`}
             >
               {step.nombre_custom ?? "Paso personalizado"}
@@ -307,7 +307,7 @@ export function CustomStepCard({
               Personalizado
             </span>
           </div>
-          <p className="text-xs text-gray-400">
+          <p className="text-label text-tech-text-muted">
             Paso {stepNumber} de {totalSteps}
           </p>
         </div>
@@ -321,7 +321,7 @@ export function CustomStepCard({
 
         {/* Chevron */}
         <svg
-          className={`h-5 w-5 flex-shrink-0 text-gray-400 transition-transform ${
+          className={`h-5 w-5 flex-shrink-0 text-tech-text-muted transition-transform ${
             expanded ? "rotate-180" : ""
           }`}
           fill="none"
@@ -339,14 +339,14 @@ export function CustomStepCard({
 
       {/* Expanded body */}
       {expanded && (
-        <div className="border-t border-gray-100 p-4 space-y-4">
+        <div className="border-t border-tech-border-subtle p-4 space-y-4">
           {/* Procedure text (from notas set during creation) */}
           {step.notas && !completado && (
-            <div className="rounded-lg bg-gray-50 p-3">
-              <p className="text-xs font-medium text-gray-500 mb-1">
+            <div className="rounded-input bg-gray-50 p-3">
+              <p className="text-label font-medium text-tech-text-muted mb-1">
                 Procedimiento
               </p>
-              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+              <p className="text-body text-tech-text-secondary leading-relaxed whitespace-pre-line">
                 {step.notas}
               </p>
             </div>
@@ -365,7 +365,7 @@ export function CustomStepCard({
 
           {/* Notes */}
           <div>
-            <p className="text-xs font-medium text-gray-500 mb-1.5">
+            <p className="text-label font-medium text-tech-text-muted mb-1.5">
               Notas del paso
             </p>
             <Textarea

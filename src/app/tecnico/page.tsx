@@ -47,6 +47,13 @@ const reportStatusConfig: Record<
   },
 };
 
+type ReportSummary = {
+  equipCount: number;
+  stepsCompleted: number;
+  stepsTotal: number;
+  photoCount: number;
+};
+
 export default async function TecnicoOrdenesPage() {
   const supabase = await createClient();
   const {
@@ -73,6 +80,9 @@ export default async function TecnicoOrdenesPage() {
     { id: string; orden_servicio_id: string; estatus: ReporteEstatus; numero_revision: number }
   >();
 
+  // Summary map: reportId → stats
+  let summaryByReport = new Map<string, ReportSummary>();
+
   if (ordenIds.length > 0) {
     const { data: todayReports } = await supabase
       .from("reportes")
@@ -90,6 +100,54 @@ export default async function TecnicoOrdenesPage() {
         }[]) ?? []
       ).map((r) => [r.orden_servicio_id, r])
     );
+
+    // Batch queries for equipment status summary
+    const reportIds = [...reportByOrden.values()].map((r) => r.id);
+
+    if (reportIds.length > 0) {
+      // 1. Equipment per report
+      const { data: equipRows } = await supabase
+        .from("reporte_equipos")
+        .select("id, reporte_id")
+        .in("reporte_id", reportIds);
+
+      // 2. Step progress (through reporte_equipos)
+      const equipoIds = (equipRows ?? []).map((e) => e.id);
+      let stepRows: { reporte_equipo_id: string; completado: boolean }[] = [];
+      if (equipoIds.length > 0) {
+        const { data: steps } = await supabase
+          .from("reporte_pasos")
+          .select("reporte_equipo_id, completado")
+          .in("reporte_equipo_id", equipoIds);
+        stepRows = (steps ?? []) as typeof stepRows;
+      }
+
+      // 3. Photo count per report
+      const { data: photoRows } = await supabase
+        .from("reporte_fotos")
+        .select("id, reporte_id")
+        .in("reporte_id", reportIds);
+
+      // Build equipo → reportId lookup
+      const equipToReport = new Map<string, string>();
+      for (const eq of equipRows ?? []) {
+        equipToReport.set(eq.id, eq.reporte_id);
+      }
+
+      // Build summary map
+      for (const reportId of reportIds) {
+        const equipCount = (equipRows ?? []).filter((e) => e.reporte_id === reportId).length;
+        const reportEquipoIds = (equipRows ?? [])
+          .filter((e) => e.reporte_id === reportId)
+          .map((e) => e.id);
+        const reportSteps = stepRows.filter((s) => reportEquipoIds.includes(s.reporte_equipo_id));
+        const stepsTotal = reportSteps.length;
+        const stepsCompleted = reportSteps.filter((s) => s.completado).length;
+        const photoCount = (photoRows ?? []).filter((p) => p.reporte_id === reportId).length;
+
+        summaryByReport.set(reportId, { equipCount, stepsCompleted, stepsTotal, photoCount });
+      }
+    }
   }
 
   if (list.length === 0) {
@@ -99,7 +157,7 @@ export default async function TecnicoOrdenesPage() {
         <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-10 w-10 text-gray-400"
+            className="h-10 w-10 text-tech-text-muted"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -118,13 +176,13 @@ export default async function TecnicoOrdenesPage() {
           </svg>
         </div>
 
-        <h1 className="mb-2 text-xl font-bold text-gray-900">Mis Ordenes</h1>
+        <h1 className="mb-2 text-xl font-bold text-tech-text-primary">Mis Ordenes</h1>
 
-        <p className="mb-2 text-base font-medium text-gray-600">
+        <p className="mb-2 text-base font-medium text-tech-text-secondary">
           No tienes ordenes asignadas
         </p>
 
-        <p className="max-w-xs text-sm text-gray-400">
+        <p className="max-w-xs text-body text-tech-text-muted">
           Las ordenes apareceran aqui cuando un administrador te asigne trabajo
         </p>
       </div>
@@ -133,23 +191,24 @@ export default async function TecnicoOrdenesPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-bold text-gray-900">Mis Ordenes</h1>
+      <h1 className="mb-4 text-xl font-bold text-tech-text-primary">Mis Ordenes</h1>
 
       <div className="space-y-3">
         {list.map((orden) => {
           const todayReport = reportByOrden.get(orden.id);
           const ordenStatus =
             ordenStatusConfig[orden.estatus] ?? ordenStatusConfig.abierto;
+          const summary = todayReport ? summaryByReport.get(todayReport.id) : null;
 
           return (
             <Link
               key={orden.id}
               href={`/tecnico/ordenes-servicio/${orden.id}`}
-              className="block min-h-[72px] rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-colors active:bg-gray-50"
+              className="block min-h-[72px] rounded-card border border-tech-border bg-tech-surface p-4 shadow-sm transition-colors active:bg-gray-50"
             >
               {/* Top row: orden number + status */}
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-base font-bold text-gray-900">
+                <span className="text-base font-bold text-tech-text-primary">
                   {orden.numero_orden}
                 </span>
                 <span
@@ -160,14 +219,14 @@ export default async function TecnicoOrdenesPage() {
               </div>
 
               {/* Branch info */}
-              <p className="text-sm text-gray-600">
+              <p className="text-body text-tech-text-secondary">
                 {orden.sucursales
                   ? `${orden.sucursales.nombre} (${orden.sucursales.numero})`
                   : "Sin sucursal"}
               </p>
 
               {/* Client */}
-              <p className="text-sm text-gray-500">
+              <p className="text-body text-tech-text-muted">
                 {orden.clientes?.nombre ?? "Sin cliente"}
               </p>
 
@@ -180,11 +239,20 @@ export default async function TecnicoOrdenesPage() {
                     Reporte Rev {todayReport.numero_revision}: {reportStatusConfig[todayReport.estatus]?.label ?? todayReport.estatus}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                  <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-tech-text-muted">
                     Sin reporte hoy
                   </span>
                 )}
               </div>
+
+              {/* Equipment status summary */}
+              {summary && summary.equipCount > 0 && (
+                <p className="mt-1 text-label text-tech-text-muted">
+                  {summary.equipCount} equipo{summary.equipCount !== 1 ? "s" : ""}
+                  {summary.stepsTotal > 0 && ` \u00b7 ${summary.stepsCompleted}/${summary.stepsTotal} pasos`}
+                  {summary.photoCount > 0 && ` \u00b7 ${summary.photoCount} foto${summary.photoCount !== 1 ? "s" : ""}`}
+                </p>
+              )}
             </Link>
           );
         })}

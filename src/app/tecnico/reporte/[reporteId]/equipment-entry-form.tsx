@@ -91,7 +91,7 @@ export function EquipmentEntryForm({
   };
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+    <div className="rounded-card border border-tech-border bg-tech-surface overflow-hidden">
       {/* Accordion header */}
       <button
         type="button"
@@ -99,17 +99,17 @@ export function EquipmentEntryForm({
         className="flex w-full items-center justify-between p-4 text-left transition-colors active:bg-gray-50"
       >
         <div className="flex-1">
-          <p className="text-sm font-bold text-gray-900">
+          <p className="text-body font-bold text-tech-text-primary">
             {equipo.numero_etiqueta}
           </p>
           <div className="flex items-center gap-2">
             {(equipo.marca || equipo.modelo) && (
-              <p className="text-xs text-gray-500">
+              <p className="text-label text-tech-text-muted">
                 {[equipo.marca, equipo.modelo].filter(Boolean).join(" ")}
               </p>
             )}
             {equipo.tipos_equipo && (
-              <span className="text-xs text-gray-400">
+              <span className="text-label text-tech-text-muted">
                 · {equipo.tipos_equipo.nombre}
               </span>
             )}
@@ -130,7 +130,7 @@ export function EquipmentEntryForm({
         {/* Expand/collapse chevron */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className={`h-5 w-5 text-gray-400 transition-transform ${
+          className={`h-5 w-5 text-tech-text-muted transition-transform ${
             isExpanded ? "rotate-180" : ""
           }`}
           fill="none"
@@ -148,7 +148,7 @@ export function EquipmentEntryForm({
 
       {/* Expanded form */}
       {isExpanded && (
-        <div className="border-t border-gray-100 p-4 space-y-4">
+        <div className="border-t border-tech-border-subtle p-4 space-y-4">
           {/* Work type toggle / read-only label */}
           <div>
             <Label className="mb-2">Tipo de trabajo</Label>
@@ -178,7 +178,7 @@ export function EquipmentEntryForm({
                   <button
                     type="button"
                     onClick={onAddOtherWorkType}
-                    className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs font-medium text-gray-500 transition-colors active:bg-gray-50"
+                    className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 px-3 py-2 text-xs font-medium text-tech-text-muted transition-colors active:bg-gray-50"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

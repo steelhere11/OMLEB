@@ -118,7 +118,7 @@ export function ArrivalSection({
   if (isComplete && photo) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-gray-500">
+        <p className="text-body text-tech-text-muted">
           Captura una foto mostrando tu equipo de proteccion personal (casco,
           botas, chaleco) al llegar a la sucursal.
         </p>
@@ -163,7 +163,7 @@ export function ArrivalSection({
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-gray-500">
+      <p className="text-body text-tech-text-muted">
         Captura una foto mostrando tu equipo de proteccion personal (casco,
         botas, chaleco) al llegar a la sucursal.
       </p>

@@ -265,8 +265,8 @@ export function WorkflowStepCard({
 
   return (
     <div
-      className={`rounded-xl border bg-white overflow-hidden ${
-        completado ? "border-l-4 border-l-green-500 border-gray-200" : "border-gray-200"
+      className={`rounded-card border bg-tech-surface overflow-hidden ${
+        completado ? "border-l-4 border-l-green-500 border-tech-border" : "border-tech-border"
       }`}
     >
       {/* Header */}
@@ -280,7 +280,7 @@ export function WorkflowStepCard({
           className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${
             completado
               ? "bg-green-500 text-white"
-              : "bg-gray-100 text-gray-500"
+              : "bg-gray-100 text-tech-text-muted"
           }`}
         >
           {completado ? (
@@ -294,10 +294,10 @@ export function WorkflowStepCard({
 
         {/* Step name */}
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-medium ${completado ? "text-green-700" : "text-gray-900"}`}>
+          <p className={`text-body font-medium ${completado ? "text-green-700" : "text-tech-text-primary"}`}>
             {paso.nombre}
           </p>
-          <p className="text-xs text-gray-400">
+          <p className="text-label text-tech-text-muted">
             Paso {stepNumber} de {totalSteps}
             {!paso.es_obligatorio && " -- Opcional"}
           </p>
@@ -312,7 +312,7 @@ export function WorkflowStepCard({
 
         {/* Chevron */}
         <svg
-          className={`h-5 w-5 flex-shrink-0 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`}
+          className={`h-5 w-5 flex-shrink-0 text-tech-text-muted transition-transform ${expanded ? "rotate-180" : ""}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -324,13 +324,13 @@ export function WorkflowStepCard({
 
       {/* Expanded body */}
       {expanded && (
-        <div className="border-t border-gray-100 p-4 space-y-4">
+        <div className="border-t border-tech-border-subtle p-3 space-y-3">
           {/* Procedure text */}
-          <div className="rounded-lg bg-gray-50 p-3">
-            <p className="text-xs font-medium text-gray-500 mb-1">
+          <div className="rounded-input bg-gray-50 p-2.5">
+            <p className="text-label font-medium text-tech-text-muted mb-1">
               Procedimiento
             </p>
-            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+            <p className="text-body text-tech-text-secondary leading-relaxed whitespace-pre-line">
               {paso.procedimiento}
             </p>
           </div>
@@ -351,7 +351,7 @@ export function WorkflowStepCard({
           {/* Reading inputs */}
           {lecturasRequeridas.length > 0 && (
             <div className="space-y-3">
-              <p className="text-xs font-medium text-gray-500">Lecturas</p>
+              <p className="text-label font-medium text-tech-text-muted">Lecturas</p>
               {lecturasRequeridas.map((lec) => (
                 <ReadingInput
                   key={lec.nombre}
@@ -366,7 +366,7 @@ export function WorkflowStepCard({
 
           {/* Notes */}
           <div>
-            <p className="text-xs font-medium text-gray-500 mb-1.5">
+            <p className="text-label font-medium text-tech-text-muted mb-1.5">
               Notas del paso
             </p>
             <Textarea
@@ -374,7 +374,7 @@ export function WorkflowStepCard({
               onChange={(e) => setNotas(e.target.value)}
               placeholder="Notas adicionales sobre este paso..."
               disabled={isCompleted}
-              className="min-h-[60px]"
+              className="min-h-[48px]"
             />
           </div>
 

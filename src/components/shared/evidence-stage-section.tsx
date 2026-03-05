@@ -64,7 +64,7 @@ export function EvidenceStageSection({
 
   return (
     <div className="space-y-3">
-      <p className="text-xs font-medium text-gray-500">
+      <p className="text-label font-medium text-tech-text-muted">
         Evidencia
       </p>
       {sortedStages.map((stage) => {
@@ -88,7 +88,7 @@ export function EvidenceStageSection({
         return (
           <div
             key={stage}
-            className={`rounded-xl border ${style.border} ${style.bg} overflow-hidden`}
+            className={`rounded-card border ${style.border} ${style.bg} overflow-hidden`}
           >
             {/* Color header bar */}
             <div
@@ -131,7 +131,7 @@ export function EvidenceStageSection({
             <div className="p-3 space-y-2">
               {/* Guidance bullets */}
               {descriptions.map((desc, i) => (
-                <p key={i} className="text-xs text-gray-500 leading-relaxed">
+                <p key={i} className="text-label text-tech-text-muted leading-relaxed">
                   &bull; {desc}
                 </p>
               ))}
@@ -142,7 +142,7 @@ export function EvidenceStageSection({
                   type="button"
                   onClick={() => onTakePhoto(stage)}
                   disabled={disabled}
-                  className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium ${style.text} bg-white border ${style.border} transition-colors active:opacity-80 disabled:opacity-50`}
+                  className={`flex items-center gap-1.5 rounded-input px-3 py-2 text-xs font-medium ${style.text} bg-white border ${style.border} transition-colors active:opacity-80 disabled:opacity-50`}
                 >
                   <svg
                     className="h-4 w-4"
@@ -165,7 +165,7 @@ export function EvidenceStageSection({
                   Agregar evidencia
                 </button>
                 {mediaCount > 0 && (
-                  <span className="text-xs font-medium text-gray-500">
+                  <span className="text-label font-medium text-tech-text-muted">
                     {mediaCount} archivo{mediaCount !== 1 ? "s" : ""}
                   </span>
                 )}

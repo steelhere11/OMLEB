@@ -79,7 +79,7 @@ export function AddEquipmentModal({
   const adminInputClass = "block w-full rounded-lg border border-admin-border bg-admin-bg px-3 py-2 text-[13px] text-text-0 placeholder:text-text-3 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent";
   const adminInputErrorClass = "block w-full rounded-lg border border-red-500/50 bg-admin-bg px-3 py-2 text-[13px] text-text-0 placeholder:text-text-3 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-red-400/40";
   const adminSelectClass = "block w-full rounded-lg border border-admin-border bg-admin-bg px-3 py-2 text-[13px] text-text-0 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent";
-  const techSelectClass = "block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base min-h-[48px] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 focus:border-brand-500";
+  const techSelectClass = "block w-full rounded-input border border-gray-300 px-3 py-2.5 text-base min-h-[48px] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 focus:border-brand-500";
 
   const adminLabelClass = "mb-1 text-[12px] text-text-1";
 
@@ -126,11 +126,11 @@ export function AddEquipmentModal({
       <div className={
         isAdmin
           ? "relative w-full max-w-lg rounded-[10px] border border-admin-border bg-admin-surface p-5 shadow-xl max-h-[90vh] overflow-y-auto"
-          : "relative w-full max-w-lg rounded-xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto"
+          : "relative w-full max-w-lg rounded-card bg-tech-surface p-6 shadow-xl max-h-[90vh] overflow-y-auto"
       }>
         {/* Header */}
         <div className={`${isAdmin ? "mb-4" : "mb-5"} flex items-center justify-between`}>
-          <h2 className={isAdmin ? "text-[15px] font-semibold text-text-0" : "text-lg font-bold text-gray-900"}>
+          <h2 className={isAdmin ? "text-[15px] font-semibold text-text-0" : "text-lg font-bold text-tech-text-primary"}>
             Agregar Equipo Nuevo
           </h2>
           <button
@@ -139,7 +139,7 @@ export function AddEquipmentModal({
             className={
               isAdmin
                 ? "flex h-7 w-7 items-center justify-center rounded-lg text-text-3 transition-colors hover:text-text-1"
-                : "flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:text-gray-600 active:bg-gray-100"
+                : "flex h-8 w-8 items-center justify-center rounded-input text-tech-text-muted transition-colors hover:text-tech-text-secondary active:bg-gray-100"
             }
           >
             <svg
@@ -161,8 +161,8 @@ export function AddEquipmentModal({
 
         {/* Info notice — only show for tech */}
         {!isAdmin && (
-          <div className="mb-4 rounded-lg bg-blue-50 p-3">
-            <p className="text-xs text-blue-700">
+          <div className="mb-4 rounded-input bg-blue-50 p-3">
+            <p className="text-label text-blue-700">
               Este equipo sera revisado por un administrador y se vinculara a esta
               orden de servicio.
             </p>
@@ -174,9 +174,9 @@ export function AddEquipmentModal({
           <div className={
             isAdmin
               ? "mb-3 rounded-lg border border-red-500/30 bg-red-500/10 p-2.5"
-              : "mb-4 rounded-lg border border-red-200 bg-red-50 p-3"
+              : "mb-4 rounded-input border border-red-200 bg-red-50 p-3"
           }>
-            <p className={isAdmin ? "text-[12px] text-red-400" : "text-sm text-red-700"}>{state.error}</p>
+            <p className={isAdmin ? "text-[12px] text-red-400" : "text-body text-red-700"}>{state.error}</p>
           </div>
         )}
 

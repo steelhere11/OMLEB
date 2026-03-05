@@ -62,7 +62,7 @@ export function EquipmentRegistrationSection({
   if (entries.length === 0) {
     return (
       <div className="text-center py-6">
-        <p className="text-sm text-gray-400">
+        <p className="text-body text-tech-text-muted">
           No hay equipos asignados a esta orden.
         </p>
       </div>
@@ -73,14 +73,14 @@ export function EquipmentRegistrationSection({
     <div className="space-y-4">
       {/* Header with progress */}
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-semibold text-gray-900">
+        <h4 className="text-body font-semibold text-tech-text-primary">
           Registro de Equipos
         </h4>
         <span
           className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
             allComplete
               ? "bg-green-100 text-green-700"
-              : "bg-gray-100 text-gray-600"
+              : "bg-gray-100 text-tech-text-secondary"
           }`}
         >
           {completedCount}/{totalCount}

@@ -274,35 +274,35 @@ export function EquipmentRegistrationCard({
   );
 
   const inputClass = (value: string) =>
-    `w-full rounded-lg border px-3 py-2.5 text-sm ${
+    `w-full rounded-input border px-3 py-2.5 text-body ${
       !value.trim()
         ? "border-yellow-300 bg-yellow-50 focus:border-yellow-400 focus:ring-yellow-200"
-        : "border-gray-200 bg-white focus:border-blue-400 focus:ring-blue-200"
+        : "border-tech-border bg-tech-surface focus:border-blue-400 focus:ring-blue-200"
     } focus:outline-none focus:ring-2`;
 
   const selectClass = (value: string) =>
-    `w-full rounded-lg border px-3 py-2.5 text-sm appearance-none ${
+    `w-full rounded-input border px-3 py-2.5 text-body appearance-none ${
       !value
-        ? "border-yellow-300 bg-yellow-50 text-gray-400"
-        : "border-gray-200 bg-white text-gray-900"
+        ? "border-yellow-300 bg-yellow-50 text-tech-text-muted"
+        : "border-tech-border bg-tech-surface text-tech-text-primary"
     } focus:outline-none focus:ring-2 focus:border-blue-400 focus:ring-blue-200`;
 
   return (
     <div
-      className={`rounded-xl border overflow-hidden ${
+      className={`rounded-card border overflow-hidden ${
         complete
-          ? "border-green-200 bg-white"
-          : "border-gray-200 bg-white"
+          ? "border-green-200 bg-tech-surface"
+          : "border-tech-border bg-tech-surface"
       }`}
     >
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-gray-100">
+      <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 border-b border-tech-border-subtle">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-gray-900 truncate">
+          <p className="text-body font-semibold text-tech-text-primary truncate">
             {equipo.numero_etiqueta}
           </p>
           {tipoEquipoNombre && (
-            <p className="text-xs text-gray-500">{tipoEquipoNombre}</p>
+            <p className="text-label text-tech-text-muted">{tipoEquipoNombre}</p>
           )}
         </div>
         {complete ? (
@@ -341,7 +341,7 @@ export function EquipmentRegistrationCard({
 
             return (
               <div key={slot}>
-                <p className="text-xs font-medium text-gray-500 mb-1.5">
+                <p className="text-label font-medium text-tech-text-muted mb-1.5">
                   {meta.label}
                 </p>
                 {photo ? (
@@ -349,7 +349,7 @@ export function EquipmentRegistrationCard({
                     <img
                       src={photo.url}
                       alt={meta.label}
-                      className="h-28 w-full rounded-lg object-cover border border-gray-200"
+                      className="h-28 w-full rounded-input object-cover border border-tech-border"
                     />
                     <div className="absolute bottom-1 right-1 rounded-full bg-green-500 p-0.5">
                       <svg
@@ -372,7 +372,7 @@ export function EquipmentRegistrationCard({
                     type="button"
                     onClick={() => handlePhotoSlotClick(slot)}
                     disabled={isUploading}
-                    className="flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-yellow-300 bg-yellow-50 text-yellow-600 transition-colors active:bg-yellow-100 disabled:opacity-50"
+                    className="flex h-28 w-full flex-col items-center justify-center gap-1.5 rounded-input border-2 border-dashed border-yellow-300 bg-yellow-50 text-yellow-600 transition-colors active:bg-yellow-100 disabled:opacity-50"
                   >
                     <svg
                       className="h-6 w-6"
@@ -406,7 +406,7 @@ export function EquipmentRegistrationCard({
         <div className="grid grid-cols-2 gap-3">
           {/* Marca */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">
+            <label className="block text-label font-medium text-tech-text-muted mb-1">
               Marca
             </label>
             <input
@@ -421,7 +421,7 @@ export function EquipmentRegistrationCard({
 
           {/* Modelo */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">
+            <label className="block text-label font-medium text-tech-text-muted mb-1">
               Modelo
             </label>
             <input
@@ -436,7 +436,7 @@ export function EquipmentRegistrationCard({
 
           {/* Numero de Serie */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">
+            <label className="block text-label font-medium text-tech-text-muted mb-1">
               No. Serie
             </label>
             <input
@@ -451,7 +451,7 @@ export function EquipmentRegistrationCard({
 
           {/* Capacidad */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">
+            <label className="block text-label font-medium text-tech-text-muted mb-1">
               Capacidad
             </label>
             <input
@@ -466,7 +466,7 @@ export function EquipmentRegistrationCard({
 
           {/* Refrigerante dropdown */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">
+            <label className="block text-label font-medium text-tech-text-muted mb-1">
               Refrigerante
             </label>
             <select
@@ -487,7 +487,7 @@ export function EquipmentRegistrationCard({
 
           {/* Voltaje dropdown */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">
+            <label className="block text-label font-medium text-tech-text-muted mb-1">
               Voltaje
             </label>
             <select
@@ -506,10 +506,10 @@ export function EquipmentRegistrationCard({
 
           {/* Fase toggle (two-option) */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">
+            <label className="block text-label font-medium text-tech-text-muted mb-1">
               Fase
             </label>
-            <div className="flex rounded-lg border border-gray-200 overflow-hidden">
+            <div className="flex rounded-input border border-tech-border overflow-hidden">
               {FASES.map((f) => (
                 <button
                   key={f.value}
@@ -519,8 +519,8 @@ export function EquipmentRegistrationCard({
                     fase === f.value
                       ? "bg-blue-500 text-white"
                       : !fase
-                        ? "bg-yellow-50 text-gray-500 active:bg-gray-100"
-                        : "bg-white text-gray-500 active:bg-gray-100"
+                        ? "bg-yellow-50 text-tech-text-muted active:bg-gray-100"
+                        : "bg-white text-tech-text-muted active:bg-gray-100"
                   }`}
                 >
                   {f.label}
@@ -531,7 +531,7 @@ export function EquipmentRegistrationCard({
 
           {/* Ubicacion dropdown */}
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">
+            <label className="block text-label font-medium text-tech-text-muted mb-1">
               Ubicacion
             </label>
             <select

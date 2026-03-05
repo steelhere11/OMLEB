@@ -108,10 +108,10 @@ export function PapeletaSection({
   );
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4 space-y-3">
+    <div className="rounded-card border border-tech-border bg-tech-surface p-4 space-y-3">
       <div className="flex items-center gap-2">
         <svg
-          className="h-5 w-5 text-gray-500"
+          className="h-5 w-5 text-tech-text-muted"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -123,16 +123,16 @@ export function PapeletaSection({
             d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
           />
         </svg>
-        <h3 className="text-base font-semibold text-gray-900">Papeleta</h3>
+        <h3 className="text-base font-semibold text-tech-text-primary">Papeleta</h3>
       </div>
 
-      <p className="text-sm text-gray-500">
+      <p className="text-body text-tech-text-muted">
         Toma fotos de la papeleta (formato de mantenimiento) del contratista.
       </p>
 
       {/* Error toast */}
       {uploadError && (
-        <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+        <div className="rounded-input bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
           {uploadError}
         </div>
       )}
@@ -141,7 +141,7 @@ export function PapeletaSection({
       {photos.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
           {photos.map((photo) => (
-            <div key={photo.id} className="relative aspect-[3/4] rounded-lg overflow-hidden bg-gray-100">
+            <div key={photo.id} className="relative aspect-[3/4] rounded-input overflow-hidden bg-gray-100">
               <img
                 src={photo.url}
                 alt="Papeleta"
@@ -158,7 +158,7 @@ export function PapeletaSection({
           type="button"
           onClick={() => setShowSourcePicker(true)}
           disabled={isUploading}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 px-4 py-3 text-sm font-medium text-gray-600 transition-colors active:bg-gray-50 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-card border-2 border-dashed border-gray-300 px-4 py-3 text-sm font-medium text-tech-text-secondary transition-colors active:bg-gray-50 disabled:opacity-50"
         >
           {isUploading ? (
             <>
