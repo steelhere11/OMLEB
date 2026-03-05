@@ -50,6 +50,7 @@ export function EquipmentEntryForm({
   const [isSaving, startSaveTransition] = useTransition();
   const [savedMessage, setSavedMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [interimVoice, setInterimVoice] = useState("");
 
   const equipo = entry.equipos;
   const tipoEquipoSlug = equipo.tipos_equipo?.slug ?? "otro";
@@ -254,6 +255,7 @@ export function EquipmentEntryForm({
                   setObservaciones(text);
                   handleFieldChange();
                 }}
+                onInterim={setInterimVoice}
                 disabled={isCompleted}
               />
             </div>
@@ -269,6 +271,11 @@ export function EquipmentEntryForm({
               disabled={isCompleted}
               className="min-h-[80px]"
             />
+            {interimVoice && (
+              <p className="text-xs text-tech-text-muted italic px-1">
+                {interimVoice}...
+              </p>
+            )}
           </div>
 
           {/* Save/remove buttons and status */}

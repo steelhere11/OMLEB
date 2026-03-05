@@ -48,6 +48,7 @@ export function CustomStepCard({
   const [notas, setNotas] = useState(step.notas ?? "");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [interimVoice, setInterimVoice] = useState("");
 
   // Photo state
   const [photos, setPhotos] = useState<ReporteFoto[]>([]);
@@ -398,6 +399,7 @@ export function CustomStepCard({
               <VoiceInput
                 currentValue={notas}
                 onTranscript={setNotas}
+                onInterim={setInterimVoice}
                 disabled={isCompleted}
               />
             </div>
@@ -408,6 +410,11 @@ export function CustomStepCard({
               disabled={isCompleted}
               className="min-h-[60px]"
             />
+            {interimVoice && (
+              <p className="text-xs text-tech-text-muted italic px-1">
+                {interimVoice}...
+              </p>
+            )}
           </div>
 
           {/* Save notes + Complete toggle + Delete */}

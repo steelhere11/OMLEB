@@ -54,6 +54,7 @@ export function WorkflowStepCard({
     savedProgress?.lecturas ?? {}
   );
   const [saving, setSaving] = useState(false);
+  const [interimVoice, setInterimVoice] = useState("");
 
   // Photo state
   const [photos, setPhotos] = useState<ReporteFoto[]>([]);
@@ -463,6 +464,7 @@ export function WorkflowStepCard({
               <VoiceInput
                 currentValue={notas}
                 onTranscript={setNotas}
+                onInterim={setInterimVoice}
                 disabled={isCompleted}
               />
             </div>
@@ -473,6 +475,11 @@ export function WorkflowStepCard({
               disabled={isCompleted}
               className="min-h-[48px]"
             />
+            {interimVoice && (
+              <p className="text-xs text-tech-text-muted italic px-1">
+                {interimVoice}...
+              </p>
+            )}
           </div>
 
           {/* Save readings/notes + Complete toggle */}
