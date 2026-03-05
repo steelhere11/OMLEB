@@ -1233,6 +1233,54 @@ export async function adminUpdateSignature(
   return { success: true, message: firma_encargado ? "Firma guardada" : "Firma eliminada" };
 }
 
+// ── Admin: Add Equipment to Existing Report ──────────────────────────
+
+export async function adminAddEquipmentToReport(
+  reporteId: string,
+  equipoId: string
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  // Check equipment isn't already in the report
+  const { count: existing } = await supabase
+    .from("reporte_equipos")
+    .select("id", { count: "exact", head: true })
+    .eq("reporte_id", reporteId)
+    .eq("equipo_id", equipoId);
+
+  if (existing && existing > 0) {
+    return { error: "Este equipo ya esta en el reporte" };
+  }
+
+  // Insert into reporte_equipos with default tipo_trabajo: preventivo
+  const { data: inserted, error: insertError } = await supabase
+    .from("reporte_equipos")
+    .insert({
+      reporte_id: reporteId,
+      equipo_id: equipoId,
+      tipo_trabajo: "preventivo",
+    })
+    .select("id, equipo_id, tipo_trabajo")
+    .single();
+
+  if (insertError) {
+    return { error: "Error al agregar equipo: " + insertError.message };
+  }
+
+  // Auto-load preventive template steps
+  await autoLoadPreventiveSteps(supabase, [inserted]);
+
+  revalidatePath("/admin/reportes");
+  return { success: true, message: "Equipo agregado al reporte" };
+}
+
 // ── Admin: Load Template Steps for Equipment Entry ───────────────────
 
 export async function adminLoadTemplateSteps(

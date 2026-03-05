@@ -16,6 +16,7 @@ import {
   adminUpdateSignature,
   adminReorderSteps,
   adminLoadTemplateSteps,
+  adminAddEquipmentToReport,
 } from "@/app/actions/reportes";
 import { adminFlagPhoto, adminDeletePhoto, adminUploadPhoto, adminUpdateEtiqueta } from "@/app/actions/fotos";
 import { ReporteDeleteButton } from "@/components/admin/reporte-delete-button";
@@ -26,6 +27,7 @@ import { AdminCustomStepForm } from "@/components/admin/admin-custom-step-form";
 import { deleteCustomStep, getCorrectiveIssues, saveCorrectiveSelection } from "@/app/actions/workflows";
 import type { FallaCorrectiva } from "@/types";
 import { AdminEquipmentInfoEditor } from "@/components/admin/admin-equipment-info-editor";
+import { AddEquipmentModal } from "@/app/tecnico/reporte/[reporteId]/add-equipment-modal";
 import { addMaterialRequerido, updateEstatusMaterial, deleteMaterialRequerido } from "@/app/actions/materiales-requeridos";
 import type { MaterialRequeridoEstatus } from "@/types/inventory";
 import { CommentSection } from "@/components/admin/comment-section";
@@ -190,6 +192,16 @@ interface CatalogoItem {
   unidad_default: string;
 }
 
+interface AvailableEquipo {
+  id: string;
+  numero_etiqueta: string;
+  marca: string | null;
+  modelo: string | null;
+  tipo_equipo: string | null;
+  tipo_equipo_id: string | null;
+  tipos_equipo: { slug: string; nombre: string } | null;
+}
+
 export interface ReportDetailProps {
   reporte: ReporteData;
   teamMembers: TeamMember[];
@@ -198,6 +210,8 @@ export interface ReportDetailProps {
   revisions: RevisionWithAuthor[];
   materialesRequeridos?: MaterialRequeridoData[];
   catalogo?: CatalogoItem[];
+  availableEquipment?: AvailableEquipo[];
+  ordenServicioId?: string;
 }
 
 // ---------- Status config ----------
@@ -253,7 +267,7 @@ function formatRol(rol: string): string {
 
 // ---------- Component ----------
 
-export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revisions, materialesRequeridos = [], catalogo = [] }: ReportDetailProps) {
+export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revisions, materialesRequeridos = [], catalogo = [], availableEquipment = [], ordenServicioId }: ReportDetailProps) {
   const router = useRouter();
   const status = statusConfig[reporte.estatus] ?? statusConfig.en_progreso;
   const orden = reporte.ordenes_servicio;
@@ -281,6 +295,15 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
 
   // Equipment removal state
   const [removePending, startRemoveTransition] = useTransition();
+
+  // Add equipment state
+  const [selectedAddEquipoId, setSelectedAddEquipoId] = useState("");
+  const [addEquipoPending, startAddEquipoTransition] = useTransition();
+  const [showCreateEquipoModal, setShowCreateEquipoModal] = useState(false);
+
+  // Compute ODS equipment not yet in report
+  const reportEquipoIds = new Set(reporte.reporte_equipos.map((e) => e.equipo_id));
+  const unaddedEquipment = availableEquipment.filter((eq) => !reportEquipoIds.has(eq.id));
 
   // Date editing state
   const [editingFechaInicio, setEditingFechaInicio] = useState(false);
@@ -657,9 +680,65 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
 
       {/* Equipment entries */}
       <div>
-        <h2 className="mb-3 text-[15px] font-semibold text-text-0">
-          Equipos Atendidos ({reporte.reporte_equipos.length})
-        </h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-[15px] font-semibold text-text-0">
+            Equipos Atendidos ({reporte.reporte_equipos.length})
+          </h2>
+        </div>
+
+        {/* Add equipment controls */}
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <select
+            value={selectedAddEquipoId}
+            onChange={(e) => setSelectedAddEquipoId(e.target.value)}
+            disabled={unaddedEquipment.length === 0 || addEquipoPending}
+            className="min-w-[200px] flex-1 rounded-lg border border-admin-border bg-admin-surface px-3 py-2 text-[13px] text-text-0 disabled:opacity-50"
+          >
+            <option value="">
+              {unaddedEquipment.length === 0
+                ? "Todos los equipos ya agregados"
+                : "Seleccionar equipo..."}
+            </option>
+            {unaddedEquipment.map((eq) => (
+              <option key={eq.id} value={eq.id}>
+                {eq.numero_etiqueta}
+                {eq.marca || eq.modelo
+                  ? ` — ${[eq.marca, eq.modelo].filter(Boolean).join(" ")}`
+                  : ""}
+                {eq.tipos_equipo ? ` (${eq.tipos_equipo.nombre})` : ""}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            disabled={!selectedAddEquipoId || addEquipoPending}
+            onClick={() => {
+              if (!selectedAddEquipoId) return;
+              startAddEquipoTransition(async () => {
+                const result = await adminAddEquipmentToReport(reporte.id, selectedAddEquipoId);
+                if (result.error) {
+                  alert(result.error);
+                } else {
+                  setSelectedAddEquipoId("");
+                  router.refresh();
+                }
+              });
+            }}
+            className="rounded-lg bg-accent px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
+          >
+            {addEquipoPending ? "Agregando..." : "Agregar"}
+          </button>
+          {ordenServicioId && (
+            <button
+              type="button"
+              onClick={() => setShowCreateEquipoModal(true)}
+              className="rounded-lg border border-admin-border px-4 py-2 text-[13px] font-medium text-text-1 transition-colors hover:bg-admin-hover"
+            >
+              + Crear Equipo Nuevo
+            </button>
+          )}
+        </div>
+
         {reporte.reporte_equipos.length === 0 ? (
           <div className="rounded-[10px] border border-admin-border bg-admin-surface p-4 text-center">
             <p className="text-[13px] text-text-3">Sin equipos registrados</p>
@@ -1078,6 +1157,17 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
           />
         </div>
       </div>
+      {/* Create Equipment Modal (reused from tech side) */}
+      {ordenServicioId && (
+        <AddEquipmentModal
+          ordenServicioId={ordenServicioId}
+          reporteId={reporte.id}
+          tiposEquipo={tiposEquipo}
+          isOpen={showCreateEquipoModal}
+          onClose={() => setShowCreateEquipoModal(false)}
+          onEquipmentCreated={() => router.refresh()}
+        />
+      )}
     </div>
   );
 }

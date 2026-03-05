@@ -57,8 +57,8 @@ export default async function ReporteDetailPage({
     );
   }
 
-  // Fetch team members, tipos_equipo, comments, revisions, required materials, and catalog in parallel
-  const [{ data: asignados }, { data: tiposEquipo }, { data: comentarios }, revisions, { data: materialesRequeridos }, { data: catalogoData }] = await Promise.all([
+  // Fetch team members, tipos_equipo, comments, revisions, required materials, catalog, and ODS equipment in parallel
+  const [{ data: asignados }, { data: tiposEquipo }, { data: comentarios }, revisions, { data: materialesRequeridos }, { data: catalogoData }, { data: odsEquipos }] = await Promise.all([
     supabase
       .from("orden_asignados")
       .select("usuario_id, users(nombre, rol)")
@@ -84,6 +84,10 @@ export default async function ReporteDetailPage({
       .select("id, nombre, unidad_default")
       .eq("activo", true)
       .order("nombre"),
+    supabase
+      .from("orden_equipos")
+      .select("equipo_id, equipos(id, numero_etiqueta, marca, modelo, tipo_equipo, tipo_equipo_id, tipos_equipo:tipo_equipo_id(slug, nombre))")
+      .eq("orden_servicio_id", reporte.orden_servicio_id),
   ]);
 
   const teamMembers =
@@ -119,6 +123,16 @@ export default async function ReporteDetailPage({
         revisions={revisions}
         materialesRequeridos={materialesRequeridos ?? []}
         catalogo={catalogoData ?? []}
+        availableEquipment={(odsEquipos ?? []).map((oe) => oe.equipos).filter(Boolean) as unknown as Array<{
+          id: string;
+          numero_etiqueta: string;
+          marca: string | null;
+          modelo: string | null;
+          tipo_equipo: string | null;
+          tipo_equipo_id: string | null;
+          tipos_equipo: { slug: string; nombre: string } | null;
+        }>}
+        ordenServicioId={reporte.orden_servicio_id}
       />
     </div>
   );
