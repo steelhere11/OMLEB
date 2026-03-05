@@ -666,15 +666,25 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
           </div>
         ) : (
           <div className="space-y-4">
-            {reporte.reporte_equipos.map((entry) => (
+            {reporte.reporte_equipos.map((entry) => {
+              // Filter photos to only those belonging to THIS entry's steps
+              // (prevents cross-contamination when preventivo + correctivo share equipo_id)
+              const entryStepIds = new Set(entry.reporte_pasos.map((p) => p.id));
+              const allEquipoPhotos = photosByEquipo.get(entry.equipo_id) ?? [];
+              const entryPhotos = allEquipoPhotos.filter((f) => {
+                if (f.reporte_paso_id) return entryStepIds.has(f.reporte_paso_id);
+                // Photos without a step belong to neither — skip for entries with steps
+                return entry.reporte_pasos.length === 0;
+              }).filter((f) =>
+                entry.tipo_trabajo === "correctivo"
+                  ? f.etiqueta !== "placa" && f.etiqueta !== "equipo_general"
+                  : true
+              );
+              return (
               <EquipmentCard
                 key={entry.id}
                 entry={entry}
-                photos={(photosByEquipo.get(entry.equipo_id) ?? []).filter((f) =>
-                  entry.tipo_trabajo === "correctivo"
-                    ? f.etiqueta !== "placa" && f.etiqueta !== "equipo_general"
-                    : true
-                )}
+                photos={entryPhotos}
                 isEditing={editingEntryId === entry.id}
                 onEdit={() => setEditingEntryId(entry.id)}
                 onCancelEdit={() => setEditingEntryId(null)}
@@ -696,7 +706,8 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                 onEquipoSaved={() => { setEditingEquipoId(null); router.refresh(); }}
                 tiposEquipo={tiposEquipo}
               />
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
