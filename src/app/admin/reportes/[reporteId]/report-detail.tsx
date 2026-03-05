@@ -296,6 +296,25 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
   // Equipment removal state
   const [removePending, startRemoveTransition] = useTransition();
 
+  // Collapsible equipment entries
+  const [expandedEntryIds, setExpandedEntryIds] = useState<Set<string>>(new Set());
+  const toggleEntry = (id: string) => {
+    setExpandedEntryIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const allEntriesExpanded = reporte.reporte_equipos.length > 0 && reporte.reporte_equipos.every((e) => expandedEntryIds.has(e.id));
+  const toggleAllEntries = () => {
+    if (allEntriesExpanded) {
+      setExpandedEntryIds(new Set());
+    } else {
+      setExpandedEntryIds(new Set(reporte.reporte_equipos.map((e) => e.id)));
+    }
+  };
+
   // Add equipment state
   const [selectedAddEquipoId, setSelectedAddEquipoId] = useState("");
   const [addEquipoPending, startAddEquipoTransition] = useTransition();
@@ -680,113 +699,223 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
 
       {/* Equipment entries */}
       <div>
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex items-baseline justify-between">
           <h2 className="text-[15px] font-semibold text-text-0">
             Equipos Atendidos ({reporte.reporte_equipos.length})
           </h2>
-        </div>
-
-        {/* Add equipment controls */}
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <select
-            value={selectedAddEquipoId}
-            onChange={(e) => setSelectedAddEquipoId(e.target.value)}
-            disabled={unaddedEquipment.length === 0 || addEquipoPending}
-            className="min-w-[200px] flex-1 rounded-lg border border-admin-border bg-admin-surface px-3 py-2 text-[13px] text-text-0 disabled:opacity-50"
-          >
-            <option value="">
-              {unaddedEquipment.length === 0
-                ? "Todos los equipos ya agregados"
-                : "Seleccionar equipo..."}
-            </option>
-            {unaddedEquipment.map((eq) => (
-              <option key={eq.id} value={eq.id}>
-                {eq.numero_etiqueta}
-                {eq.marca || eq.modelo
-                  ? ` — ${[eq.marca, eq.modelo].filter(Boolean).join(" ")}`
-                  : ""}
-                {eq.tipos_equipo ? ` (${eq.tipos_equipo.nombre})` : ""}
-              </option>
-            ))}
-          </select>
-          <button
-            type="button"
-            disabled={!selectedAddEquipoId || addEquipoPending}
-            onClick={() => {
-              if (!selectedAddEquipoId) return;
-              startAddEquipoTransition(async () => {
-                const result = await adminAddEquipmentToReport(reporte.id, selectedAddEquipoId);
-                if (result.error) {
-                  alert(result.error);
-                } else {
-                  setSelectedAddEquipoId("");
-                  router.refresh();
-                }
-              });
-            }}
-            className="rounded-lg bg-accent px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
-          >
-            {addEquipoPending ? "Agregando..." : "Agregar"}
-          </button>
-          {ordenServicioId && (
+          {reporte.reporte_equipos.length > 1 && (
             <button
               type="button"
-              onClick={() => setShowCreateEquipoModal(true)}
-              className="rounded-lg border border-admin-border px-4 py-2 text-[13px] font-medium text-text-1 transition-colors hover:bg-admin-hover"
+              onClick={toggleAllEntries}
+              className="text-[12px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
             >
-              + Crear Equipo Nuevo
+              {allEntriesExpanded ? "Colapsar todo" : "Expandir todo"}
             </button>
           )}
         </div>
 
         {reporte.reporte_equipos.length === 0 ? (
-          <div className="rounded-[10px] border border-admin-border bg-admin-surface p-4 text-center">
-            <p className="text-[13px] text-text-3">Sin equipos registrados</p>
+          <div className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-surface">
+            <div className="p-4 text-center">
+              <p className="text-[13px] text-text-3">Sin equipos registrados</p>
+            </div>
+            {/* Add equipment footer */}
+            <div className="row-inset-divider flex flex-wrap items-center gap-2 px-[14px] py-[10px]">
+              <select
+                value={selectedAddEquipoId}
+                onChange={(e) => setSelectedAddEquipoId(e.target.value)}
+                disabled={unaddedEquipment.length === 0 || addEquipoPending}
+                className="min-w-[180px] flex-1 rounded-lg border border-admin-border bg-admin-surface px-3 py-1.5 text-[13px] text-text-0 disabled:opacity-50"
+              >
+                <option value="">
+                  {unaddedEquipment.length === 0
+                    ? "Todos los equipos ya agregados"
+                    : "Seleccionar equipo..."}
+                </option>
+                {unaddedEquipment.map((eq) => (
+                  <option key={eq.id} value={eq.id}>
+                    {eq.numero_etiqueta}
+                    {eq.marca || eq.modelo
+                      ? ` — ${[eq.marca, eq.modelo].filter(Boolean).join(" ")}`
+                      : ""}
+                    {eq.tipos_equipo ? ` (${eq.tipos_equipo.nombre})` : ""}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                disabled={!selectedAddEquipoId || addEquipoPending}
+                onClick={() => {
+                  if (!selectedAddEquipoId) return;
+                  startAddEquipoTransition(async () => {
+                    const result = await adminAddEquipmentToReport(reporte.id, selectedAddEquipoId);
+                    if (result.error) {
+                      alert(result.error);
+                    } else {
+                      setSelectedAddEquipoId("");
+                      router.refresh();
+                    }
+                  });
+                }}
+                className="rounded-lg bg-accent px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
+              >
+                {addEquipoPending ? "Agregando..." : "Agregar"}
+              </button>
+              {ordenServicioId && (
+                <button
+                  type="button"
+                  onClick={() => setShowCreateEquipoModal(true)}
+                  className="rounded-lg border border-admin-border px-3 py-1.5 text-[13px] font-medium text-text-1 transition-colors hover:bg-admin-hover"
+                >
+                  + Crear Equipo Nuevo
+                </button>
+              )}
+            </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            {reporte.reporte_equipos.map((entry) => {
+          <div className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-surface">
+            {reporte.reporte_equipos.map((entry, idx) => {
               // Filter photos to only those belonging to THIS entry's steps
-              // (prevents cross-contamination when preventivo + correctivo share equipo_id)
               const entryStepIds = new Set(entry.reporte_pasos.map((p) => p.id));
               const allEquipoPhotos = photosByEquipo.get(entry.equipo_id) ?? [];
               const entryPhotos = allEquipoPhotos.filter((f) => {
                 if (f.reporte_paso_id) return entryStepIds.has(f.reporte_paso_id);
-                // Photos without a step belong to neither — skip for entries with steps
                 return entry.reporte_pasos.length === 0;
               }).filter((f) =>
                 entry.tipo_trabajo === "correctivo"
                   ? f.etiqueta !== "placa" && f.etiqueta !== "equipo_general"
                   : true
               );
+
+              const isExpanded = expandedEntryIds.has(entry.id);
+              const tipoConfig = tipoTrabajoConfig[entry.tipo_trabajo] ?? tipoTrabajoConfig.preventivo;
+              const completedSteps = entry.reporte_pasos.filter((p) => p.completado).length;
+              const totalSteps = entry.reporte_pasos.length;
+              const progressLabel = totalSteps > 0
+                ? `${completedSteps}/${totalSteps} pasos`
+                : entryPhotos.length > 0
+                  ? `${entryPhotos.length} fotos`
+                  : "Sin datos";
+
               return (
-              <EquipmentCard
-                key={entry.id}
-                entry={entry}
-                photos={entryPhotos}
-                isEditing={editingEntryId === entry.id}
-                onEdit={() => setEditingEntryId(entry.id)}
-                onCancelEdit={() => setEditingEntryId(null)}
-                onSaved={() => { setEditingEntryId(null); router.refresh(); }}
-                onRemove={handleRemoveEquipment}
-                removePending={removePending}
-                onFlagPhoto={handleFlagPhoto}
-                onDeletePhoto={handleDeletePhoto}
-                onUpdateEtiqueta={handleUpdateEtiqueta}
-                onDeleteStep={handleDeleteStep}
-                reporteId={reporte.id}
-                editingStepId={editingStepId}
-                onEditStep={(stepId) => setEditingStepId(stepId)}
-                onCancelEditStep={() => setEditingStepId(null)}
-                onStepSaved={() => { setEditingStepId(null); router.refresh(); }}
-                editingEquipoId={editingEquipoId}
-                onEditEquipo={(equipoId) => setEditingEquipoId(equipoId)}
-                onCancelEditEquipo={() => setEditingEquipoId(null)}
-                onEquipoSaved={() => { setEditingEquipoId(null); router.refresh(); }}
-                tiposEquipo={tiposEquipo}
-              />
+                <div key={entry.id}>
+                  {/* Collapsible row header */}
+                  <button
+                    type="button"
+                    onClick={() => toggleEntry(entry.id)}
+                    className={`flex w-full items-center gap-2 px-[14px] py-[10px] text-left group transition-colors duration-[80ms] hover:bg-admin-surface-hover${idx > 0 ? " row-inset-divider" : ""}`}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`h-3.5 w-3.5 flex-shrink-0 text-text-3 transition-transform duration-150 ${isExpanded ? "rotate-90" : ""}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                    <span className="text-[13px] font-semibold text-text-0">
+                      {entry.equipos?.numero_etiqueta ?? "Equipo desconocido"}
+                    </span>
+                    {(entry.equipos?.marca || entry.equipos?.modelo) && (
+                      <span className="text-[12px] text-text-3">
+                        {[entry.equipos?.marca, entry.equipos?.modelo].filter(Boolean).join(" — ")}
+                      </span>
+                    )}
+                    <span
+                      className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.04em] ${tipoConfig.className}`}
+                    >
+                      {tipoConfig.label}
+                    </span>
+                    <div className="flex-1" />
+                    <span className="text-[11px] text-text-3">{progressLabel}</span>
+                  </button>
+
+                  {/* Expanded content */}
+                  {isExpanded && (
+                    <EquipmentCard
+                      entry={entry}
+                      photos={entryPhotos}
+                      isEditing={editingEntryId === entry.id}
+                      onEdit={() => setEditingEntryId(entry.id)}
+                      onCancelEdit={() => setEditingEntryId(null)}
+                      onSaved={() => { setEditingEntryId(null); router.refresh(); }}
+                      onRemove={handleRemoveEquipment}
+                      removePending={removePending}
+                      onFlagPhoto={handleFlagPhoto}
+                      onDeletePhoto={handleDeletePhoto}
+                      onUpdateEtiqueta={handleUpdateEtiqueta}
+                      onDeleteStep={handleDeleteStep}
+                      reporteId={reporte.id}
+                      editingStepId={editingStepId}
+                      onEditStep={(stepId) => setEditingStepId(stepId)}
+                      onCancelEditStep={() => setEditingStepId(null)}
+                      onStepSaved={() => { setEditingStepId(null); router.refresh(); }}
+                      editingEquipoId={editingEquipoId}
+                      onEditEquipo={(equipoId) => setEditingEquipoId(equipoId)}
+                      onCancelEditEquipo={() => setEditingEquipoId(null)}
+                      onEquipoSaved={() => { setEditingEquipoId(null); router.refresh(); }}
+                      tiposEquipo={tiposEquipo}
+                      embedded
+                    />
+                  )}
+                </div>
               );
             })}
+
+            {/* Add equipment footer */}
+            <div className="row-inset-divider flex flex-wrap items-center gap-2 px-[14px] py-[10px]">
+              <select
+                value={selectedAddEquipoId}
+                onChange={(e) => setSelectedAddEquipoId(e.target.value)}
+                disabled={unaddedEquipment.length === 0 || addEquipoPending}
+                className="min-w-[180px] flex-1 rounded-lg border border-admin-border bg-admin-surface px-3 py-1.5 text-[13px] text-text-0 disabled:opacity-50"
+              >
+                <option value="">
+                  {unaddedEquipment.length === 0
+                    ? "Todos los equipos ya agregados"
+                    : "Seleccionar equipo..."}
+                </option>
+                {unaddedEquipment.map((eq) => (
+                  <option key={eq.id} value={eq.id}>
+                    {eq.numero_etiqueta}
+                    {eq.marca || eq.modelo
+                      ? ` — ${[eq.marca, eq.modelo].filter(Boolean).join(" ")}`
+                      : ""}
+                    {eq.tipos_equipo ? ` (${eq.tipos_equipo.nombre})` : ""}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                disabled={!selectedAddEquipoId || addEquipoPending}
+                onClick={() => {
+                  if (!selectedAddEquipoId) return;
+                  startAddEquipoTransition(async () => {
+                    const result = await adminAddEquipmentToReport(reporte.id, selectedAddEquipoId);
+                    if (result.error) {
+                      alert(result.error);
+                    } else {
+                      setSelectedAddEquipoId("");
+                      router.refresh();
+                    }
+                  });
+                }}
+                className="rounded-lg bg-accent px-3 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
+              >
+                {addEquipoPending ? "Agregando..." : "Agregar"}
+              </button>
+              {ordenServicioId && (
+                <button
+                  type="button"
+                  onClick={() => setShowCreateEquipoModal(true)}
+                  className="rounded-lg border border-admin-border px-3 py-1.5 text-[13px] font-medium text-text-1 transition-colors hover:bg-admin-hover"
+                >
+                  + Crear Equipo Nuevo
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -1166,6 +1295,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
           isOpen={showCreateEquipoModal}
           onClose={() => setShowCreateEquipoModal(false)}
           onEquipmentCreated={() => router.refresh()}
+          variant="admin"
         />
       )}
     </div>
@@ -2228,6 +2358,7 @@ function EquipmentCard({
   onCancelEditEquipo,
   onEquipoSaved,
   tiposEquipo,
+  embedded,
 }: {
   entry: ReporteEquipoData;
   photos: ReporteFotoData[];
@@ -2251,13 +2382,14 @@ function EquipmentCard({
   onCancelEditEquipo: () => void;
   onEquipoSaved: () => void;
   tiposEquipo: TipoEquipo[];
+  embedded?: boolean;
 }) {
   const equipo = entry.equipos;
   const tipoConfig = tipoTrabajoConfig[entry.tipo_trabajo] ?? tipoTrabajoConfig.preventivo;
   const isEditingThisEquipo = equipo?.id ? editingEquipoId === equipo.id : false;
 
   return (
-    <div className="rounded-[10px] border border-admin-border bg-admin-surface p-4">
+    <div className={embedded ? "px-[14px] pb-4 pt-2" : "rounded-[10px] border border-admin-border bg-admin-surface p-4"}>
       {/* Equipment header */}
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <h3 className="text-[14px] font-semibold text-text-0">

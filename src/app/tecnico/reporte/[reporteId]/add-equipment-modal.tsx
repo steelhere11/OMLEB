@@ -16,6 +16,7 @@ interface AddEquipmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onEquipmentCreated: () => void;
+  variant?: "tech" | "admin";
 }
 
 export function AddEquipmentModal({
@@ -25,7 +26,9 @@ export function AddEquipmentModal({
   isOpen,
   onClose,
   onEquipmentCreated,
+  variant = "tech",
 }: AddEquipmentModalProps) {
+  const isAdmin = variant === "admin";
   const boundAction = createEquipoForOrden.bind(null, ordenServicioId, reporteId);
   const [state, formAction, isPending] = useActionState<ActionState | null, FormData>(
     boundAction,
@@ -66,6 +69,34 @@ export function AddEquipmentModal({
     | Record<string, string[] | undefined>
     | undefined;
 
+  const adminInputClass = "block w-full rounded-lg border border-admin-border bg-admin-bg px-3 py-2 text-[13px] text-text-0 placeholder:text-text-3 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent";
+  const adminInputErrorClass = "block w-full rounded-lg border border-red-500/50 bg-admin-bg px-3 py-2 text-[13px] text-text-0 placeholder:text-text-3 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-red-400/40";
+
+  const adminSelectClass = "block w-full rounded-lg border border-admin-border bg-admin-bg px-3 py-2 text-[13px] text-text-0 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent";
+
+  const techSelectClass = "block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base min-h-[48px] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 focus:border-brand-500";
+
+  // Admin uses raw <input> to avoid Input component's hardcoded light-theme base classes
+  function AdminInput({ id, name, placeholder, required, error, value, onChange }: {
+    id?: string; name?: string; placeholder?: string; required?: boolean;
+    error?: string; value?: string; onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  }) {
+    return (
+      <div>
+        <input
+          id={id}
+          name={name}
+          placeholder={placeholder}
+          required={required}
+          value={value}
+          onChange={onChange}
+          className={error ? adminInputErrorClass : adminInputClass}
+        />
+        {error && <p className="mt-1 text-[11px] text-red-400">{error}</p>}
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
@@ -75,20 +106,28 @@ export function AddEquipmentModal({
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-lg rounded-xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+      <div className={
+        isAdmin
+          ? "relative w-full max-w-md rounded-[10px] border border-admin-border bg-admin-surface p-5 shadow-xl"
+          : "relative w-full max-w-lg rounded-xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto"
+      }>
         {/* Header */}
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-gray-900">
+        <div className={`${isAdmin ? "mb-4" : "mb-5"} flex items-center justify-between`}>
+          <h2 className={isAdmin ? "text-[15px] font-semibold text-text-0" : "text-lg font-bold text-gray-900"}>
             Agregar Equipo Nuevo
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:text-gray-600 active:bg-gray-100"
+            className={
+              isAdmin
+                ? "flex h-7 w-7 items-center justify-center rounded-lg text-text-3 transition-colors hover:text-text-1"
+                : "flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:text-gray-600 active:bg-gray-100"
+            }
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
+              className={isAdmin ? "h-4 w-4" : "h-5 w-5"}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -103,23 +142,29 @@ export function AddEquipmentModal({
           </button>
         </div>
 
-        {/* Info notice */}
-        <div className="mb-4 rounded-lg bg-blue-50 p-3">
-          <p className="text-xs text-blue-700">
-            Este equipo sera revisado por un administrador y se vinculara a esta
-            orden de servicio.
-          </p>
-        </div>
+        {/* Info notice — only show for tech */}
+        {!isAdmin && (
+          <div className="mb-4 rounded-lg bg-blue-50 p-3">
+            <p className="text-xs text-blue-700">
+              Este equipo sera revisado por un administrador y se vinculara a esta
+              orden de servicio.
+            </p>
+          </div>
+        )}
 
         {/* Error message */}
         {state?.error && (
-          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3">
-            <p className="text-sm text-red-700">{state.error}</p>
+          <div className={
+            isAdmin
+              ? "mb-3 rounded-lg border border-red-500/30 bg-red-500/10 p-2.5"
+              : "mb-4 rounded-lg border border-red-200 bg-red-50 p-3"
+          }>
+            <p className={isAdmin ? "text-[12px] text-red-400" : "text-sm text-red-700"}>{state.error}</p>
           </div>
         )}
 
         {/* Form */}
-        <form ref={formRef} action={formAction} className="space-y-4">
+        <form ref={formRef} action={formAction} className={isAdmin ? "space-y-3" : "space-y-4"}>
           {/* Hidden field for tipo_equipo_id */}
           <input type="hidden" name="tipo_equipo_id" value={selectedTipoId} />
           {/* Hidden field for tipo_equipo text (for backward compat) */}
@@ -135,21 +180,31 @@ export function AddEquipmentModal({
 
           {/* Numero/Etiqueta (required) */}
           <div>
-            <Label htmlFor="modal-numero-etiqueta" required className="mb-1.5">
+            <Label htmlFor="modal-numero-etiqueta" required className={isAdmin ? "mb-1 text-[12px] text-text-1" : "mb-1.5"}>
               Etiqueta / Numero
             </Label>
-            <Input
-              id="modal-numero-etiqueta"
-              name="numero_etiqueta"
-              placeholder='Ej. "Equipo 2", "AC-01"'
-              required
-              error={fieldErrors?.numero_etiqueta?.[0]}
-            />
+            {isAdmin ? (
+              <AdminInput
+                id="modal-numero-etiqueta"
+                name="numero_etiqueta"
+                placeholder='Ej. "Equipo 2", "AC-01"'
+                required
+                error={fieldErrors?.numero_etiqueta?.[0]}
+              />
+            ) : (
+              <Input
+                id="modal-numero-etiqueta"
+                name="numero_etiqueta"
+                placeholder='Ej. "Equipo 2", "AC-01"'
+                required
+                error={fieldErrors?.numero_etiqueta?.[0]}
+              />
+            )}
           </div>
 
           {/* Tipo de equipo (grouped dropdown) */}
           <div>
-            <Label htmlFor="modal-tipo-equipo" className="mb-1.5">
+            <Label htmlFor="modal-tipo-equipo" className={isAdmin ? "mb-1 text-[12px] text-text-1" : "mb-1.5"}>
               Tipo de Equipo
             </Label>
             <GroupedEquipoTypeSelect
@@ -162,64 +217,108 @@ export function AddEquipmentModal({
                   setCustomTipoText("");
                 }
               }}
-              className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base min-h-[48px] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 focus:border-brand-500"
+              className={isAdmin ? adminSelectClass : techSelectClass}
             />
             {isOtroSelected && (
               <div className="mt-2">
-                <Input
-                  placeholder="Especifica el tipo de equipo..."
-                  value={customTipoText}
-                  onChange={(e) => setCustomTipoText(e.target.value)}
-                />
+                {isAdmin ? (
+                  <AdminInput
+                    placeholder="Especifica el tipo de equipo..."
+                    value={customTipoText}
+                    onChange={(e) => setCustomTipoText(e.target.value)}
+                  />
+                ) : (
+                  <Input
+                    placeholder="Especifica el tipo de equipo..."
+                    value={customTipoText}
+                    onChange={(e) => setCustomTipoText(e.target.value)}
+                  />
+                )}
               </div>
             )}
           </div>
 
-          {/* Marca (optional) */}
-          <div>
-            <Label htmlFor="modal-marca" className="mb-1.5">
-              Marca
-            </Label>
-            <Input
-              id="modal-marca"
-              name="marca"
-              placeholder="Ej. Carrier, LG, Trane"
-              error={fieldErrors?.marca?.[0]}
-            />
-          </div>
-
-          {/* Modelo (optional) */}
-          <div>
-            <Label htmlFor="modal-modelo" className="mb-1.5">
-              Modelo
-            </Label>
-            <Input
-              id="modal-modelo"
-              name="modelo"
-              placeholder="Ej. 38CKC048"
-              error={fieldErrors?.modelo?.[0]}
-            />
-          </div>
+          {/* Marca / Modelo — side by side for admin, stacked for tech */}
+          {isAdmin ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="modal-marca" className="mb-1 text-[12px] text-text-1">
+                  Marca
+                </Label>
+                <AdminInput
+                  id="modal-marca"
+                  name="marca"
+                  placeholder="Ej. Carrier, LG"
+                  error={fieldErrors?.marca?.[0]}
+                />
+              </div>
+              <div>
+                <Label htmlFor="modal-modelo" className="mb-1 text-[12px] text-text-1">
+                  Modelo
+                </Label>
+                <AdminInput
+                  id="modal-modelo"
+                  name="modelo"
+                  placeholder="Ej. 38CKC048"
+                  error={fieldErrors?.modelo?.[0]}
+                />
+              </div>
+            </div>
+          ) : (
+            <>
+              <div>
+                <Label htmlFor="modal-marca" className="mb-1.5">
+                  Marca
+                </Label>
+                <Input
+                  id="modal-marca"
+                  name="marca"
+                  placeholder="Ej. Carrier, LG, Trane"
+                  error={fieldErrors?.marca?.[0]}
+                />
+              </div>
+              <div>
+                <Label htmlFor="modal-modelo" className="mb-1.5">
+                  Modelo
+                </Label>
+                <Input
+                  id="modal-modelo"
+                  name="modelo"
+                  placeholder="Ej. 38CKC048"
+                  error={fieldErrors?.modelo?.[0]}
+                />
+              </div>
+            </>
+          )}
 
           {/* Numero de serie (optional) */}
           <div>
-            <Label htmlFor="modal-numero-serie" className="mb-1.5">
+            <Label htmlFor="modal-numero-serie" className={isAdmin ? "mb-1 text-[12px] text-text-1" : "mb-1.5"}>
               Numero de Serie
             </Label>
-            <Input
-              id="modal-numero-serie"
-              name="numero_serie"
-              placeholder="Ej. ABC123456"
-              error={fieldErrors?.numero_serie?.[0]}
-            />
+            {isAdmin ? (
+              <AdminInput
+                id="modal-numero-serie"
+                name="numero_serie"
+                placeholder="Ej. ABC123456"
+                error={fieldErrors?.numero_serie?.[0]}
+              />
+            ) : (
+              <Input
+                id="modal-numero-serie"
+                name="numero_serie"
+                placeholder="Ej. ABC123456"
+                error={fieldErrors?.numero_serie?.[0]}
+              />
+            )}
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 pt-2">
+          <div className={`flex gap-3 ${isAdmin ? "pt-1" : "pt-2"}`}>
             <Button
               type="button"
               variant="outline"
-              size="md"
+              size={isAdmin ? "sm" : "md"}
               fullWidth
               onClick={onClose}
               disabled={isPending}
@@ -229,10 +328,11 @@ export function AddEquipmentModal({
             <Button
               type="submit"
               variant="primary"
-              size="md"
+              size={isAdmin ? "sm" : "md"}
               fullWidth
               loading={isPending}
               disabled={isPending}
+              className={isAdmin ? "bg-accent text-white hover:bg-accent/90" : undefined}
             >
               Agregar
             </Button>
