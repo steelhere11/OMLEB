@@ -17,7 +17,7 @@ import {
   adminReorderSteps,
   adminLoadTemplateSteps,
 } from "@/app/actions/reportes";
-import { adminFlagPhoto, adminDeletePhoto, adminUploadPhoto, adminUpdateEtiqueta, backfillOrphanPhotos } from "@/app/actions/fotos";
+import { adminFlagPhoto, adminDeletePhoto, adminUploadPhoto, adminUpdateEtiqueta } from "@/app/actions/fotos";
 import { ReporteDeleteButton } from "@/components/admin/reporte-delete-button";
 import { AdminPhotoCard } from "@/components/admin/admin-photo-card";
 import { AdminPhotoUpload } from "@/components/admin/admin-photo-upload";
@@ -980,24 +980,17 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
               created_at: c.created_at,
             }))}
             equipmentEntries={(() => {
-              // Track which equipo_ids have already claimed orphan photos
-              // so non-step photos don't duplicate across entries sharing the same equipo_id
-              const claimedOrphanEquipos = new Set<string>();
-
               return reporte.reporte_equipos.map((entry) => {
                 // Collect this entry's step IDs to filter photos correctly
                 const entryStepIds = new Set(entry.reporte_pasos.map((p) => p.id));
-                const isFirstForEquipo = !claimedOrphanEquipos.has(entry.equipo_id);
-                claimedOrphanEquipos.add(entry.equipo_id);
 
                 const allEquipoPhotos = photosByEquipo.get(entry.equipo_id) ?? [];
-                // Only include photos that belong to this entry's steps,
-                // or non-step photos (only for the first entry per equipo_id)
+                // Only include photos that belong to this entry's steps
                 const filteredPhotos = allEquipoPhotos.filter((foto) => {
                   if (foto.reporte_paso_id) {
                     return entryStepIds.has(foto.reporte_paso_id);
                   }
-                  return isFirstForEquipo;
+                  return false;
                 });
 
                 return {
@@ -1064,7 +1057,6 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                 tipo_media: f.tipo_media ?? "foto",
               }))}
           />
-          <BackfillPhotosButton reporteId={reporte.id} />
           <ApproveButton
             reporteId={reporte.id}
             isApproved={reporte.finalizado_por_admin}
@@ -1528,36 +1520,6 @@ function LlegadasAdminSection({
         )}
       </div>
     </div>
-  );
-}
-
-// ---------- Backfill Orphan Photos Button ----------
-
-function BackfillPhotosButton({ reporteId }: { reporteId: string }) {
-  const [isPending, startTransition] = useTransition();
-  const [result, setResult] = useState<string | null>(null);
-  const router = useRouter();
-
-  return (
-    <button
-      type="button"
-      disabled={isPending}
-      onClick={() => {
-        startTransition(async () => {
-          const res = await backfillOrphanPhotos(reporteId);
-          if (res.success) {
-            setResult(res.message ?? `${res.fixed} fotos reasignadas`);
-            router.refresh();
-          } else {
-            setResult(res.error ?? "Error");
-          }
-          setTimeout(() => setResult(null), 4000);
-        });
-      }}
-      className="rounded-lg border border-admin-border bg-admin-surface px-3 py-1.5 text-[12px] font-medium text-text-2 transition-colors hover:bg-admin-hover disabled:opacity-50"
-    >
-      {isPending ? "Reasignando..." : result ?? "Reasignar fotos huerfanas"}
-    </button>
   );
 }
 
@@ -2779,14 +2741,11 @@ function StepList({
 
   // Group photos by reporte_paso_id
   const photosByStep = new Map<string, ReporteFotoData[]>();
-  const orphanPhotos: ReporteFotoData[] = [];
   for (const foto of photos) {
     if (foto.reporte_paso_id) {
       const arr = photosByStep.get(foto.reporte_paso_id) ?? [];
       arr.push(foto);
       photosByStep.set(foto.reporte_paso_id, arr);
-    } else {
-      orphanPhotos.push(foto);
     }
   }
 
@@ -2878,25 +2837,6 @@ function StepList({
         />
       </div>
 
-      {/* Orphan photos (not linked to any step) */}
-      {orphanPhotos.length > 0 && (
-        <div className="mt-4">
-          <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
-            Fotos adicionales ({orphanPhotos.length})
-          </h4>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-            {orphanPhotos.map((foto) => (
-              <AdminPhotoCard
-                key={foto.id}
-                foto={foto}
-                onFlag={onFlagPhoto}
-                onDelete={onDeletePhoto}
-                onUpdateEtiqueta={onUpdateEtiqueta}
-              />
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

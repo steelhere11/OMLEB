@@ -331,18 +331,12 @@ export default function ReportPdfButton({
 
         // Distribute photos into per-step maps
         const stepPhotosMap = new Map<string, PhotoBase64[]>();
-        const orphanPhotos: PhotoBase64[] = [];
 
         for (const photo of allPhotos) {
           if (photo.reportePasoId) {
             const arr = stepPhotosMap.get(photo.reportePasoId) ?? [];
             arr.push(photo);
             stepPhotosMap.set(photo.reportePasoId, arr);
-          } else {
-            const regLabels = ["placa", "equipo_general"];
-            if (!regLabels.includes(photo.etiqueta ?? "")) {
-              orphanPhotos.push(photo);
-            }
           }
         }
 
@@ -352,14 +346,6 @@ export default function ReportPdfButton({
           photosBase64: stepPhotosMap.get(step.id) ?? [],
         }));
 
-        // Safety net: photos linked to step IDs not in the step list → orphan
-        const knownStepIds = new Set((entry.steps ?? []).map((s) => s.id));
-        for (const [pasoId, photos] of stepPhotosMap.entries()) {
-          if (!knownStepIds.has(pasoId)) {
-            orphanPhotos.push(...photos);
-          }
-        }
-
         return {
           equipo: entry.equipo,
           tipo_trabajo: entry.tipo_trabajo,
@@ -367,7 +353,6 @@ export default function ReportPdfButton({
           trabajo_realizado: entry.trabajo_realizado,
           observaciones: entry.observaciones,
           steps: stepsWithPhotos,
-          orphanPhotosBase64: orphanPhotos,
           photosBase64: allPhotos, // backward compat
         };
       }),

@@ -80,8 +80,7 @@ export interface PdfReportData {
     trabajo_realizado: string | null;
     observaciones: string | null;
     steps: PdfStepData[];
-    orphanPhotosBase64: PhotoBase64[];
-    /** @deprecated kept for backward compat — use step photos + orphan */
+    /** @deprecated kept for backward compat — use step photos */
     photosBase64: PhotoBase64[];
   }>;
   materials: Array<{ cantidad: number; unidad: string; descripcion: string }>;
@@ -446,19 +445,6 @@ const s = StyleSheet.create({
     fontSize: 6,
     color: GRAY_500,
     marginTop: 1,
-  },
-  // Orphan photos
-  orphanSection: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-  },
-  orphanTitle: {
-    fontSize: 8,
-    fontWeight: 700,
-    color: GRAY_500,
-    textTransform: "uppercase" as const,
-    letterSpacing: 0.4,
-    marginBottom: 4,
   },
   // Empty equipment
   emptyText: {
@@ -1256,7 +1242,6 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                 entry.diagnostico ||
                 entry.trabajo_realizado ||
                 entry.observaciones ||
-                entry.orphanPhotosBase64.length > 0 ||
                 equipComments.length > 0;
 
               return (
@@ -1470,44 +1455,6 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                       </>
                     );
                   })()}
-
-                  {/* Orphan photos */}
-                  {entry.orphanPhotosBase64.length > 0 && (
-                    <View style={s.orphanSection}>
-                      <Text style={s.orphanTitle}>
-                        Fotos adicionales ({entry.orphanPhotosBase64.length})
-                      </Text>
-                      <View style={s.photoGrid}>
-                        {entry.orphanPhotosBase64.map((photo, pIdx) => (
-                          <View key={pIdx} style={s.photoBox} wrap={false}>
-                            {photo.isVideo ? (
-                              <VideoPlaceholder />
-                            ) : (
-                              <Image src={photo.data} style={s.photoImg} />
-                            )}
-                            <Text style={s.photoCaption}>
-                              {photo.etiqueta || "Foto"}
-                              {photo.fecha
-                                ? ` - ${new Date(
-                                    photo.fecha
-                                  ).toLocaleString("es-MX", {
-                                    day: "2-digit",
-                                    month: "short",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                  })}`
-                                : ""}
-                            </Text>
-                            {photo.gps && (
-                              <Text style={s.photoCaption}>
-                                GPS: {photo.gps}
-                              </Text>
-                            )}
-                          </View>
-                        ))}
-                      </View>
-                    </View>
-                  )}
 
                   {/* Admin comments for this equipment */}
                   {equipComments.length > 0 && (
