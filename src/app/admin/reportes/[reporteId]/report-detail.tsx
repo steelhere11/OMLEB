@@ -2449,7 +2449,7 @@ function AdminCorrectivePicker({
         type="button"
         disabled={loadingFallas}
         onClick={loadFallas}
-        className="rounded-[6px] border border-orange-200 bg-orange-50 px-3 py-1.5 text-[12px] font-medium text-orange-700 transition-colors duration-[80ms] hover:bg-orange-100 disabled:opacity-50"
+        className="rounded-[6px] border border-admin-border bg-admin-surface px-3 py-1.5 text-[12px] font-medium text-orange-400 transition-colors duration-[80ms] hover:bg-admin-hover disabled:opacity-50"
       >
         {loadingFallas ? "Cargando..." : "Seleccionar fallas correctivas"}
       </button>
@@ -2465,15 +2465,15 @@ function AdminCorrectivePicker({
   }
 
   return (
-    <div className="rounded-[8px] border border-orange-200 bg-orange-50/50 p-3">
-      <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-orange-700">
+    <div className="rounded-[8px] border border-admin-border bg-admin-surface p-3">
+      <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-text-2">
         Fallas Correctivas
       </h4>
       <div className="max-h-[240px] space-y-1.5 overflow-y-auto">
         {fallas.map((falla) => (
           <label
             key={falla.id}
-            className="flex items-start gap-2 rounded-[6px] px-2 py-1.5 text-[12px] transition-colors duration-[80ms] hover:bg-orange-100/50"
+            className="flex items-start gap-2 rounded-[6px] px-2 py-1.5 text-[12px] transition-colors duration-[80ms] hover:bg-admin-hover"
           >
             <input
               type="checkbox"
@@ -2487,7 +2487,7 @@ function AdminCorrectivePicker({
                 }
                 setSelected(next);
               }}
-              className="mt-0.5 rounded border-orange-300"
+              className="mt-0.5 rounded border-admin-border accent-orange-500"
             />
             <div>
               <span className="font-medium text-text-0">{falla.nombre}</span>
