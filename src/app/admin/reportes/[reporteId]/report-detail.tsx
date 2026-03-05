@@ -649,6 +649,9 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
       <LlegadasAdminSection
         reporteId={reporte.id}
         fotos={reporte.reporte_fotos.filter((f) => f.etiqueta === "llegada" || f.etiqueta === "sitio")}
+        onFlagPhoto={handleFlagPhoto}
+        onDeletePhoto={handleDeletePhoto}
+        onUpdateEtiqueta={handleUpdateEtiqueta}
         onSaved={() => router.refresh()}
       />
 
@@ -1277,7 +1280,7 @@ function RegistroPhotoSlot({
       const formData = new FormData();
       formData.set("reporteId", reporteId);
       formData.set("file", files[i]);
-      formData.set("equipoId", equipoId);
+      if (equipoId) formData.set("equipoId", equipoId);
       formData.set("etiqueta", etiqueta);
       try {
         await adminUploadPhoto(formData);
@@ -1440,107 +1443,51 @@ function PapeletaAdminSection({
 function LlegadasAdminSection({
   reporteId,
   fotos,
+  onFlagPhoto,
+  onDeletePhoto,
+  onUpdateEtiqueta,
   onSaved,
 }: {
   reporteId: string;
   fotos: ReporteFotoData[];
+  onFlagPhoto: (fotoId: string, estatus: FotoEstatusRevision, nota?: string) => Promise<void>;
+  onDeletePhoto: (fotoId: string) => Promise<void>;
+  onUpdateEtiqueta: (fotoId: string, etiqueta: string | null) => Promise<void>;
   onSaved: () => void;
 }) {
-  const [showUpload, setShowUpload] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const llegadaPhotos = fotos.filter((f) => f.etiqueta === "llegada");
+  const sitioPhotos = fotos.filter((f) => f.etiqueta === "sitio");
 
   return (
     <div>
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-[15px] font-semibold text-text-0">Llegadas</h2>
-        <button
-          type="button"
-          onClick={() => { setShowUpload(!showUpload); setUploadError(null); }}
-          className="text-[12px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
-        >
-          {showUpload ? "Cancelar" : "+ Agregar foto"}
-        </button>
-      </div>
+      <h2 className="mb-3 text-[15px] font-semibold text-text-0">Llegadas</h2>
       <div className="rounded-[10px] border border-admin-border bg-admin-surface p-4">
-        {showUpload && (
-          <form
-            className="mb-3 flex flex-wrap items-end gap-2 rounded border border-admin-border-subtle bg-admin-surface-raised p-2"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setUploading(true);
-              setUploadError(null);
-              const fd = new FormData(e.currentTarget);
-              fd.set("reporteId", reporteId);
-              fd.set("etiqueta", "llegada");
-              const result = await adminUploadPhoto(fd);
-              setUploading(false);
-              if (result.error) {
-                setUploadError(result.error);
-              } else {
-                setShowUpload(false);
-                onSaved();
-              }
-            }}
-          >
-            <label className="flex flex-col gap-1 text-[11px] font-medium text-text-2">
-              Archivo
-              <input
-                type="file"
-                name="file"
-                accept="image/*,video/*"
-                required
-                className="w-[180px] text-[11px] file:mr-2 file:rounded file:border-0 file:bg-accent/10 file:px-2 file:py-0.5 file:text-[11px] file:font-medium file:text-accent"
-              />
-            </label>
-            <button
-              type="submit"
-              disabled={uploading}
-              className="rounded bg-accent px-3 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
-            >
-              {uploading ? "Subiendo..." : "Subir"}
-            </button>
-            {uploadError && (
-              <p className="w-full text-[11px] text-red-500">{uploadError}</p>
-            )}
-          </form>
-        )}
-        {fotos.length > 0 ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-            {fotos.map((foto) => {
-              const isVideo = foto.tipo_media === "video";
-              return (
-                <a
-                  key={foto.id}
-                  href={foto.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group relative overflow-hidden rounded-lg border border-admin-border-subtle"
-                >
-                  {isVideo ? (
-                    <div className="flex aspect-[4/3] w-full items-center justify-center bg-gray-100">
-                      <span className="text-[11px] text-text-3">Video</span>
-                    </div>
-                  ) : (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={foto.url}
-                      alt={foto.etiqueta ?? "Llegada"}
-                      className="aspect-[4/3] w-full object-cover transition-transform duration-150 group-hover:scale-105"
-                    />
-                  )}
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-1.5 py-0.5">
-                    <span className="text-[10px] font-medium capitalize text-white">
-                      {foto.etiqueta ?? "llegada"}
-                    </span>
-                  </div>
-                </a>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="text-[13px] text-text-3">Sin fotos de llegada</p>
-        )}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Llegada slot */}
+          <RegistroPhotoSlot
+            label="Llegada"
+            etiqueta="llegada"
+            photos={llegadaPhotos}
+            reporteId={reporteId}
+            equipoId=""
+            onFlagPhoto={onFlagPhoto}
+            onDeletePhoto={onDeletePhoto}
+            onUpdateEtiqueta={onUpdateEtiqueta}
+            onSaved={onSaved}
+          />
+          {/* Sitio slot */}
+          <RegistroPhotoSlot
+            label="Sitio"
+            etiqueta="sitio"
+            photos={sitioPhotos}
+            reporteId={reporteId}
+            equipoId=""
+            onFlagPhoto={onFlagPhoto}
+            onDeletePhoto={onDeletePhoto}
+            onUpdateEtiqueta={onUpdateEtiqueta}
+            onSaved={onSaved}
+          />
+        </div>
       </div>
     </div>
   );
