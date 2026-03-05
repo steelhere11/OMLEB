@@ -2887,7 +2887,6 @@ function StepRow({
   onMoveDown: (() => void) | null;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const [showUpload, setShowUpload] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [uploadEtiqueta, setUploadEtiqueta] = useState("antes");
@@ -2922,10 +2921,10 @@ function StepRow({
   const photoCount = stagePhotos.length;
   const readingCount = readings.length;
 
-  // Auto-expand on edit or upload
+  // Auto-expand on edit
   useEffect(() => {
-    if (isEditing || showUpload) setExpanded(true);
-  }, [isEditing, showUpload]);
+    if (isEditing) setExpanded(true);
+  }, [isEditing]);
 
   return (
     <div className="rounded-[6px] border border-admin-border-subtle px-3 py-2">
@@ -3014,17 +3013,6 @@ function StepRow({
           >
             Editar
           </button>
-          <button
-            type="button"
-            onClick={() => { setShowUpload((v) => !v); setUploadError(null); setExpanded(true); }}
-            className="shrink-0 text-[11px] font-medium text-text-3 transition-colors duration-[80ms] hover:text-accent flex items-center gap-0.5"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Foto
-          </button>
           {isCustom && !isDiagnosis && (
             <button
               type="button"
@@ -3102,80 +3090,38 @@ function StepRow({
                 </div>
               )}
 
-              {/* Inline photo upload form (multi-file) */}
-              {showUpload && (
-                <div className="mb-2 flex flex-wrap items-end gap-2 rounded border border-admin-border-subtle bg-admin-surface-raised p-2">
-                  <input
-                    ref={stepFileInputRef}
-                    type="file"
-                    accept="image/*,video/*"
-                    multiple
-                    className="hidden"
-                    onChange={async (e) => {
-                      const files = e.target.files;
-                      if (!files || files.length === 0) return;
-                      setUploading(true);
-                      setUploadError(null);
-                      let lastError: string | null = null;
-                      for (let i = 0; i < files.length; i++) {
-                        const fd = new FormData();
-                        fd.set("reporteId", reporteId);
-                        fd.set("equipoId", equipoId);
-                        fd.set("reportePasoId", paso.id);
-                        fd.set("file", files[i]);
-                        fd.set("etiqueta", uploadEtiqueta);
-                        const result = await adminUploadPhoto(fd);
-                        if (result.error) lastError = result.error;
-                      }
-                      setUploading(false);
-                      if (stepFileInputRef.current) stepFileInputRef.current.value = "";
-                      if (lastError) {
-                        setUploadError(lastError);
-                      } else {
-                        setShowUpload(false);
-                        onSaved();
-                      }
-                    }}
-                  />
-                  <label className="flex flex-col gap-1 text-[11px] font-medium text-text-2">
-                    Etiqueta
-                    <select
-                      value={uploadEtiqueta}
-                      onChange={(e) => setUploadEtiqueta(e.target.value)}
-                      className="rounded border border-admin-border-subtle bg-admin-surface px-2 py-1 text-[12px] text-text-0"
-                    >
-                      <option value="antes">Antes</option>
-                      <option value="durante">Durante</option>
-                      <option value="despues">Despues</option>
-                      <option value="dano">Dano</option>
-                      <option value="placa">Placa</option>
-                      <option value="progreso">Progreso</option>
-                      <option value="llegada">Llegada</option>
-                      <option value="sitio">Sitio</option>
-                      <option value="equipo_general">Equipo General</option>
-                      <option value="papeleta">Papeleta</option>
-                    </select>
-                  </label>
-                  <button
-                    type="button"
-                    disabled={uploading}
-                    onClick={() => stepFileInputRef.current?.click()}
-                    className="rounded bg-accent px-3 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
-                  >
-                    {uploading ? "Subiendo..." : "Seleccionar fotos"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setShowUpload(false); setUploadError(null); }}
-                    className="text-[11px] font-medium text-text-3 hover:text-text-1"
-                  >
-                    Cancelar
-                  </button>
-                  {uploadError && (
-                    <p className="w-full text-[11px] text-status-error">{uploadError}</p>
-                  )}
-                </div>
-              )}
+              {/* Hidden multi-file input for dashed upload button */}
+              <input
+                ref={stepFileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                className="hidden"
+                onChange={async (e) => {
+                  const files = e.target.files;
+                  if (!files || files.length === 0) return;
+                  setUploading(true);
+                  setUploadError(null);
+                  let lastError: string | null = null;
+                  for (let i = 0; i < files.length; i++) {
+                    const fd = new FormData();
+                    fd.set("reporteId", reporteId);
+                    fd.set("equipoId", equipoId);
+                    fd.set("reportePasoId", paso.id);
+                    fd.set("file", files[i]);
+                    fd.set("etiqueta", uploadEtiqueta);
+                    const result = await adminUploadPhoto(fd);
+                    if (result.error) lastError = result.error;
+                  }
+                  setUploading(false);
+                  if (stepFileInputRef.current) stepFileInputRef.current.value = "";
+                  if (lastError) {
+                    setUploadError(lastError);
+                  } else {
+                    onSaved();
+                  }
+                }}
+              />
 
               {/* Readings */}
               {readings.length > 0 && (
@@ -3207,11 +3153,12 @@ function StepRow({
                         >
                           {etiquetaLabels[stage] ?? stage}
                         </span>
-                        <div className="mt-1 grid grid-cols-3 gap-2">
+                        <div className="mt-1 grid grid-cols-4 gap-2">
                           {stagePhotosArr.map((foto) => (
                             <AdminPhotoCard
                               key={foto.id}
                               foto={foto}
+                              compact
                               onFlag={onFlagPhoto}
                               onDelete={onDeletePhoto}
                               onUpdateEtiqueta={onUpdateEtiqueta}
@@ -3222,6 +3169,42 @@ function StepRow({
                     );
                   })}
                 </div>
+              )}
+
+              {/* Dashed-border upload button (llegadas style) */}
+              <div className="mt-2 flex items-center gap-2 pl-6">
+                <select
+                  value={uploadEtiqueta}
+                  onChange={(e) => setUploadEtiqueta(e.target.value)}
+                  className="rounded border border-admin-border-subtle bg-admin-surface px-2 py-1.5 text-[11px] text-text-1"
+                >
+                  <option value="antes">Antes</option>
+                  <option value="durante">Durante</option>
+                  <option value="despues">Despues</option>
+                  <option value="dano">Dano</option>
+                  <option value="placa">Placa</option>
+                  <option value="progreso">Progreso</option>
+                </select>
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => stepFileInputRef.current?.click()}
+                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-admin-border-subtle px-3 py-2.5 text-[11px] font-medium text-text-3 transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
+                >
+                  {uploading ? (
+                    "Subiendo..."
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
+                      {stagePhotos.length === 0 ? "Agregar foto" : "Agregar otra"}
+                    </>
+                  )}
+                </button>
+              </div>
+              {uploadError && (
+                <p className="mt-1 pl-6 text-[11px] text-status-error">{uploadError}</p>
               )}
             </>
           )}
