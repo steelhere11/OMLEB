@@ -11,6 +11,55 @@ import { z } from "zod";
 import type { ActionState } from "@/types/actions";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+// ── Sync Stock Deductions (auto-deduction helper) ───────────────────────
+
+async function syncStockDeductions(
+  supabase: SupabaseClient,
+  reporteId: string,
+  userId: string,
+  materials: { cantidad: number; catalogo_id?: string | null }[]
+): Promise<void> {
+  // Delete existing 'uso' movimientos for this report
+  await supabase
+    .from("stock_movimientos")
+    .delete()
+    .eq("reporte_id", reporteId)
+    .eq("tipo", "uso");
+
+  // Filter to catalog materials only
+  const catalogMaterials = materials.filter((m) => m.catalogo_id);
+  if (catalogMaterials.length === 0) return;
+
+  // Resolve cuadrilla for the user who created the report
+  // First try: find who created the report
+  const { data: reporte } = await supabase
+    .from("reportes")
+    .select("creado_por")
+    .eq("id", reporteId)
+    .single();
+
+  const techUserId = reporte?.creado_por ?? userId;
+
+  const { data: memberships } = await supabase
+    .from("cuadrilla_miembros")
+    .select("cuadrilla_id")
+    .eq("usuario_id", techUserId);
+
+  const cuadrillaId = memberships && memberships.length > 0 ? memberships[0].cuadrilla_id : null;
+
+  // Insert 'uso' movimientos for each catalog material
+  const usoRows = catalogMaterials.map((m) => ({
+    catalogo_id: m.catalogo_id!,
+    tipo: "uso" as const,
+    cantidad: m.cantidad,
+    cuadrilla_id: cuadrillaId,
+    reporte_id: reporteId,
+    registrado_por: userId,
+  }));
+
+  await supabase.from("stock_movimientos").insert(usoRows);
+}
+
 // ── Get or Create Today's Report ────────────────────────────────────────
 
 export async function getOrCreateTodayReport(
@@ -373,10 +422,10 @@ export async function deepCopyFromPreviousReport(
     await supabase.from("reporte_fotos").insert(newPhotoRows);
   }
 
-  // ── d. Copy reporte_materiales ────────────────────────────────────────
+  // ── d. Copy reporte_materiales (including catalogo_id) ────────────────
   const { data: prevMaterials } = await supabase
     .from("reporte_materiales")
-    .select("cantidad, unidad, descripcion")
+    .select("cantidad, unidad, descripcion, catalogo_id")
     .eq("reporte_id", previousReport.id);
 
   if (prevMaterials && prevMaterials.length > 0) {
@@ -385,6 +434,7 @@ export async function deepCopyFromPreviousReport(
       cantidad: m.cantidad,
       unidad: m.unidad,
       descripcion: m.descripcion,
+      catalogo_id: m.catalogo_id ?? null,
     }));
 
     await supabase.from("reporte_materiales").insert(newMaterialRows);
@@ -489,7 +539,7 @@ export async function removeEquipmentEntry(
 
 export async function saveMaterials(
   reporteId: string,
-  materials: { cantidad: number; unidad: string; descripcion: string }[]
+  materials: { cantidad: number; unidad: string; descripcion: string; catalogo_id?: string | null }[]
 ): Promise<ActionState> {
   const supabase = await createClient();
   const {
@@ -533,6 +583,7 @@ export async function saveMaterials(
       cantidad: m.cantidad,
       unidad: m.unidad,
       descripcion: m.descripcion,
+      catalogo_id: m.catalogo_id || null,
     }));
 
     const { error: insertError } = await supabase
@@ -543,6 +594,9 @@ export async function saveMaterials(
       return { error: "Error al guardar materiales: " + insertError.message };
     }
   }
+
+  // ── Auto-deduction: sync stock_movimientos for catalog materials ──
+  await syncStockDeductions(supabase, reporteId, user.id, materials);
 
   revalidatePath("/tecnico");
   return { success: true, message: "Materiales guardados" };
@@ -735,7 +789,7 @@ export async function adminUpdateEquipmentEntry(
 
 export async function adminSaveMaterials(
   reporteId: string,
-  materials: { cantidad: number; unidad: string; descripcion: string }[]
+  materials: { cantidad: number; unidad: string; descripcion: string; catalogo_id?: string | null }[]
 ): Promise<ActionState> {
   const supabase = await createClient();
   const {
@@ -779,6 +833,7 @@ export async function adminSaveMaterials(
       cantidad: m.cantidad,
       unidad: m.unidad,
       descripcion: m.descripcion,
+      catalogo_id: m.catalogo_id || null,
     }));
 
     const { error: insertError } = await supabase
@@ -789,6 +844,9 @@ export async function adminSaveMaterials(
       return { error: "Error al guardar materiales: " + insertError.message };
     }
   }
+
+  // ── Auto-deduction: sync stock_movimientos for catalog materials ──
+  await syncStockDeductions(supabase, reporteId, user.id, materials);
 
   revalidatePath("/admin/reportes");
   return { success: true, message: "Materiales guardados" };

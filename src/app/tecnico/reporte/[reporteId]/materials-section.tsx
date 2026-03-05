@@ -1,15 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import { saveMaterials } from "@/app/actions/reportes";
 import { Button } from "@/components/ui/button";
 import type { ReporteMaterial } from "@/types";
+import type { MaterialCatalogo } from "@/types/inventory";
 
 interface MaterialRow {
   id: string;
   cantidad: string;
   unidad: string;
   descripcion: string;
+  catalogo_id: string | null;
 }
 
 interface MaterialsSectionProps {
@@ -17,6 +19,7 @@ interface MaterialsSectionProps {
   initialMaterials: ReporteMaterial[];
   isCompleted: boolean;
   onUnsavedChange?: (hasChanges: boolean) => void;
+  catalogo?: MaterialCatalogo[];
 }
 
 const COMMON_UNITS = [
@@ -38,6 +41,7 @@ function createEmptyRow(): MaterialRow {
     cantidad: "",
     unidad: "",
     descripcion: "",
+    catalogo_id: null,
   };
 }
 
@@ -50,14 +54,122 @@ function materialsToRows(materials: ReporteMaterial[]): MaterialRow[] {
     cantidad: String(m.cantidad),
     unidad: m.unidad,
     descripcion: m.descripcion,
+    catalogo_id: m.catalogo_id ?? null,
   }));
 }
+
+// ── Catalog Autocomplete Input ──────────────────────────────────────────
+
+function CatalogAutocomplete({
+  value,
+  catalogoId,
+  catalogo,
+  disabled,
+  onSelect,
+  onFreeText,
+}: {
+  value: string;
+  catalogoId: string | null;
+  catalogo: MaterialCatalogo[];
+  disabled: boolean;
+  onSelect: (item: MaterialCatalogo) => void;
+  onFreeText: (text: string) => void;
+}) {
+  const [query, setQuery] = useState(value);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
+
+  // Sync external value
+  useEffect(() => {
+    setQuery(value);
+  }, [value]);
+
+  const filtered = catalogo.filter((c) =>
+    c.nombre.toLowerCase().includes(query.toLowerCase())
+  );
+
+  return (
+    <div ref={ref} className="relative w-full">
+      <input
+        type="text"
+        placeholder="Buscar material o escribir..."
+        value={query}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setOpen(true);
+          // If user types, clear catalog selection
+          if (catalogoId) {
+            onFreeText(e.target.value);
+          }
+        }}
+        onFocus={() => setOpen(true)}
+        disabled={disabled}
+        className="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-500 disabled:bg-gray-50 disabled:text-gray-500"
+      />
+      {catalogoId && (
+        <span className="absolute right-2 top-1/2 -translate-y-1/2 rounded bg-brand-100 px-1.5 py-0.5 text-[10px] font-medium text-brand-700">
+          Catalogo
+        </span>
+      )}
+
+      {/* Dropdown */}
+      {open && !disabled && query.length > 0 && (
+        <div className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg max-h-48 overflow-y-auto">
+          {filtered.length > 0 && filtered.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => {
+                onSelect(item);
+                setQuery(item.nombre);
+                setOpen(false);
+              }}
+              className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-gray-50 active:bg-gray-100"
+            >
+              <span className="font-medium text-gray-900">{item.nombre}</span>
+              <span className="text-xs text-gray-400">{item.unidad_default}</span>
+            </button>
+          ))}
+          {/* Free-text option */}
+          <button
+            type="button"
+            onClick={() => {
+              onFreeText(query);
+              setOpen(false);
+            }}
+            className="flex w-full items-center gap-2 border-t border-gray-100 px-3 py-2 text-left text-sm text-gray-500 hover:bg-gray-50"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Usar &quot;{query}&quot; como texto libre
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main Component ──────────────────────────────────────────────────────
 
 export function MaterialsSection({
   reporteId,
   initialMaterials,
   isCompleted,
   onUnsavedChange,
+  catalogo = [],
 }: MaterialsSectionProps) {
   const [rows, setRows] = useState<MaterialRow[]>(() =>
     materialsToRows(initialMaterials)
@@ -98,6 +210,33 @@ export function MaterialsSection({
     markChanged();
   };
 
+  const handleCatalogSelect = (rowId: string, item: MaterialCatalogo) => {
+    setRows((prev) =>
+      prev.map((r) =>
+        r.id === rowId
+          ? {
+              ...r,
+              descripcion: item.nombre,
+              unidad: item.unidad_default,
+              catalogo_id: item.id,
+            }
+          : r
+      )
+    );
+    markChanged();
+  };
+
+  const handleFreeText = (rowId: string, text: string) => {
+    setRows((prev) =>
+      prev.map((r) =>
+        r.id === rowId
+          ? { ...r, descripcion: text, catalogo_id: null }
+          : r
+      )
+    );
+    markChanged();
+  };
+
   const handleSave = () => {
     setValidationError(null);
     setError(null);
@@ -131,6 +270,7 @@ export function MaterialsSection({
       cantidad: parseFloat(r.cantidad),
       unidad: r.unidad.trim(),
       descripcion: r.descripcion.trim(),
+      catalogo_id: r.catalogo_id,
     }));
 
     startTransition(async () => {
@@ -146,6 +286,8 @@ export function MaterialsSection({
       setTimeout(() => setSaved(false), 3000);
     });
   };
+
+  const hasCatalog = catalogo.length > 0;
 
   return (
     <div className="space-y-3">
@@ -203,6 +345,27 @@ export function MaterialsSection({
               )}
             </div>
 
+            {/* Description — catalog autocomplete or plain text */}
+            {hasCatalog ? (
+              <CatalogAutocomplete
+                value={row.descripcion}
+                catalogoId={row.catalogo_id}
+                catalogo={catalogo}
+                disabled={isCompleted}
+                onSelect={(item) => handleCatalogSelect(row.id, item)}
+                onFreeText={(text) => handleFreeText(row.id, text)}
+              />
+            ) : (
+              <input
+                type="text"
+                placeholder="Descripcion del material"
+                value={row.descripcion}
+                onChange={(e) => updateRow(row.id, "descripcion", e.target.value)}
+                disabled={isCompleted}
+                className="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-500 disabled:bg-gray-50 disabled:text-gray-500"
+              />
+            )}
+
             {/* Cantidad + Unidad on same line */}
             <div className="flex gap-2">
               <input
@@ -222,20 +385,12 @@ export function MaterialsSection({
                 placeholder="Unidad (pza, m, kg...)"
                 value={row.unidad}
                 onChange={(e) => updateRow(row.id, "unidad", e.target.value)}
-                disabled={isCompleted}
-                className="w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-2 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-500 disabled:bg-gray-50 disabled:text-gray-500"
+                disabled={isCompleted || !!row.catalogo_id}
+                className={`w-0 flex-1 rounded-lg border border-gray-300 px-2.5 py-2 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-500 disabled:bg-gray-50 disabled:text-gray-500 ${
+                  row.catalogo_id ? "bg-gray-50 text-gray-500" : ""
+                }`}
               />
             </div>
-
-            {/* Descripcion on its own line */}
-            <input
-              type="text"
-              placeholder="Descripcion del material"
-              value={row.descripcion}
-              onChange={(e) => updateRow(row.id, "descripcion", e.target.value)}
-              disabled={isCompleted}
-              className="w-full rounded-lg border border-gray-300 px-2.5 py-2 text-base placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-brand-500 disabled:bg-gray-50 disabled:text-gray-500"
-            />
           </div>
         ))}
       </div>

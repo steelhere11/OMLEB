@@ -57,8 +57,8 @@ export default async function ReporteDetailPage({
     );
   }
 
-  // Fetch team members, tipos_equipo, comments, and revisions in parallel
-  const [{ data: asignados }, { data: tiposEquipo }, { data: comentarios }, revisions] = await Promise.all([
+  // Fetch team members, tipos_equipo, comments, revisions, required materials, and catalog in parallel
+  const [{ data: asignados }, { data: tiposEquipo }, { data: comentarios }, revisions, { data: materialesRequeridos }, { data: catalogoData }] = await Promise.all([
     supabase
       .from("orden_asignados")
       .select("usuario_id, users(nombre, rol)")
@@ -73,6 +73,16 @@ export default async function ReporteDetailPage({
       .eq("reporte_id", reporteId)
       .order("created_at", { ascending: true }),
     getRevisionHistory(reporteId),
+    supabase
+      .from("materiales_requeridos")
+      .select("*")
+      .eq("reporte_id", reporteId)
+      .order("created_at"),
+    supabase
+      .from("materiales_catalogo")
+      .select("id, nombre, unidad_default")
+      .eq("activo", true)
+      .order("nombre"),
   ]);
 
   const teamMembers =
@@ -100,7 +110,15 @@ export default async function ReporteDetailPage({
         ← Reportes
       </Link>
 
-      <ReportDetail reporte={reporte} teamMembers={teamMembers} tiposEquipo={tiposEquipo ?? []} comments={comments} revisions={revisions} />
+      <ReportDetail
+        reporte={reporte}
+        teamMembers={teamMembers}
+        tiposEquipo={tiposEquipo ?? []}
+        comments={comments}
+        revisions={revisions}
+        materialesRequeridos={materialesRequeridos ?? []}
+        catalogo={catalogoData ?? []}
+      />
     </div>
   );
 }

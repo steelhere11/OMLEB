@@ -21,6 +21,7 @@ import type {
   ReporteEstatus,
   TipoEquipo,
   ReporteFoto,
+  MaterialCatalogo,
 } from "@/types";
 import type { RegistrationEntry, CommentWithAuthor, FlaggedPhotoSummary } from "./page";
 
@@ -60,6 +61,7 @@ interface ReportFormProps {
   adminComments: CommentWithAuthor[];
   flaggedPhotos: FlaggedPhotoSummary[];
   equipoListForComments: Array<{ id: string; etiqueta: string }>;
+  catalogo?: MaterialCatalogo[];
 }
 
 const rolLabels: Record<string, string> = {
@@ -93,6 +95,7 @@ export function ReportForm({
   adminComments,
   flaggedPhotos,
   equipoListForComments,
+  catalogo,
 }: ReportFormProps) {
   const router = useRouter();
   const [showRefreshBanner, setShowRefreshBanner] = useState(false);
@@ -390,6 +393,7 @@ export function ReportForm({
           initialMaterials={initialMaterials}
           isCompleted={isCompleted}
           onUnsavedChange={setHasUnsavedChanges}
+          catalogo={catalogo}
         />
 
         {/* Divider */}

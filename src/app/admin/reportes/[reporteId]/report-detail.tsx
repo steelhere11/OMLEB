@@ -26,6 +26,8 @@ import { AdminCustomStepForm } from "@/components/admin/admin-custom-step-form";
 import { deleteCustomStep, getCorrectiveIssues, saveCorrectiveSelection } from "@/app/actions/workflows";
 import type { FallaCorrectiva } from "@/types";
 import { AdminEquipmentInfoEditor } from "@/components/admin/admin-equipment-info-editor";
+import { addMaterialRequerido, updateEstatusMaterial, deleteMaterialRequerido } from "@/app/actions/materiales-requeridos";
+import type { MaterialRequeridoEstatus } from "@/types/inventory";
 import { CommentSection } from "@/components/admin/comment-section";
 import { RevisionHistoryPanel } from "@/components/admin/revision-history-panel";
 import { createRevision } from "@/app/actions/admin-revisions";
@@ -124,6 +126,7 @@ interface ReporteMaterialData {
   cantidad: number;
   unidad: string;
   descripcion: string;
+  catalogo_id?: string | null;
 }
 
 interface ReporteData {
@@ -167,12 +170,33 @@ interface CommentWithAuthor extends ReporteComentario {
   autor_nombre?: string;
 }
 
+interface MaterialRequeridoData {
+  id: string;
+  reporte_id: string;
+  catalogo_id: string | null;
+  descripcion: string;
+  cantidad: number;
+  unidad: string;
+  prioridad: string;
+  estatus: string;
+  notas: string | null;
+  created_at: string;
+}
+
+interface CatalogoItem {
+  id: string;
+  nombre: string;
+  unidad_default: string;
+}
+
 export interface ReportDetailProps {
   reporte: ReporteData;
   teamMembers: TeamMember[];
   tiposEquipo: TipoEquipo[];
   comments: CommentWithAuthor[];
   revisions: RevisionWithAuthor[];
+  materialesRequeridos?: MaterialRequeridoData[];
+  catalogo?: CatalogoItem[];
 }
 
 // ---------- Status config ----------
@@ -228,7 +252,7 @@ function formatRol(rol: string): string {
 
 // ---------- Component ----------
 
-export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revisions }: ReportDetailProps) {
+export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revisions, materialesRequeridos = [], catalogo = [] }: ReportDetailProps) {
   const router = useRouter();
   const status = statusConfig[reporte.estatus] ?? statusConfig.en_progreso;
   const orden = reporte.ordenes_servicio;
@@ -721,6 +745,13 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
         onEdit={() => setEditingMaterials(true)}
         onCancelEdit={() => setEditingMaterials(false)}
         onSaved={() => { setEditingMaterials(false); router.refresh(); }}
+      />
+
+      {/* Required Materials */}
+      <RequiredMaterialsSection
+        reporteId={reporte.id}
+        materialesRequeridos={materialesRequeridos}
+        catalogo={catalogo}
       />
 
       {/* Signature */}
@@ -1367,6 +1398,7 @@ interface MaterialRow {
   cantidad: number;
   unidad: string;
   descripcion: string;
+  catalogo_id?: string | null;
 }
 
 function MaterialsSection({
@@ -1431,6 +1463,7 @@ function MaterialsSection({
       cantidad: Number(r.cantidad),
       unidad: r.unidad,
       descripcion: r.descripcion,
+      catalogo_id: r.catalogo_id ?? null,
     }));
 
     startTransition(async () => {
@@ -1603,6 +1636,252 @@ function MaterialsSection({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------- Required Materials Section ----------
+
+function RequiredMaterialsSection({
+  reporteId,
+  materialesRequeridos,
+  catalogo,
+}: {
+  reporteId: string;
+  materialesRequeridos: MaterialRequeridoData[];
+  catalogo: CatalogoItem[];
+}) {
+  const router = useRouter();
+  const [items, setItems] = useState(materialesRequeridos);
+  const [showForm, setShowForm] = useState(false);
+  const [descripcion, setDescripcion] = useState("");
+  const [catalogoId, setCatalogoId] = useState("");
+  const [cantidad, setCantidad] = useState("");
+  const [unidad, setUnidad] = useState("");
+  const [prioridad, setPrioridad] = useState<"normal" | "urgente">("normal");
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setItems(materialesRequeridos);
+  }, [materialesRequeridos]);
+
+  const resetForm = () => {
+    setDescripcion("");
+    setCatalogoId("");
+    setCantidad("");
+    setUnidad("");
+    setPrioridad("normal");
+    setShowForm(false);
+    setError(null);
+  };
+
+  const handleCatalogoChange = (id: string) => {
+    setCatalogoId(id);
+    const item = catalogo.find((c) => c.id === id);
+    if (item) {
+      setDescripcion(item.nombre);
+      setUnidad(item.unidad_default);
+    }
+  };
+
+  const handleAdd = () => {
+    setError(null);
+    startTransition(async () => {
+      const result = await addMaterialRequerido({
+        reporte_id: reporteId,
+        catalogo_id: catalogoId || undefined,
+        descripcion,
+        cantidad: parseFloat(cantidad) || 0,
+        unidad,
+        prioridad,
+      });
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      resetForm();
+      router.refresh();
+    });
+  };
+
+  const handleUpdateStatus = (id: string, newStatus: MaterialRequeridoEstatus) => {
+    startTransition(async () => {
+      const result = await updateEstatusMaterial(id, newStatus);
+      if (result.success) {
+        setItems((prev) =>
+          prev.map((i) => (i.id === id ? { ...i, estatus: newStatus } : i))
+        );
+      }
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    startTransition(async () => {
+      const result = await deleteMaterialRequerido(id);
+      if (result.success) {
+        setItems((prev) => prev.filter((i) => i.id !== id));
+      }
+    });
+  };
+
+  const statusBadge: Record<string, string> = {
+    pendiente: "bg-status-error/10 text-status-error",
+    en_camino: "bg-status-warning/10 text-status-warning",
+    recibido: "bg-status-success/10 text-status-success",
+  };
+
+  const statusLabel: Record<string, string> = {
+    pendiente: "Pendiente",
+    en_camino: "En Camino",
+    recibido: "Recibido",
+  };
+
+  return (
+    <div>
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-[15px] font-semibold text-text-0">
+          Materiales Requeridos ({items.length})
+        </h2>
+        <button
+          type="button"
+          onClick={() => setShowForm(true)}
+          className="text-[12px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
+        >
+          + Agregar
+        </button>
+      </div>
+
+      {/* Add form */}
+      {showForm && (
+        <div className="mb-3 rounded-[10px] border border-admin-border bg-admin-surface p-3 space-y-2">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <select
+              value={catalogoId}
+              onChange={(e) => handleCatalogoChange(e.target.value)}
+              className="rounded-[6px] border border-admin-border bg-admin-bg px-3 py-1.5 text-[13px] text-text-0"
+            >
+              <option value="">Del catalogo (opcional)...</option>
+              {catalogo.map((c) => (
+                <option key={c.id} value={c.id}>{c.nombre}</option>
+              ))}
+            </select>
+            <input
+              type="text"
+              placeholder="Descripcion"
+              value={descripcion}
+              onChange={(e) => setDescripcion(e.target.value)}
+              className="rounded-[6px] border border-admin-border bg-admin-bg px-3 py-1.5 text-[13px] text-text-0 placeholder:text-text-3"
+            />
+          </div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <input
+              type="number"
+              placeholder="Cantidad"
+              value={cantidad}
+              onChange={(e) => setCantidad(e.target.value)}
+              min="0"
+              step="any"
+              className="rounded-[6px] border border-admin-border bg-admin-bg px-3 py-1.5 text-[13px] text-text-0 placeholder:text-text-3"
+            />
+            <input
+              type="text"
+              placeholder="Unidad"
+              value={unidad}
+              onChange={(e) => setUnidad(e.target.value)}
+              className="rounded-[6px] border border-admin-border bg-admin-bg px-3 py-1.5 text-[13px] text-text-0 placeholder:text-text-3"
+            />
+            <select
+              value={prioridad}
+              onChange={(e) => setPrioridad(e.target.value as "normal" | "urgente")}
+              className="rounded-[6px] border border-admin-border bg-admin-bg px-3 py-1.5 text-[13px] text-text-0"
+            >
+              <option value="normal">Normal</option>
+              <option value="urgente">Urgente</option>
+            </select>
+          </div>
+          {error && <p className="text-[12px] text-status-error">{error}</p>}
+          <div className="flex gap-2">
+            <button
+              onClick={handleAdd}
+              disabled={isPending || !descripcion.trim() || !cantidad || !unidad.trim()}
+              className="rounded-[6px] bg-accent px-3 py-1 text-[12px] font-medium text-white transition-colors hover:bg-accent/90 disabled:opacity-50"
+            >
+              {isPending ? "Agregando..." : "Agregar"}
+            </button>
+            <button
+              onClick={resetForm}
+              className="text-[12px] font-medium text-text-2 transition-colors hover:text-text-0"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* List */}
+      {items.length === 0 ? (
+        <div className="rounded-[10px] border border-admin-border bg-admin-surface p-4 text-center">
+          <p className="text-[13px] text-text-3">Sin materiales requeridos</p>
+        </div>
+      ) : (
+        <div className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-surface">
+          {items.map((item, i) => (
+            <div
+              key={item.id}
+              className={`flex items-center gap-2 px-[14px] py-[10px] transition-colors hover:bg-admin-surface-hover${i > 0 ? " row-inset-divider" : ""}`}
+            >
+              {item.prioridad === "urgente" && (
+                <span className="shrink-0 rounded-full bg-status-error/10 px-1.5 py-0.5 text-[9px] font-bold text-status-error">
+                  URG
+                </span>
+              )}
+              <div className="flex-1 min-w-0">
+                <span className="text-[13px] font-medium text-text-0">
+                  {item.descripcion}
+                </span>
+                <span className="ml-1.5 text-[12px] text-text-2">
+                  {item.cantidad} {item.unidad}
+                </span>
+              </div>
+              <span
+                className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${statusBadge[item.estatus] ?? ""}`}
+              >
+                {statusLabel[item.estatus] ?? item.estatus}
+              </span>
+              <div className="flex items-center gap-0.5 shrink-0">
+                {item.estatus === "pendiente" && (
+                  <button
+                    onClick={() => handleUpdateStatus(item.id, "en_camino")}
+                    disabled={isPending}
+                    className="rounded px-1.5 py-0.5 text-[10px] font-medium text-status-warning hover:bg-status-warning/10"
+                  >
+                    →Camino
+                  </button>
+                )}
+                {item.estatus !== "recibido" && (
+                  <button
+                    onClick={() => handleUpdateStatus(item.id, "recibido")}
+                    disabled={isPending}
+                    className="rounded px-1.5 py-0.5 text-[10px] font-medium text-status-success hover:bg-status-success/10"
+                  >
+                    →Recibido
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDelete(item.id)}
+                  disabled={isPending}
+                  className="rounded p-0.5 text-text-3 hover:bg-status-error/10 hover:text-status-error"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

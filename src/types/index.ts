@@ -136,6 +136,7 @@ export interface ReporteMaterial {
   cantidad: number;
   unidad: string;
   descripcion: string;
+  catalogo_id: string | null;
 }
 
 export interface ReporteComentario {
@@ -164,6 +165,22 @@ export interface ReporteRevision {
   cambios: CambioRevision[];
   created_at: string;
 }
+
+// Re-export inventory types from inventory.ts
+export type {
+  Cuadrilla,
+  CuadrillaMiembro,
+  MaterialCategoria,
+  MaterialCatalogo,
+  StockMovimientoTipo,
+  StockFuente,
+  StockMovimiento,
+  MaterialRequeridoPrioridad,
+  MaterialRequeridoEstatus,
+  MaterialRequerido,
+  StockResumen,
+  CuadrillaStock,
+} from "./inventory";
 
 // Re-export workflow types from workflows.ts
 export type {

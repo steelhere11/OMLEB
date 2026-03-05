@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { ReportForm } from "./report-form";
-import type { ReporteEstatus, ReporteEquipo, Equipo, ReporteMaterial, TipoEquipo, ReporteFoto, ReporteComentario } from "@/types";
+import type { ReporteEstatus, ReporteEquipo, Equipo, ReporteMaterial, TipoEquipo, ReporteFoto, ReporteComentario, MaterialCatalogo } from "@/types";
 
 export type CommentWithAuthor = ReporteComentario & {
   autor_nombre?: string;
@@ -83,8 +83,15 @@ export default async function ReportePage({
   // Fetch materials
   const { data: materials } = await supabase
     .from("reporte_materiales")
-    .select("id, reporte_id, cantidad, unidad, descripcion")
+    .select("id, reporte_id, cantidad, unidad, descripcion, catalogo_id")
     .eq("reporte_id", reporteId);
+
+  // Fetch active materials catalog for autocomplete
+  const { data: catalogoData } = await supabase
+    .from("materiales_catalogo")
+    .select("*")
+    .eq("activo", true)
+    .order("nombre");
 
   const sucursalId = typedReport.sucursal_id;
   const ordenServicioId = typedReport.orden_servicio_id;
@@ -373,6 +380,7 @@ export default async function ReportePage({
       adminComments={adminComments}
       flaggedPhotos={flaggedPhotoSummaries}
       equipoListForComments={equipoListForComments}
+      catalogo={(catalogoData as MaterialCatalogo[]) ?? []}
     />
   );
 }
