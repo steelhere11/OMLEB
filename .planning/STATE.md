@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 Phase: 10 (Feature Expansion) -- COMPLETE
 Plan: 7 of 7 in current phase (all complete)
 Status: Phase 10 complete. All feature phases done.
-Last activity: 2026-03-05 -- Completed quick-004 (Restructure Equipment Photos + Admin Registro)
+Last activity: 2026-03-05 -- Completed quick-005 (Fix Speech-to-Text Not Populating Textbox on Safari/iOS)
 
 Progress: [███████████████████████████] 100% (31/31 feature plans complete)
 
@@ -84,6 +84,7 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | isCustom-type-propagation | Added isCustom to ReportPdfButtonProps step type for explicit type tracking through PDF data pipeline | 10-07 |
 | remove-tech-general-photos | Removed redundant general photos section from tech equipment entry form; workflow steps handle all evidence | quick-004 |
 | registro-equipos-replaces-fotos-generales | Replaced admin Fotos Generales with structured per-equipment Registro de Equipos section | quick-004 |
+| continuous-false-auto-restart | Use continuous=false with auto-restart in onend instead of continuous=true, because Safari/iOS silently fails with continuous=true | quick-005 |
 
 ### Pending Todos
 
@@ -106,9 +107,10 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | 002 | Live GPS/date/time overlay on video recording screen | 2026-03-02 | 045ee4f | [002-video-location-datetime-legend-overlay](./quick/002-video-location-datetime-legend-overlay/) |
 | 003 | Admin full control: equipment removal + signature management on reports | 2026-03-03 | b6c7f91 | [003-admin-full-control-reports-equipment-signature](./quick/003-admin-full-control-reports-equipment-signature/) |
 | 004 | Restructure equipment photos: remove tech general photos, add admin Registro de Equipos section | 2026-03-05 | baa557e | [004-restructure-equipment-photos-admin-registro](./quick/004-restructure-equipment-photos-admin-registro/) |
+| 005 | Fix speech-to-text not populating textbox on Safari/iOS (continuous=false + auto-restart) | 2026-03-05 | 686694c | [005-fix-speech-to-text-not-populating-textbox](./quick/005-fix-speech-to-text-not-populating-textbox/) |
 
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: Completed quick-004. Restructured equipment photos -- removed tech general photos, added admin Registro de Equipos section.
+Stopped at: Completed quick-005. Fixed speech-to-text on Safari/iOS -- continuous=false with auto-restart in onend.
 Resume file: None
