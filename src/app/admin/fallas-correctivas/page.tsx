@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { DeleteButton } from "@/components/admin/delete-button";
-import { deleteFallaCorrectiva } from "@/app/actions/fallas-correctivas";
+import { CollapsibleList } from "./collapsible-list";
 import type { FallaCorrectiva, TipoEquipo } from "@/types";
 
 export default async function FallasCorrectivasPage() {
@@ -70,70 +69,11 @@ export default async function FallasCorrectivasPage() {
           </Link>
         </div>
       ) : (
-        <div className="space-y-6">
-          {slugOrder.map((slug) => (
-            <div key={slug}>
-              {/* Group header */}
-              <h2 className="mb-2 text-[13px] font-semibold uppercase tracking-[0.04em] text-text-2">
-                {tiposMap[slug] ?? slug}
-              </h2>
-
-              <div className="overflow-hidden rounded-[10px] border border-admin-border bg-admin-surface">
-                {/* Header row */}
-                <div className="flex items-center border-b border-admin-border-subtle px-[14px] py-[10px] text-[11px] font-medium uppercase tracking-[0.04em] text-text-2">
-                  <div className="flex-1">Nombre</div>
-                  <div className="hidden w-[260px] sm:block">Diagnostico</div>
-                  <div className="w-[120px] text-right">Acciones</div>
-                </div>
-
-                {/* Data rows */}
-                {grouped[slug].map((falla, i) => (
-                  <div
-                    key={falla.id}
-                    className={`flex items-center px-[14px] py-[9px] transition-colors duration-[80ms] hover:bg-admin-surface-hover${i > 0 ? " row-inset-divider" : ""}`}
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[13px] font-medium text-text-0">
-                        {falla.nombre}
-                      </p>
-                      {/* Show evidence count + materials count as subtle badges */}
-                      <div className="mt-0.5 flex gap-2">
-                        {falla.evidencia_requerida.length > 0 && (
-                          <span className="text-[11px] text-text-3">
-                            {falla.evidencia_requerida.length} evidencia{falla.evidencia_requerida.length !== 1 ? "s" : ""}
-                          </span>
-                        )}
-                        {falla.materiales_tipicos.length > 0 && (
-                          <span className="text-[11px] text-text-3">
-                            {falla.materiales_tipicos.length} material{falla.materiales_tipicos.length !== 1 ? "es" : ""}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="hidden w-[260px] sm:block">
-                      <p className="line-clamp-2 text-[13px] text-text-2">
-                        {falla.diagnostico}
-                      </p>
-                    </div>
-                    <div className="flex w-[120px] items-center justify-end gap-3">
-                      <Link
-                        href={`/admin/fallas-correctivas/${falla.id}/editar`}
-                        className="text-[13px] font-medium text-accent transition-colors duration-[80ms] hover:text-text-0"
-                      >
-                        Editar
-                      </Link>
-                      <DeleteButton
-                        id={falla.id}
-                        action={deleteFallaCorrectiva}
-                        confirmMessage="¿Eliminar esta falla correctiva?"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        <CollapsibleList
+          grouped={grouped}
+          slugOrder={slugOrder}
+          tiposMap={tiposMap}
+        />
       )}
     </div>
   );
