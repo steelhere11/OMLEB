@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 Phase: 10 (Feature Expansion) -- COMPLETE
 Plan: 7 of 7 in current phase (all complete)
 Status: Phase 10 complete. All feature phases done.
-Last activity: 2026-03-02 -- Completed 10-07-PLAN.md (Integration, Testing & Cleanup)
+Last activity: 2026-03-05 -- Completed quick-004 (Restructure Equipment Photos + Admin Registro)
 
 Progress: [███████████████████████████] 100% (31/31 feature plans complete)
 
@@ -82,6 +82,8 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | purple-custom-badge | Custom steps visually distinguished with purple badge and purple-tinted styling | 10-06 |
 | annotation-no-auto-revision | Photo annotation does not auto-create a revision entry; admin manually summarizes changes via revision modal | 10-07 |
 | isCustom-type-propagation | Added isCustom to ReportPdfButtonProps step type for explicit type tracking through PDF data pipeline | 10-07 |
+| remove-tech-general-photos | Removed redundant general photos section from tech equipment entry form; workflow steps handle all evidence | quick-004 |
+| registro-equipos-replaces-fotos-generales | Replaced admin Fotos Generales with structured per-equipment Registro de Equipos section | quick-004 |
 
 ### Pending Todos
 
@@ -103,9 +105,10 @@ Decisions from V1 build carried forward -- see PROJECT.md for full list.
 | 001 | Video support on technician side with same legend layout as photos | 2026-03-01 | bd71c83 | [001-video-support-technician-photo-layout](./quick/001-video-support-technician-photo-layout/) |
 | 002 | Live GPS/date/time overlay on video recording screen | 2026-03-02 | 045ee4f | [002-video-location-datetime-legend-overlay](./quick/002-video-location-datetime-legend-overlay/) |
 | 003 | Admin full control: equipment removal + signature management on reports | 2026-03-03 | b6c7f91 | [003-admin-full-control-reports-equipment-signature](./quick/003-admin-full-control-reports-equipment-signature/) |
+| 004 | Restructure equipment photos: remove tech general photos, add admin Registro de Equipos section | 2026-03-05 | baa557e | [004-restructure-equipment-photos-admin-registro](./quick/004-restructure-equipment-photos-admin-registro/) |
 
 ## Session Continuity
 
-Last session: 2026-03-03
-Stopped at: Completed quick-003. Admin full control over reports (equipment removal + signature management).
+Last session: 2026-03-05
+Stopped at: Completed quick-004. Restructured equipment photos -- removed tech general photos, added admin Registro de Equipos section.
 Resume file: None
