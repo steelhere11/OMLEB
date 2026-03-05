@@ -200,7 +200,7 @@ export default async function ReportePage({
 
   const REQUIRED_REG_FIELDS = ["marca", "modelo", "numero_serie", "capacidad", "refrigerante", "voltaje", "fase", "ubicacion"] as const;
 
-  const registrationEntries: RegistrationEntry[] = typedEntries.map((entry) => {
+  const registrationEntries: RegistrationEntry[] = typedEntries.filter((entry) => entry.tipo_trabajo === "preventivo").map((entry) => {
     const equipoPhotos = registrationPhotos.filter(
       (p) => p.equipo_id === entry.equipo_id
     );

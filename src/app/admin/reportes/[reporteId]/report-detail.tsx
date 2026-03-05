@@ -629,7 +629,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
       <RegistroEquiposSection
         reporteId={reporte.id}
         equipmentEntries={reporte.reporte_equipos
-          .filter((e) => e.equipos)
+          .filter((e) => e.equipos && e.tipo_trabajo === "preventivo")
           .map((e) => ({
             equipo_id: e.equipo_id,
             numero_etiqueta: e.equipos!.numero_etiqueta,
