@@ -132,6 +132,71 @@ export async function getOrCreateTodayReport(
   };
 }
 
+// ── Auto-load Preventive Template Steps ───────────────────────────────
+
+async function autoLoadPreventiveSteps(
+  supabase: SupabaseClient,
+  reporteEquipoEntries: { id: string; equipo_id: string; tipo_trabajo: string }[]
+): Promise<void> {
+  // Filter to preventivo entries only
+  const prevEntries = reporteEquipoEntries.filter((e) => e.tipo_trabajo === "preventivo");
+  if (prevEntries.length === 0) return;
+
+  // Get tipo_equipo slugs for each equipment
+  const equipoIds = [...new Set(prevEntries.map((e) => e.equipo_id))];
+  const { data: equipos } = await supabase
+    .from("equipos")
+    .select("id, tipo_equipo_id, tipos_equipo:tipo_equipo_id(slug)")
+    .in("id", equipoIds);
+
+  if (!equipos) return;
+
+  // Build equipo_id → slug map
+  const slugMap = new Map<string, string>();
+  for (const eq of equipos) {
+    // Supabase FK join returns object or null for many-to-one
+    const te = eq.tipos_equipo as unknown as { slug: string } | null;
+    if (te?.slug && te.slug !== "otro") {
+      slugMap.set(eq.id, te.slug);
+    }
+  }
+
+  // For each preventivo entry with a valid slug, load template steps
+  for (const entry of prevEntries) {
+    const slug = slugMap.get(entry.equipo_id);
+    if (!slug) continue;
+
+    // Check if steps already exist for this entry
+    const { count } = await supabase
+      .from("reporte_pasos")
+      .select("id", { count: "exact", head: true })
+      .eq("reporte_equipo_id", entry.id);
+
+    if (count && count > 0) continue;
+
+    // Fetch templates
+    const { data: templates } = await supabase
+      .from("plantillas_pasos")
+      .select("id, orden")
+      .eq("tipo_equipo_slug", slug)
+      .eq("tipo_mantenimiento", "preventivo")
+      .order("orden", { ascending: true });
+
+    if (!templates || templates.length === 0) continue;
+
+    // Insert reporte_pasos rows
+    const pasoRows = templates.map((t) => ({
+      reporte_equipo_id: entry.id,
+      plantilla_paso_id: t.id,
+      completado: false,
+      lecturas: {},
+      orden: t.orden,
+    }));
+
+    await supabase.from("reporte_pasos").insert(pasoRows);
+  }
+}
+
 // ── Deep Copy from Previous Report ────────────────────────────────────
 
 export async function deepCopyFromPreviousReport(
@@ -163,7 +228,15 @@ export async function deepCopyFromPreviousReport(
         equipo_id: oe.equipo_id,
         tipo_trabajo: "preventivo",
       }));
-      await supabase.from("reporte_equipos").insert(newEntries);
+      const { data: inserted } = await supabase
+        .from("reporte_equipos")
+        .insert(newEntries)
+        .select("id, equipo_id, tipo_trabajo");
+
+      // Auto-load preventive template steps for first-day entries
+      if (inserted && inserted.length > 0) {
+        await autoLoadPreventiveSteps(supabase, inserted);
+      }
     }
     return;
   }
@@ -187,7 +260,15 @@ export async function deepCopyFromPreviousReport(
         equipo_id: oe.equipo_id,
         tipo_trabajo: "preventivo",
       }));
-      await supabase.from("reporte_equipos").insert(newEntries);
+      const { data: inserted } = await supabase
+        .from("reporte_equipos")
+        .insert(newEntries)
+        .select("id, equipo_id, tipo_trabajo");
+
+      // Auto-load preventive template steps for first-day entries
+      if (inserted && inserted.length > 0) {
+        await autoLoadPreventiveSteps(supabase, inserted);
+      }
     }
     return;
   }
@@ -606,6 +687,13 @@ export async function adminUpdateEquipmentEntry(
     observaciones: result.data.observaciones || null,
   };
 
+  // Fetch old tipo_trabajo before updating
+  const { data: oldEntry } = await supabase
+    .from("reporte_equipos")
+    .select("tipo_trabajo, equipo_id")
+    .eq("id", entryId)
+    .single();
+
   const { error } = await supabase
     .from("reporte_equipos")
     .update(data)
@@ -613,6 +701,30 @@ export async function adminUpdateEquipmentEntry(
 
   if (error) {
     return { error: "Error al actualizar entrada: " + error.message };
+  }
+
+  // Handle tipo_trabajo change — reload workflow steps
+  if (oldEntry && oldEntry.tipo_trabajo !== data.tipo_trabajo) {
+    // Delete template-based steps (preserve custom steps)
+    await supabase
+      .from("reporte_pasos")
+      .delete()
+      .eq("reporte_equipo_id", entryId)
+      .not("plantilla_paso_id", "is", null);
+
+    // Delete corrective steps (preserve custom steps)
+    await supabase
+      .from("reporte_pasos")
+      .delete()
+      .eq("reporte_equipo_id", entryId)
+      .not("falla_correctiva_id", "is", null);
+
+    // If switching to preventivo, auto-load template steps
+    if (data.tipo_trabajo === "preventivo") {
+      await autoLoadPreventiveSteps(supabase, [
+        { id: entryId, equipo_id: oldEntry.equipo_id, tipo_trabajo: "preventivo" },
+      ]);
+    }
   }
 
   revalidatePath("/admin/reportes");
@@ -1059,4 +1171,65 @@ export async function adminUpdateSignature(
 
   revalidatePath("/admin/reportes");
   return { success: true, message: firma_encargado ? "Firma guardada" : "Firma eliminada" };
+}
+
+// ── Admin: Load Template Steps for Equipment Entry ───────────────────
+
+export async function adminLoadTemplateSteps(
+  reporteEquipoId: string,
+  tipoEquipoSlug: string
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.app_metadata?.rol !== "admin") {
+    return { error: "No autorizado" };
+  }
+
+  if (!tipoEquipoSlug || tipoEquipoSlug === "otro") {
+    return { error: "No hay plantillas disponibles para este tipo de equipo" };
+  }
+
+  // Check no template steps already exist
+  const { count } = await supabase
+    .from("reporte_pasos")
+    .select("id", { count: "exact", head: true })
+    .eq("reporte_equipo_id", reporteEquipoId)
+    .not("plantilla_paso_id", "is", null);
+
+  if (count && count > 0) {
+    return { error: "Ya existen pasos de plantilla para esta entrada" };
+  }
+
+  // Fetch templates
+  const { data: templates } = await supabase
+    .from("plantillas_pasos")
+    .select("id, orden")
+    .eq("tipo_equipo_slug", tipoEquipoSlug)
+    .eq("tipo_mantenimiento", "preventivo")
+    .order("orden", { ascending: true });
+
+  if (!templates || templates.length === 0) {
+    return { error: "No hay plantillas disponibles para este tipo de equipo" };
+  }
+
+  // Insert reporte_pasos rows
+  const pasoRows = templates.map((t) => ({
+    reporte_equipo_id: reporteEquipoId,
+    plantilla_paso_id: t.id,
+    completado: false,
+    lecturas: {},
+    orden: t.orden,
+  }));
+
+  const { error } = await supabase.from("reporte_pasos").insert(pasoRows);
+
+  if (error) {
+    return { error: "Error al cargar plantillas: " + error.message };
+  }
+
+  revalidatePath("/admin/reportes");
+  return { success: true, message: `${templates.length} pasos cargados` };
 }

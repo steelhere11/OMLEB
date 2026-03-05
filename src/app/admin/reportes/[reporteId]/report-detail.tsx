@@ -15,6 +15,7 @@ import {
   adminRemoveEquipmentEntry,
   adminUpdateSignature,
   adminReorderSteps,
+  adminLoadTemplateSteps,
 } from "@/app/actions/reportes";
 import { adminFlagPhoto, adminDeletePhoto, adminUploadPhoto, adminUpdateEtiqueta, backfillOrphanPhotos } from "@/app/actions/fotos";
 import { ReporteDeleteButton } from "@/components/admin/reporte-delete-button";
@@ -22,7 +23,8 @@ import { AdminPhotoCard } from "@/components/admin/admin-photo-card";
 import { AdminPhotoUpload } from "@/components/admin/admin-photo-upload";
 import { AdminStepEditor } from "@/components/admin/admin-step-editor";
 import { AdminCustomStepForm } from "@/components/admin/admin-custom-step-form";
-import { deleteCustomStep } from "@/app/actions/workflows";
+import { deleteCustomStep, getCorrectiveIssues, saveCorrectiveSelection } from "@/app/actions/workflows";
+import type { FallaCorrectiva } from "@/types";
 import { AdminEquipmentInfoEditor } from "@/components/admin/admin-equipment-info-editor";
 import { CommentSection } from "@/components/admin/comment-section";
 import { RevisionHistoryPanel } from "@/components/admin/revision-history-panel";
@@ -73,6 +75,7 @@ interface ReporteEquipoData {
     voltaje: string | null;
     fase: string | null;
     ubicacion: string | null;
+    tipos_equipo: { slug: string; nombre: string } | null;
   } | null;
   reporte_pasos: ReportePasoData[];
 }
@@ -85,6 +88,8 @@ interface ReportePasoData {
   completed_at: string | null;
   nombre_custom: string | null;
   orden: number | null;
+  plantilla_paso_id: string | null;
+  falla_correctiva_id: string | null;
   plantillas_pasos: {
     nombre: string;
     procedimiento: string;
@@ -1791,9 +1796,23 @@ function EquipmentCard({
         />
       )}
 
-      {/* Add custom step when no workflow steps exist yet */}
+      {/* Workflow step loaders when no template/corrective steps exist yet */}
       {entry.reporte_pasos.length === 0 && (
-        <div className="mt-3">
+        <div className="mt-3 space-y-3">
+          {entry.tipo_trabajo === "preventivo" && (
+            <AdminTemplateLoader
+              entry={entry}
+              tiposEquipo={tiposEquipo}
+              onLoaded={onStepSaved}
+            />
+          )}
+          {entry.tipo_trabajo === "correctivo" && (
+            <AdminCorrectivePicker
+              entry={entry}
+              tiposEquipo={tiposEquipo}
+              onSaved={onStepSaved}
+            />
+          )}
           <AdminCustomStepForm
             reporteEquipoId={entry.id}
             onStepAdded={onStepSaved}
@@ -1840,6 +1859,201 @@ function EquipmentCard({
       </div>
     </div>
   );
+}
+
+// ---------- Admin Template Loader (preventivo) ----------
+
+function AdminTemplateLoader({
+  entry,
+  tiposEquipo,
+  onLoaded,
+}: {
+  entry: ReporteEquipoData;
+  tiposEquipo: TipoEquipo[];
+  onLoaded: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  const slug = resolveSlug(entry, tiposEquipo);
+
+  if (!slug || slug === "otro") {
+    return (
+      <p className="text-[12px] text-text-3">
+        No hay plantillas disponibles — asigna un tipo de equipo para cargar pasos automáticamente.
+      </p>
+    );
+  }
+
+  return (
+    <div>
+      <button
+        type="button"
+        disabled={loading}
+        onClick={async () => {
+          setLoading(true);
+          setError(null);
+          const result = await adminLoadTemplateSteps(entry.id, slug);
+          setLoading(false);
+          if (result.error) {
+            setError(result.error);
+          } else {
+            router.refresh();
+            onLoaded();
+          }
+        }}
+        className="rounded-[6px] border border-blue-200 bg-blue-50 px-3 py-1.5 text-[12px] font-medium text-blue-700 transition-colors duration-[80ms] hover:bg-blue-100 disabled:opacity-50"
+      >
+        {loading ? "Cargando..." : "Cargar pasos de plantilla preventiva"}
+      </button>
+      {error && <p className="mt-1 text-[12px] text-red-600">{error}</p>}
+    </div>
+  );
+}
+
+// ---------- Admin Corrective Picker ----------
+
+function AdminCorrectivePicker({
+  entry,
+  tiposEquipo,
+  onSaved,
+}: {
+  entry: ReporteEquipoData;
+  tiposEquipo: TipoEquipo[];
+  onSaved: () => void;
+}) {
+  const [fallas, setFallas] = useState<FallaCorrectiva[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [loadingFallas, setLoadingFallas] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  const slug = resolveSlug(entry, tiposEquipo);
+
+  // Pre-select fallas that already have reporte_pasos rows
+  useEffect(() => {
+    const existingFallas = new Set(
+      entry.reporte_pasos
+        .filter((p) => p.falla_correctiva_id)
+        .map((p) => p.falla_correctiva_id!)
+    );
+    setSelected(existingFallas);
+  }, [entry.reporte_pasos]);
+
+  const loadFallas = useCallback(async () => {
+    if (!slug || slug === "otro") return;
+    setLoadingFallas(true);
+    const issues = await getCorrectiveIssues(slug);
+    setFallas(issues);
+    setLoadingFallas(false);
+    setLoaded(true);
+  }, [slug]);
+
+  if (!slug || slug === "otro") {
+    return (
+      <p className="text-[12px] text-text-3">
+        No hay fallas correctivas disponibles — asigna un tipo de equipo.
+      </p>
+    );
+  }
+
+  if (!loaded) {
+    return (
+      <button
+        type="button"
+        disabled={loadingFallas}
+        onClick={loadFallas}
+        className="rounded-[6px] border border-orange-200 bg-orange-50 px-3 py-1.5 text-[12px] font-medium text-orange-700 transition-colors duration-[80ms] hover:bg-orange-100 disabled:opacity-50"
+      >
+        {loadingFallas ? "Cargando..." : "Seleccionar fallas correctivas"}
+      </button>
+    );
+  }
+
+  if (fallas.length === 0) {
+    return (
+      <p className="text-[12px] text-text-3">
+        No hay fallas correctivas disponibles para este tipo de equipo.
+      </p>
+    );
+  }
+
+  return (
+    <div className="rounded-[8px] border border-orange-200 bg-orange-50/50 p-3">
+      <h4 className="mb-2 text-[12px] font-semibold uppercase tracking-[0.04em] text-orange-700">
+        Fallas Correctivas
+      </h4>
+      <div className="max-h-[240px] space-y-1.5 overflow-y-auto">
+        {fallas.map((falla) => (
+          <label
+            key={falla.id}
+            className="flex items-start gap-2 rounded-[6px] px-2 py-1.5 text-[12px] transition-colors duration-[80ms] hover:bg-orange-100/50"
+          >
+            <input
+              type="checkbox"
+              checked={selected.has(falla.id)}
+              onChange={(e) => {
+                const next = new Set(selected);
+                if (e.target.checked) {
+                  next.add(falla.id);
+                } else {
+                  next.delete(falla.id);
+                }
+                setSelected(next);
+              }}
+              className="mt-0.5 rounded border-orange-300"
+            />
+            <div>
+              <span className="font-medium text-text-0">{falla.nombre}</span>
+              {falla.diagnostico && (
+                <p className="mt-0.5 text-[11px] text-text-2">{falla.diagnostico}</p>
+              )}
+            </div>
+          </label>
+        ))}
+      </div>
+      <div className="mt-2 flex items-center gap-2">
+        <button
+          type="button"
+          disabled={saving}
+          onClick={async () => {
+            setSaving(true);
+            setError(null);
+            const result = await saveCorrectiveSelection(entry.id, [...selected]);
+            setSaving(false);
+            if (result.error) {
+              setError(result.error);
+            } else {
+              router.refresh();
+              onSaved();
+            }
+          }}
+          className="rounded-[6px] bg-orange-500 px-3 py-1 text-[12px] font-medium text-white transition-colors duration-[80ms] hover:bg-orange-600 disabled:opacity-50"
+        >
+          {saving ? "Guardando..." : `Guardar selección (${selected.size})`}
+        </button>
+        {error && <span className="text-[12px] text-red-600">{error}</span>}
+      </div>
+    </div>
+  );
+}
+
+// ---------- Resolve equipment type slug helper ----------
+
+function resolveSlug(entry: ReporteEquipoData, tiposEquipo: TipoEquipo[]): string | null {
+  // Try from the joined tipos_equipo first
+  if (entry.equipos?.tipos_equipo?.slug) {
+    return entry.equipos.tipos_equipo.slug;
+  }
+  // Fallback: look up via tipo_equipo_id in the tiposEquipo array
+  if (entry.equipos?.tipo_equipo_id) {
+    const found = tiposEquipo.find((t) => t.id === entry.equipos!.tipo_equipo_id);
+    if (found) return found.slug;
+  }
+  return null;
 }
 
 // ---------- Equipment Edit Form ----------
