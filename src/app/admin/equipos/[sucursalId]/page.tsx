@@ -23,14 +23,14 @@ export default async function EquiposSucursalPage({
 
   const branch = sucursal as Sucursal;
 
-  // Fetch equipment for this branch
+  // Fetch equipment for this branch (join tipos_equipo for resolved name)
   const { data: equipos } = await supabase
     .from("equipos")
-    .select("*")
+    .select("*, tipos_equipo:tipo_equipo_id(nombre)")
     .eq("sucursal_id", sucursalId)
     .order("numero_etiqueta");
 
-  const list = (equipos as Equipo[] | null) ?? [];
+  const list = (equipos as (Equipo & { tipos_equipo: { nombre: string } | null })[] | null) ?? [];
 
   // Fetch report reference counts for each equipment
   const equipoIds = list.map((e) => e.id);
@@ -128,7 +128,7 @@ export default async function EquiposSucursalPage({
                 {equipo.numero_serie ?? "—"}
               </div>
               <div className="flex-1 text-[13px] text-text-1">
-                {equipo.tipo_equipo ?? "—"}
+                {equipo.tipos_equipo?.nombre ?? equipo.tipo_equipo ?? "—"}
               </div>
               <div className="w-[100px]">
                 {equipo.revisado ? (

@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { GroupedEquipoTypeSelect } from "@/components/ui/grouped-equipo-type-select";
 import type { TipoEquipo } from "@/types";
 import type { ActionState } from "@/types/actions";
 import { REFRIGERANTES, VOLTAJES, FASES } from "@/lib/constants/nameplate-options";
 import { UBICACIONES_BBVA } from "@/lib/constants/ubicaciones";
+import { FORMA_FACTORES, SLUGS_WITH_FORMA_FACTOR } from "@/lib/constants/equipment-taxonomy";
 
 interface CreateEquipoFormProps {
   sucursalId: string;
@@ -27,9 +29,12 @@ export function CreateEquipoForm({ sucursalId, tiposEquipo }: CreateEquipoFormPr
 
   const [selectedTipoId, setSelectedTipoId] = useState("");
   const [customTipoText, setCustomTipoText] = useState("");
+  const [selectedFormaFactor, setSelectedFormaFactor] = useState("");
 
   const otroTipo = tiposEquipo.find((t) => t.slug === "otro");
   const isOtroSelected = selectedTipoId === otroTipo?.id;
+  const selectedSlug = tiposEquipo.find((t) => t.id === selectedTipoId)?.slug;
+  const showFormaFactor = selectedSlug ? SLUGS_WITH_FORMA_FACTOR.has(selectedSlug) : false;
 
   useEffect(() => {
     if (state?.success) {
@@ -81,6 +86,8 @@ export function CreateEquipoForm({ sucursalId, tiposEquipo }: CreateEquipoFormPr
                 : tiposEquipo.find((t) => t.id === selectedTipoId)?.nombre ?? ""
             }
           />
+          {/* Hidden forma_factor */}
+          <input type="hidden" name="forma_factor" value={showFormaFactor ? selectedFormaFactor : ""} />
 
           <div>
             <Label
@@ -105,24 +112,19 @@ export function CreateEquipoForm({ sucursalId, tiposEquipo }: CreateEquipoFormPr
             <Label htmlFor="tipo_equipo_select" className="text-[13px] text-text-1">
               Tipo de equipo
             </Label>
-            <Select
+            <GroupedEquipoTypeSelect
               id="tipo_equipo_select"
+              tiposEquipo={tiposEquipo}
               value={selectedTipoId}
               onChange={(e) => {
                 setSelectedTipoId(e.target.value);
                 if (e.target.value !== otroTipo?.id) {
                   setCustomTipoText("");
                 }
+                setSelectedFormaFactor("");
               }}
-              className="mt-1.5 admin-input"
-            >
-              <option value="">Seleccionar tipo...</option>
-              {tiposEquipo.map((tipo) => (
-                <option key={tipo.id} value={tipo.id}>
-                  {tipo.nombre}
-                </option>
-              ))}
-            </Select>
+              className="mt-1.5 block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base min-h-[48px] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 focus:border-brand-500 admin-input"
+            />
             {isOtroSelected && (
               <div className="mt-2">
                 <Input
@@ -134,6 +136,27 @@ export function CreateEquipoForm({ sucursalId, tiposEquipo }: CreateEquipoFormPr
               </div>
             )}
           </div>
+
+          {showFormaFactor && (
+            <div>
+              <Label htmlFor="forma_factor" className="text-[13px] text-text-1">
+                Forma / Factor
+              </Label>
+              <Select
+                id="forma_factor"
+                value={selectedFormaFactor}
+                onChange={(e) => setSelectedFormaFactor(e.target.value)}
+                className="mt-1.5 admin-input"
+              >
+                <option value="">Seleccionar...</option>
+                {FORMA_FACTORES.map((f) => (
+                  <option key={f.value} value={f.value}>
+                    {f.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          )}
 
           <div>
             <Label htmlFor="marca" className="text-[13px] text-text-1">

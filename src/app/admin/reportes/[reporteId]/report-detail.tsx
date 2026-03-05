@@ -72,6 +72,7 @@ interface ReporteEquipoData {
     numero_serie: string | null;
     tipo_equipo: string | null;
     tipo_equipo_id: string | null;
+    forma_factor: string | null;
     capacidad: string | null;
     refrigerante: string | null;
     voltaje: string | null;
@@ -2021,6 +2022,7 @@ function EquipmentCard({
             modelo: equipo.modelo,
             numero_serie: equipo.numero_serie,
             tipo_equipo_id: equipo.tipo_equipo_id,
+            forma_factor: equipo.forma_factor,
             capacidad: equipo.capacidad,
             refrigerante: equipo.refrigerante,
             voltaje: equipo.voltaje,

@@ -4,6 +4,7 @@ import type { Equipo, Sucursal } from "@/types";
 
 type EquipoWithRelations = Equipo & {
   sucursales: Pick<Sucursal, "nombre" | "numero"> | null;
+  tipos_equipo: { nombre: string } | null;
   orden_equipos: {
     orden_servicio_id: string;
     ordenes_servicio: { numero_orden: string; estatus: string } | null;
@@ -16,7 +17,7 @@ export default async function EquiposPage() {
   const { data: equipos } = await supabase
     .from("equipos")
     .select(
-      "*, sucursales(nombre, numero), orden_equipos(orden_servicio_id, ordenes_servicio:orden_servicio_id(numero_orden, estatus))"
+      "*, sucursales(nombre, numero), tipos_equipo:tipo_equipo_id(nombre), orden_equipos(orden_servicio_id, ordenes_servicio:orden_servicio_id(numero_orden, estatus))"
     )
     .order("created_at", { ascending: false });
 
@@ -125,7 +126,7 @@ export default async function EquiposPage() {
                         {equipo.modelo ?? "—"}
                       </div>
                       <div className="w-[100px] text-[13px] text-text-1">
-                        {equipo.tipo_equipo ?? "—"}
+                        {equipo.tipos_equipo?.nombre ?? equipo.tipo_equipo ?? "—"}
                       </div>
                       <div className="flex-1 text-[13px] text-text-2">
                         {ordenCount === 0

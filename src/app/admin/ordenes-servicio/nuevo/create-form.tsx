@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { GroupedEquipoTypeOptions } from "@/components/ui/grouped-equipo-type-select";
 import { createClient } from "@/lib/supabase/client";
 import type { ActionState } from "@/types/actions";
 import type { Sucursal, Cliente, User, Equipo, TipoEquipo } from "@/types";
@@ -427,12 +428,7 @@ export function CreateOrdenForm({
                         required
                       />
                       <Select id="new-equipo-tipo" className="admin-select">
-                        <option value="">Tipo de equipo...</option>
-                        {tiposEquipo.map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {t.nombre}
-                          </option>
-                        ))}
+                        <GroupedEquipoTypeOptions tiposEquipo={tiposEquipo} />
                       </Select>
                       <div className="grid grid-cols-2 gap-2">
                         <Input id="new-equipo-marca" placeholder="Marca" />

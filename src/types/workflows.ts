@@ -9,6 +9,7 @@ export interface TipoEquipo {
   id: string;
   slug: string;
   nombre: string;
+  categoria: string | null;
   is_system: boolean;
   created_at: string;
 }
@@ -19,6 +20,19 @@ export type TipoEquipoSlug =
   | "mini_split_exterior"
   | "mini_chiller"
   | "fan_coil"
+  | "multi_split_interior"
+  | "vrf_interior"
+  | "vrf_exterior"
+  | "manejadora_aire"
+  | "chiller_aire"
+  | "chiller_agua"
+  | "bomba_agua_helada"
+  | "torre_enfriamiento"
+  | "paquete_rooftop"
+  | "unidad_ventana"
+  | "cortina_aire"
+  | "extractor"
+  | "deshumidificador"
   | "otro"
   | string; // allows admin-created types
 

@@ -5,7 +5,7 @@ import { createEquipoForOrden } from "@/app/actions/equipos";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
+import { GroupedEquipoTypeSelect } from "@/components/ui/grouped-equipo-type-select";
 import type { TipoEquipo } from "@/types";
 import type { ActionState } from "@/types/actions";
 
@@ -147,13 +147,14 @@ export function AddEquipmentModal({
             />
           </div>
 
-          {/* Tipo de equipo (dropdown) */}
+          {/* Tipo de equipo (grouped dropdown) */}
           <div>
             <Label htmlFor="modal-tipo-equipo" className="mb-1.5">
               Tipo de Equipo
             </Label>
-            <Select
+            <GroupedEquipoTypeSelect
               id="modal-tipo-equipo"
+              tiposEquipo={tiposEquipo}
               value={selectedTipoId}
               onChange={(e) => {
                 setSelectedTipoId(e.target.value);
@@ -161,14 +162,8 @@ export function AddEquipmentModal({
                   setCustomTipoText("");
                 }
               }}
-            >
-              <option value="">Seleccionar tipo...</option>
-              {tiposEquipo.map((tipo) => (
-                <option key={tipo.id} value={tipo.id}>
-                  {tipo.nombre}
-                </option>
-              ))}
-            </Select>
+              className="block w-full rounded-lg border border-gray-300 px-3 py-2.5 text-base min-h-[48px] transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-brand-400 focus:border-brand-500"
+            />
             {isOtroSelected && (
               <div className="mt-2">
                 <Input

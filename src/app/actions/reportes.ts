@@ -1090,6 +1090,7 @@ export async function adminUpdateEquipmentInfo(
     modelo?: string;
     numero_serie?: string;
     tipo_equipo_id?: string;
+    forma_factor?: string;
     capacidad?: string;
     refrigerante?: string;
     voltaje?: string;
@@ -1113,6 +1114,7 @@ export async function adminUpdateEquipmentInfo(
     "marca",
     "modelo",
     "numero_serie",
+    "forma_factor",
     "capacidad",
     "refrigerante",
     "voltaje",

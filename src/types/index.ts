@@ -38,6 +38,7 @@ export interface Equipo {
   numero_serie: string | null;
   tipo_equipo: string | null;
   tipo_equipo_id: string | null;
+  forma_factor: string | null;
   agregado_por: string | null;
   revisado: boolean;
   capacidad: string | null;

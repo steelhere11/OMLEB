@@ -23,7 +23,7 @@ export default async function ReporteDetailPage({
       users:creado_por(nombre, rol),
       reporte_equipos(
         *,
-        equipos(id, numero_etiqueta, marca, modelo, numero_serie, tipo_equipo, tipo_equipo_id, capacidad, refrigerante, voltaje, fase, ubicacion, tipos_equipo:tipo_equipo_id(slug, nombre)),
+        equipos(id, numero_etiqueta, marca, modelo, numero_serie, tipo_equipo, tipo_equipo_id, forma_factor, capacidad, refrigerante, voltaje, fase, ubicacion, tipos_equipo:tipo_equipo_id(slug, nombre)),
         reporte_pasos(*, plantillas_pasos(nombre, procedimiento, lecturas_requeridas, orden), fallas_correctivas(nombre, diagnostico))
       ),
       reporte_fotos(*),
@@ -65,7 +65,8 @@ export default async function ReporteDetailPage({
       .eq("orden_servicio_id", reporte.orden_servicio_id),
     supabase
       .from("tipos_equipo")
-      .select("id, slug, nombre, is_system, created_at")
+      .select("id, slug, nombre, categoria, is_system, created_at")
+      .order("categoria", { ascending: true, nullsFirst: false })
       .order("nombre"),
     supabase
       .from("reporte_comentarios")

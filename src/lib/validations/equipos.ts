@@ -57,6 +57,11 @@ export const equipoSchema = z.object({
     .max(100, { error: "La ubicacion no puede exceder 100 caracteres" })
     .optional()
     .or(z.literal("")),
+  forma_factor: z
+    .string()
+    .max(50, { error: "La forma/factor no puede exceder 50 caracteres" })
+    .optional()
+    .or(z.literal("")),
 });
 
 export type EquipoInput = z.infer<typeof equipoSchema>;
@@ -116,6 +121,11 @@ export const equipoForOrdenSchema = z.object({
     .max(100, { error: "La ubicacion no puede exceder 100 caracteres" })
     .optional()
     .or(z.literal("")),
+  forma_factor: z
+    .string()
+    .max(50, { error: "La forma/factor no puede exceder 50 caracteres" })
+    .optional()
+    .or(z.literal("")),
 });
 
 export type EquipoForOrdenInput = z.infer<typeof equipoForOrdenSchema>;
@@ -162,6 +172,11 @@ export const equipmentRegistrationSchema = z.object({
   ubicacion: z
     .string()
     .max(100, { error: "La ubicacion no puede exceder 100 caracteres" })
+    .optional()
+    .or(z.literal("")),
+  forma_factor: z
+    .string()
+    .max(50, { error: "La forma/factor no puede exceder 50 caracteres" })
     .optional()
     .or(z.literal("")),
 });

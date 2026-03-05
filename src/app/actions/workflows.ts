@@ -71,7 +71,7 @@ export async function getTiposEquipo(): Promise<TipoEquipo[]> {
   const { data, error } = await supabase
     .from("tipos_equipo")
     .select("*")
-    .order("is_system", { ascending: false })
+    .order("categoria", { ascending: true, nullsFirst: false })
     .order("nombre", { ascending: true });
 
   if (error) return [];

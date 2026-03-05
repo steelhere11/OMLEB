@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import type { TipoEquipo } from "@/types";
 import { REFRIGERANTES, VOLTAJES, FASES } from "@/lib/constants/nameplate-options";
 import { UBICACIONES_BBVA } from "@/lib/constants/ubicaciones";
+import { FORMA_FACTORES, SLUGS_WITH_FORMA_FACTOR } from "@/lib/constants/equipment-taxonomy";
+import { GroupedEquipoTypeSelect } from "@/components/ui/grouped-equipo-type-select";
 
 // ---------- Types ----------
 
@@ -13,6 +15,7 @@ interface EquipoForEdit {
   modelo: string | null;
   numero_serie: string | null;
   tipo_equipo_id: string | null;
+  forma_factor: string | null;
   capacidad: string | null;
   refrigerante: string | null;
   voltaje: string | null;
@@ -28,6 +31,7 @@ interface AdminEquipmentInfoEditorProps {
     modelo?: string;
     numero_serie?: string;
     tipo_equipo_id?: string;
+    forma_factor?: string;
     capacidad?: string;
     refrigerante?: string;
     voltaje?: string;
@@ -49,7 +53,11 @@ export function AdminEquipmentInfoEditor({
   const [modelo, setModelo] = useState(equipo.modelo ?? "");
   const [numeroSerie, setNumeroSerie] = useState(equipo.numero_serie ?? "");
   const [tipoEquipoId, setTipoEquipoId] = useState(equipo.tipo_equipo_id ?? "");
+  const [formaFactor, setFormaFactor] = useState(equipo.forma_factor ?? "");
   const [capacidad, setCapacidad] = useState(equipo.capacidad ?? "");
+
+  const selectedSlug = tiposEquipo.find((t) => t.id === tipoEquipoId)?.slug;
+  const showFormaFactor = selectedSlug ? SLUGS_WITH_FORMA_FACTOR.has(selectedSlug) : false;
   const [refrigerante, setRefrigerante] = useState(equipo.refrigerante ?? "");
   const [voltaje, setVoltaje] = useState(equipo.voltaje ?? "");
   const [fase, setFase] = useState(equipo.fase ?? "");
@@ -67,6 +75,7 @@ export function AdminEquipmentInfoEditor({
           modelo,
           numero_serie: numeroSerie,
           tipo_equipo_id: tipoEquipoId,
+          forma_factor: showFormaFactor ? formaFactor : "",
           capacidad,
           refrigerante,
           voltaje,
@@ -127,22 +136,38 @@ export function AdminEquipmentInfoEditor({
           />
         </div>
 
-        {/* Tipo equipo dropdown */}
+        {/* Tipo equipo grouped dropdown */}
         <div>
           <label className={labelClass}>Tipo de Equipo</label>
-          <select
+          <GroupedEquipoTypeSelect
+            tiposEquipo={tiposEquipo}
             value={tipoEquipoId}
-            onChange={(e) => setTipoEquipoId(e.target.value)}
+            onChange={(e) => {
+              setTipoEquipoId(e.target.value);
+              setFormaFactor("");
+            }}
             className={inputClass}
-          >
-            <option value="">-- Sin tipo --</option>
-            {tiposEquipo.map((tipo) => (
-              <option key={tipo.id} value={tipo.id}>
-                {tipo.nombre}
-              </option>
-            ))}
-          </select>
+          />
         </div>
+
+        {/* Forma/Factor dropdown (conditional) */}
+        {showFormaFactor && (
+          <div>
+            <label className={labelClass}>Forma / Factor</label>
+            <select
+              value={formaFactor}
+              onChange={(e) => setFormaFactor(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">-- Sin forma --</option>
+              {FORMA_FACTORES.map((f) => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {/* Capacidad */}
         <div>

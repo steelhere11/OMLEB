@@ -76,6 +76,8 @@ export async function createEquipo(
   if (fase && fase !== "") insertData.fase = fase;
   const ubicacion = formData.get("ubicacion") as string;
   if (ubicacion && ubicacion !== "") insertData.ubicacion = ubicacion;
+  const formaFactor = formData.get("forma_factor") as string;
+  if (formaFactor && formaFactor !== "") insertData.forma_factor = formaFactor;
 
   // 4. Insert into database
   const { data: equipo, error: dbError } = await supabase
@@ -159,6 +161,8 @@ export async function updateEquipo(
   updateData.fase = fase && fase !== "" ? fase : null;
   const ubicacion = formData.get("ubicacion") as string;
   updateData.ubicacion = ubicacion && ubicacion !== "" ? ubicacion : null;
+  const formaFactor = formData.get("forma_factor") as string;
+  updateData.forma_factor = formaFactor && formaFactor !== "" ? formaFactor : null;
 
   const { error: dbError } = await supabase
     .from("equipos")
@@ -312,6 +316,8 @@ export async function createEquipoForOrden(
   if (fase && fase !== "") insertData.fase = fase;
   const ubicacion = formData.get("ubicacion") as string;
   if (ubicacion && ubicacion !== "") insertData.ubicacion = ubicacion;
+  const formaFactor = formData.get("forma_factor") as string;
+  if (formaFactor && formaFactor !== "") insertData.forma_factor = formaFactor;
 
   // 4. Insert equipment
   const { data: equipo, error: dbError } = await supabase
@@ -437,6 +443,8 @@ export async function createEquipoFromField(
   if (fase && fase !== "") insertData.fase = fase;
   const ubicacion = formData.get("ubicacion") as string;
   if (ubicacion && ubicacion !== "") insertData.ubicacion = ubicacion;
+  const formaFactor = formData.get("forma_factor") as string;
+  if (formaFactor && formaFactor !== "") insertData.forma_factor = formaFactor;
 
   // 4. Insert into database
   const { data: equipo, error: dbError } = await supabase
