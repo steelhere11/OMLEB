@@ -94,6 +94,20 @@ export default async function ReportePage({
     .eq("activo", true)
     .order("nombre");
 
+  // Fetch material usage frequency (all users) for autocomplete sorting
+  const { data: materialFreqData } = await supabase
+    .from("reporte_materiales")
+    .select("catalogo_id")
+    .not("catalogo_id", "is", null);
+
+  const materialFrequency: Record<string, number> = {};
+  if (materialFreqData) {
+    for (const row of materialFreqData) {
+      const cid = row.catalogo_id as string;
+      materialFrequency[cid] = (materialFrequency[cid] ?? 0) + 1;
+    }
+  }
+
   const sucursalId = typedReport.sucursal_id;
   const ordenServicioId = typedReport.orden_servicio_id;
 
@@ -383,6 +397,7 @@ export default async function ReportePage({
       flaggedPhotos={flaggedPhotoSummaries}
       equipoListForComments={equipoListForComments}
       catalogo={(catalogoData as MaterialCatalogo[]) ?? []}
+      materialFrequency={materialFrequency}
     />
   );
 }

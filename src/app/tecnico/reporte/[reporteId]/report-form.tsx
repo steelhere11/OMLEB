@@ -62,6 +62,7 @@ interface ReportFormProps {
   flaggedPhotos: FlaggedPhotoSummary[];
   equipoListForComments: Array<{ id: string; etiqueta: string }>;
   catalogo?: MaterialCatalogo[];
+  materialFrequency?: Record<string, number>;
 }
 
 const rolLabels: Record<string, string> = {
@@ -96,6 +97,7 @@ export function ReportForm({
   flaggedPhotos,
   equipoListForComments,
   catalogo,
+  materialFrequency,
 }: ReportFormProps) {
   const router = useRouter();
   const [showRefreshBanner, setShowRefreshBanner] = useState(false);
@@ -399,6 +401,7 @@ export function ReportForm({
           isCompleted={isCompleted}
           onUnsavedChange={setHasUnsavedChanges}
           catalogo={catalogo}
+          materialFrequency={materialFrequency}
         />
 
         {/* Divider */}

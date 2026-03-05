@@ -6,6 +6,7 @@ import { PhotoSourcePicker } from "@/components/shared/photo-source-picker";
 import { CameraCapture } from "@/components/shared/camera-capture";
 import { VideoCapture } from "@/components/shared/video-capture";
 import { EvidenceStageSection } from "@/components/shared/evidence-stage-section";
+import { VoiceInput } from "@/components/shared/voice-input";
 import { getPhotosForStep } from "@/app/actions/fotos";
 import { deletePhotoAction } from "@/app/actions/fotos";
 import { compressAndUpload } from "@/lib/photo-uploader";
@@ -55,6 +56,7 @@ export function CustomStepCard({
   const [showCamera, setShowCamera] = useState(false);
   const [showVideoCapture, setShowVideoCapture] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [queuedCount, setQueuedCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load existing photos for this step
@@ -153,7 +155,12 @@ export function CustomStepCard({
   };
 
   const handleCameraCapture = useCallback(
-    (result: { url: string; fotoId: string; gps: string | null; fecha: string }) => {
+    (result: { url: string; fotoId: string; gps: string | null; fecha: string; queued?: boolean }) => {
+      if (result.queued) {
+        setQueuedCount((c) => c + 1);
+        setShowCamera(false);
+        return;
+      }
       setPhotos((prev) => [
         ...prev,
         {
@@ -177,7 +184,12 @@ export function CustomStepCard({
   );
 
   const handleVideoCapture = useCallback(
-    (result: { url: string; fotoId: string; gps: string | null; fecha: string }) => {
+    (result: { url: string; fotoId: string; gps: string | null; fecha: string; queued?: boolean }) => {
+      if (result.queued) {
+        setQueuedCount((c) => c + 1);
+        setShowVideoCapture(false);
+        return;
+      }
       setPhotos((prev) => [
         ...prev,
         {
@@ -221,23 +233,27 @@ export function CustomStepCard({
         });
 
         if (result.success) {
-          setPhotos((prev) => [
-            ...prev,
-            {
-              id: result.fotoId,
-              reporte_id: reporteId,
-              equipo_id: equipoId,
-              reporte_paso_id: step.id,
-              url: result.url,
-              etiqueta: label as ReporteFoto["etiqueta"],
-              tipo_media: isVideo ? ("video" as const) : ("foto" as const),
-              estatus_revision: "pendiente" as const,
-              nota_admin: null,
-              metadata_gps: null,
-              metadata_fecha: new Date().toISOString(),
-              created_at: new Date().toISOString(),
-            },
-          ]);
+          if ("queued" in result && result.queued) {
+            setQueuedCount((c) => c + 1);
+          } else {
+            setPhotos((prev) => [
+              ...prev,
+              {
+                id: result.fotoId,
+                reporte_id: reporteId,
+                equipo_id: equipoId,
+                reporte_paso_id: step.id,
+                url: result.url,
+                etiqueta: label as ReporteFoto["etiqueta"],
+                tipo_media: isVideo ? ("video" as const) : ("foto" as const),
+                estatus_revision: "pendiente" as const,
+                nota_admin: null,
+                metadata_gps: null,
+                metadata_fecha: new Date().toISOString(),
+                created_at: new Date().toISOString(),
+              },
+            ]);
+          }
         }
       }
 
@@ -363,11 +379,28 @@ export function CustomStepCard({
             disabled={isCompleted}
           />
 
+          {/* Queued uploads indicator */}
+          {queuedCount > 0 && (
+            <div className="flex items-center gap-1.5 rounded-input bg-yellow-50 border border-yellow-200 px-2.5 py-1.5 text-label text-yellow-700">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+              </svg>
+              {queuedCount} {queuedCount === 1 ? "foto en cola" : "fotos en cola"} — se subiran con conexion
+            </div>
+          )}
+
           {/* Notes */}
           <div>
-            <p className="text-label font-medium text-tech-text-muted mb-1.5">
-              Notas del paso
-            </p>
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-label font-medium text-tech-text-muted">
+                Notas del paso
+              </p>
+              <VoiceInput
+                currentValue={notas}
+                onTranscript={setNotas}
+                disabled={isCompleted}
+              />
+            </div>
             <Textarea
               value={notas}
               onChange={(e) => setNotas(e.target.value)}

@@ -1,13 +1,16 @@
 // Photo/video compression and upload pipeline
 // Compress (images only) -> Upload to Supabase Storage -> Insert reporte_fotos row
 // Uses browser Supabase client (NOT admin/service role)
+// Falls back to IndexedDB queue when offline
 
 import imageCompression from "browser-image-compression";
 import { createClient } from "@/lib/supabase/client";
+import { enqueueUpload } from "@/lib/offline-queue";
 import type { TipoMedia } from "@/types";
 
 export type UploadResult =
   | { success: true; url: string; fotoId: string }
+  | { success: true; queued: true; url: ""; fotoId: "" }
   | { success: false; error: string };
 
 export interface PhotoMetadata {
@@ -26,6 +29,36 @@ function videoExtension(mimeType: string): string {
   if (mimeType === "video/quicktime") return ".mov";
   if (mimeType === "video/webm") return ".webm";
   return ".mp4"; // fallback
+}
+
+/** Queue a photo/video for upload when back online */
+async function queueForLater(
+  uploadBlob: Blob,
+  contentType: string,
+  fileName: string,
+  metadata: PhotoMetadata,
+  tipoMedia: TipoMedia,
+  onProgress?: (pct: number) => void
+): Promise<UploadResult> {
+  try {
+    const arrayBuffer = await uploadBlob.arrayBuffer();
+    await enqueueUpload({
+      type: tipoMedia === "video" ? "video" : "photo",
+      reporteId: metadata.reporteId,
+      equipoId: metadata.equipoId,
+      etiqueta: metadata.etiqueta,
+      reportePasoId: metadata.reportePasoId,
+      metadataGps: metadata.gps,
+      metadataFecha: metadata.fecha.toISOString(),
+      fileName,
+      blobData: arrayBuffer,
+      mimeType: contentType,
+    });
+    onProgress?.(100);
+    return { success: true, queued: true, url: "", fotoId: "" };
+  } catch {
+    return { success: false, error: "No se pudo guardar en cola local" };
+  }
 }
 
 /**
@@ -76,6 +109,11 @@ export async function compressAndUpload(
       fileName = `${crypto.randomUUID()}.jpg`;
     }
 
+    // If offline, queue for later upload
+    if (!navigator.onLine) {
+      return queueForLater(uploadBlob, contentType, fileName, metadata, tipoMedia, onProgress);
+    }
+
     // Upload to Supabase Storage
     onProgress?.(50);
     const folder = metadata.equipoId ?? "general";
@@ -96,6 +134,10 @@ export async function compressAndUpload(
           error:
             "Bucket de fotos no encontrado. Ejecute migration-04-photos.sql en Supabase.",
         };
+      }
+      // Network error while uploading — queue for later
+      if (!navigator.onLine || msg.includes("fetch") || msg.includes("network")) {
+        return queueForLater(uploadBlob, contentType, fileName, metadata, tipoMedia, onProgress);
       }
       return { success: false, error: uploadError.message };
     }
@@ -132,6 +174,17 @@ export async function compressAndUpload(
     onProgress?.(100);
     return { success: true, url: urlData.publicUrl, fotoId: fotoRow.id };
   } catch (err) {
+    // Network errors → try to queue
+    if (!navigator.onLine) {
+      try {
+        const isVid = blob.type.startsWith("video/");
+        const ct = isVid ? (blob.type || "video/mp4") : "image/jpeg";
+        const fn = `${crypto.randomUUID()}${isVid ? videoExtension(ct) : ".jpg"}`;
+        return queueForLater(blob, ct, fn, metadata, tipoMedia, onProgress);
+      } catch {
+        // Fall through to generic error
+      }
+    }
     const message =
       err instanceof Error ? err.message : "Error desconocido al subir archivo";
     return { success: false, error: message };

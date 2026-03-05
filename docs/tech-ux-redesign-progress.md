@@ -2,7 +2,7 @@
 
 **Source doc:** `c:\Users\Leo\Downloads\tech-ux-redesign.md`
 **Last updated:** 2026-03-05
-**Commit:** `6e51435` — `feat: tech UI redesign — shared design tokens, collapsible phases, equipment summary`
+**Latest commit:** pending
 
 ---
 
@@ -12,16 +12,18 @@
 |---|---------|--------|--------|
 | 0 | Visual redesign (shared tokens, logo, collapsible phases, density) | **DONE** | `6e51435` |
 | 1 | Equipment status summary on home page | **DONE** | `6e51435` |
-| 2 | Quick-complete gesture (long-press) | **DONE** | — |
-| 3 | Photo counter per equipment | **DONE** | — |
-| 4 | Admin feedback inline (per-step) | **DONE** | — |
-| 5 | Recent/frequent materials autocomplete | **PENDING** | — |
-| 6 | Offline indicator + upload queue | **PENDING** | — |
-| 7 | Voice notes with speech-to-text | **PENDING** | — |
+| 2 | Quick-complete gesture (long-press) | **DONE** | `c00be7f` |
+| 3 | Photo counter per equipment | **DONE** | `c00be7f` |
+| 4 | Admin feedback inline (per-step + per-equipment) | **DONE** | `c00be7f` |
+| 5 | Recent/frequent materials autocomplete | **DONE** | pending |
+| 6 | Offline indicator + upload queue | **DONE** | pending |
+| 7 | Voice notes with speech-to-text | **DONE** | pending |
+
+**8 of 8 features complete (100%)**
 
 ---
 
-## What Was Completed (#0 + #1)
+## Completed Features
 
 ### #0 — Visual Redesign
 
@@ -88,7 +90,7 @@ Status colors (yellow, green, orange, blue for badges) were intentionally kept a
 
 Per-photo inline feedback was already implemented in `PhotoThumbnail` (ring colors, status icons, admin note below thumbnail, lightbox status labels). What was added:
 
-- `FlaggedPhotoSummary` type extended with `equipoId` field
+- `FlaggedPhotoSummary` type in `page.tsx` extended with `equipoId` field
 - `report-form.tsx` → passes `flaggedPhotos` to `EquipmentSection`
 - `equipment-section.tsx` → filters flagged photos per `equipo_id`, passes `flaggedCount` to each `EquipmentEntryForm`
 - `equipment-entry-form.tsx` → shows amber warning badge with count on collapsed header when equipment has flagged photos
@@ -111,74 +113,51 @@ These are minor and can be migrated in a quick pass.
 
 ---
 
-## Pending Features — Implementation Notes
-
-### #2 — Quick-Complete Gesture (Recommended Next)
-**Effort:** Low-Medium | **Impact:** High
-
-For simple steps without required photos/readings, allow marking complete without expanding. Options:
-- **Long-press** on collapsed step card header → mark complete (most reliable cross-browser)
-- **Swipe-right** gesture (needs touch event handling, more complex)
-- Only enable for steps where `evidencia_requerida` is empty AND `lecturas_requeridas` is empty
-
-**Key files:** `workflow-step-card.tsx` (add long-press handler to collapsed header button)
-
-### #3 — Photo Counter Per Equipment
-**Effort:** Low | **Impact:** Medium
-
-Show photo count badge per equipment in the report view. Query `reporte_fotos` grouped by `equipo_id`.
-
-**Key files:** `equipment-entry-form.tsx` or `equipment-section.tsx` (add badge to equipment card header)
-
-### #4 — Admin Feedback Inline (Recommended Next)
-**Effort:** Medium | **Impact:** High
-
-Currently admin feedback shows as a top-level banner (`admin-feedback-banner.tsx`). Need to:
-1. Map `reporte_fotos.estatus_revision` and `reporte_fotos.nota_admin` back to their `reporte_paso_id`
-2. Pass flagged photos data down into `workflow-step-card.tsx`
-3. Render inline warnings next to the specific flagged photo within `evidence-stage-section.tsx`
-4. Keep the top banner as a summary ("2 fotos necesitan atencion") but add inline markers
-
-**Key files:** `report-form.tsx` (data plumbing), `workflow-step-card.tsx` (receive + pass down), `evidence-stage-section.tsx` (render inline flags)
+## Completed Features (Session 2)
 
 ### #5 — Recent/Frequent Materials Autocomplete
-**Effort:** Low | **Impact:** Medium
 
-Track material usage frequency per user. Sort catalog dropdown by frequency descending.
-- Could add a `material_uso_frecuencia` table or just query `reporte_materiales` grouped by `catalogo_id` + `creado_por`
-- Sort the catalog results in `materials-section.tsx` before rendering
-
-**Key files:** `materials-section.tsx`, possibly a new server action
+- `page.tsx` — queries `reporte_materiales` grouped by `catalogo_id` to build frequency map
+- `materials-section.tsx` — `CatalogAutocomplete` sorts dropdown by usage frequency (most used first)
+- On empty query focus: shows top 8 frequent items with "Frecuentes" header
+- When typing: filtered results sorted by frequency, then alphabetical
+- Usage count badge (`3x`) shown next to each catalog item in dropdown
 
 ### #6 — Offline Indicator + Upload Queue
-**Effort:** High | **Impact:** High
 
-Major feature. Requires:
-- `navigator.onLine` listener + Network Information API
-- IndexedDB queue for pending uploads (photos, form saves)
-- Service worker or background sync for retry logic
-- Persistent banner in `tecnico/layout.tsx` when offline
-- Queue drain UI with count + success toast
-
-**Key files:** New `src/lib/offline-queue.ts`, `src/lib/photo-uploader.ts` (wrap with queue), `tecnico/layout.tsx` (banner)
+- `src/lib/offline-queue.ts` — IndexedDB-backed queue (`omleb-offline-queue` database, `pending-uploads` store)
+  - Stores pending photo/video uploads with blob data as ArrayBuffer
+  - Tracks retry attempts, errors, timestamps
+  - API: `enqueueUpload()`, `getPendingUploads()`, `getPendingCount()`, `removeUpload()`, `markAttempt()`, `clearQueue()`
+- `src/lib/use-online-status.ts` — React hook for online/offline detection + queue drain
+  - Listens to `navigator.onLine` + `online`/`offline` events
+  - Auto-drains queue when connection returns (2s delay for stability)
+  - Processes uploads sequentially, max 5 retry attempts per item
+  - Returns: `isOnline`, `pendingCount`, `isDraining`, `drainQueue()`, `refreshCount()`
+- `src/components/shared/offline-banner.tsx` — Banner UI
+  - Offline: dark gray bar with "Sin conexion" + pending count
+  - Online + pending: blue bar with spinner when draining, "Reintentar" button when idle
+  - Hidden when online with no pending uploads
+- `src/components/shared/offline-status-wrapper.tsx` — `OfflineBannerController` client component
+- `src/app/tecnico/layout.tsx` — banner mounted below header (`fixed top-14 z-30`)
+- `src/lib/photo-uploader.ts` — `compressAndUpload()` enhanced:
+  - Checks `navigator.onLine` before upload attempt
+  - Falls back to `queueForLater()` when offline or network error
+  - Returns `{ success: true, queued: true, url: "", fotoId: "" }` for queued items
+- All 6 photo capture handlers updated to handle queued results:
+  - `workflow-step-card.tsx`, `custom-step-card.tsx` — yellow "N fotos en cola" indicator
+  - `arrival-section.tsx`, `site-overview-section.tsx`, `equipment-registration-card.tsx`, `papeleta-section.tsx` — graceful skip
 
 ### #7 — Voice Notes with Speech-to-Text
-**Effort:** Medium | **Impact:** Medium-High
 
-Use Web Speech API (`SpeechRecognition`) with `es-MX` locale:
-- Mic button next to each `<Textarea>` for notes
-- Real-time transcription into the textarea
-- Fallback: record audio blob + store as attachment for manual transcription
-- Safari/iOS partial support — need feature detection
-
-**Key files:** New `src/components/shared/voice-input.tsx`, integrate into `workflow-step-card.tsx` notes section, `custom-step-card.tsx`, any other notes textareas
-
----
-
-## Recommended Next Session Order
-
-1. **#2 Quick-complete gesture** + **#3 Photo counter** — both are quick wins, can be done together
-2. **#4 Admin feedback inline** — medium effort but high impact
-3. **#5 Materials autocomplete** — quick win
-4. **#7 Voice notes** — medium effort, big field UX improvement
-5. **#6 Offline queue** — save for a dedicated session, most complex feature
+- `src/components/shared/voice-input.tsx` — Reusable voice input component
+  - Uses Web Speech API (`SpeechRecognition` / `webkitSpeechRecognition`) with `es-MX` locale
+  - Continuous mode with interim results shown as italic preview text
+  - Appends final transcripts to current textarea value
+  - Feature detection: auto-hides on unsupported browsers
+  - Visual feedback: mic button (gray) → recording (red pulse + stop square icon)
+  - Refs used for callbacks to prevent stale closure issues
+- Integrated in 3 locations:
+  - `workflow-step-card.tsx` — "Notas del paso" textarea
+  - `custom-step-card.tsx` — "Notas del paso" textarea
+  - `equipment-entry-form.tsx` — "Observaciones generales" textarea

@@ -12,7 +12,7 @@ interface VideoCaptureProps {
   reporteId: string;
   equipoId: string | null;
   reportePasoId: string | null;
-  onCapture: (result: { url: string; fotoId: string; gps: string | null; fecha: string }) => void;
+  onCapture: (result: { url: string; fotoId: string; gps: string | null; fecha: string; queued?: boolean }) => void;
   onClose: () => void;
 }
 
@@ -209,7 +209,11 @@ export function VideoCapture({
       setUploadProgress(null);
 
       if (result.success) {
-        onCapture({ url: result.url, fotoId: result.fotoId, gps: gpsString, fecha: new Date().toISOString() });
+        if ("queued" in result && result.queued) {
+          onCapture({ url: "", fotoId: "", gps: gpsString, fecha: new Date().toISOString(), queued: true });
+        } else {
+          onCapture({ url: result.url, fotoId: result.fotoId, gps: gpsString, fecha: new Date().toISOString() });
+        }
       } else {
         setUploadError(result.error);
         setTimeout(() => setUploadError(null), 4000);

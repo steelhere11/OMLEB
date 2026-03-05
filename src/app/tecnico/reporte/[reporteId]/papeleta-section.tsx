@@ -55,13 +55,18 @@ export function PapeletaSection({
       fotoId: string;
       gps: string | null;
       fecha: string;
+      queued?: boolean;
     }) => {
+      setShowCamera(false);
+      setShowVideoCapture(false);
+
+      // Photo queued for later upload — skip local state
+      if (result.queued) return;
+
       setPhotos((prev) => [
         ...prev,
         { id: result.fotoId, url: result.url, fecha: result.fecha },
       ]);
-      setShowCamera(false);
-      setShowVideoCapture(false);
     },
     []
   );
@@ -86,14 +91,18 @@ export function PapeletaSection({
         });
 
         if (result.success) {
-          setPhotos((prev) => [
-            ...prev,
-            {
-              id: result.fotoId,
-              url: result.url,
-              fecha: new Date().toISOString(),
-            },
-          ]);
+          if ("queued" in result && result.queued) {
+            // Photo queued for later upload — skip local state
+          } else {
+            setPhotos((prev) => [
+              ...prev,
+              {
+                id: result.fotoId,
+                url: result.url,
+                fecha: new Date().toISOString(),
+              },
+            ]);
+          }
         } else {
           setUploadError(result.error);
           setTimeout(() => setUploadError(null), 4000);

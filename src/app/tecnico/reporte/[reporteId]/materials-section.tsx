@@ -20,6 +20,7 @@ interface MaterialsSectionProps {
   isCompleted: boolean;
   onUnsavedChange?: (hasChanges: boolean) => void;
   catalogo?: MaterialCatalogo[];
+  materialFrequency?: Record<string, number>;
 }
 
 const COMMON_UNITS = [
@@ -67,6 +68,7 @@ function CatalogAutocomplete({
   disabled,
   onSelect,
   onFreeText,
+  frequency,
 }: {
   value: string;
   catalogoId: string | null;
@@ -74,6 +76,7 @@ function CatalogAutocomplete({
   disabled: boolean;
   onSelect: (item: MaterialCatalogo) => void;
   onFreeText: (text: string) => void;
+  frequency?: Record<string, number>;
 }) {
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
@@ -96,9 +99,20 @@ function CatalogAutocomplete({
     setQuery(value);
   }, [value]);
 
-  const filtered = catalogo.filter((c) =>
-    c.nombre.toLowerCase().includes(query.toLowerCase())
-  );
+  const filtered = query.length > 0
+    ? catalogo
+        .filter((c) => c.nombre.toLowerCase().includes(query.toLowerCase()))
+        .sort((a, b) => {
+          const fa = frequency?.[a.id] ?? 0;
+          const fb = frequency?.[b.id] ?? 0;
+          if (fb !== fa) return fb - fa;
+          return a.nombre.localeCompare(b.nombre);
+        })
+    : // When empty, show only frequent items (top 8)
+      catalogo
+        .filter((c) => (frequency?.[c.id] ?? 0) > 0)
+        .sort((a, b) => (frequency?.[b.id] ?? 0) - (frequency?.[a.id] ?? 0))
+        .slice(0, 8);
 
   return (
     <div ref={ref} className="relative w-full">
@@ -124,38 +138,56 @@ function CatalogAutocomplete({
         </span>
       )}
 
-      {/* Dropdown */}
-      {open && !disabled && query.length > 0 && (
+      {/* Dropdown — show frequent items when empty, filtered items when typing */}
+      {open && !disabled && (query.length > 0 || (frequency && Object.keys(frequency).length > 0)) && (
         <div className="absolute z-10 mt-1 w-full rounded-input border border-tech-border bg-tech-surface shadow-lg max-h-48 overflow-y-auto">
-          {filtered.length > 0 && filtered.map((item) => (
+          {/* Frequent label when showing frequent items on empty query */}
+          {query.length === 0 && filtered.length > 0 && (
+            <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-tech-text-muted bg-gray-50 border-b border-tech-border-subtle">
+              Frecuentes
+            </div>
+          )}
+          {filtered.length > 0 && filtered.map((item) => {
+            const usageCount = frequency?.[item.id] ?? 0;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => {
+                  onSelect(item);
+                  setQuery(item.nombre);
+                  setOpen(false);
+                }}
+                className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-gray-50 active:bg-gray-100"
+              >
+                <span className="flex items-center gap-1.5">
+                  <span className="font-medium text-tech-text-primary">{item.nombre}</span>
+                  {usageCount > 0 && (
+                    <span className="rounded bg-brand-50 px-1 py-0.5 text-[10px] font-medium text-brand-600">
+                      {usageCount}x
+                    </span>
+                  )}
+                </span>
+                <span className="text-label text-tech-text-muted">{item.unidad_default}</span>
+              </button>
+            );
+          })}
+          {/* Free-text option — only when typing */}
+          {query.length > 0 && (
             <button
-              key={item.id}
               type="button"
               onClick={() => {
-                onSelect(item);
-                setQuery(item.nombre);
+                onFreeText(query);
                 setOpen(false);
               }}
-              className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-gray-50 active:bg-gray-100"
+              className="flex w-full items-center gap-2 border-t border-tech-border-subtle px-3 py-2 text-left text-sm text-tech-text-muted hover:bg-gray-50"
             >
-              <span className="font-medium text-tech-text-primary">{item.nombre}</span>
-              <span className="text-label text-tech-text-muted">{item.unidad_default}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Usar &quot;{query}&quot; como texto libre
             </button>
-          ))}
-          {/* Free-text option */}
-          <button
-            type="button"
-            onClick={() => {
-              onFreeText(query);
-              setOpen(false);
-            }}
-            className="flex w-full items-center gap-2 border-t border-tech-border-subtle px-3 py-2 text-left text-sm text-tech-text-muted hover:bg-gray-50"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            Usar &quot;{query}&quot; como texto libre
-          </button>
+          )}
         </div>
       )}
     </div>
@@ -170,6 +202,7 @@ export function MaterialsSection({
   isCompleted,
   onUnsavedChange,
   catalogo = [],
+  materialFrequency,
 }: MaterialsSectionProps) {
   const [rows, setRows] = useState<MaterialRow[]>(() =>
     materialsToRows(initialMaterials)
@@ -354,6 +387,7 @@ export function MaterialsSection({
                 disabled={isCompleted}
                 onSelect={(item) => handleCatalogSelect(row.id, item)}
                 onFreeText={(text) => handleFreeText(row.id, text)}
+                frequency={materialFrequency}
               />
             ) : (
               <input

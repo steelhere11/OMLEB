@@ -65,10 +65,15 @@ export function ArrivalSection({
       fotoId: string;
       gps: string | null;
       fecha: string;
+      queued?: boolean;
     }) => {
-      setPhoto({ url: result.url, fecha: result.fecha, gps: result.gps });
       setShowCamera(false);
       setShowVideoCapture(false);
+
+      // Photo queued for later upload — skip local state
+      if (result.queued) return;
+
+      setPhoto({ url: result.url, fecha: result.fecha, gps: result.gps });
 
       // Mark arrival as complete
       await completeArrival(reporteId);
@@ -99,13 +104,17 @@ export function ArrivalSection({
       if (fileInputRef.current) fileInputRef.current.value = "";
 
       if (result.success) {
-        setPhoto({
-          url: result.url,
-          fecha: new Date().toISOString(),
-          gps: null,
-        });
-        await completeArrival(reporteId);
-        onComplete();
+        if ("queued" in result && result.queued) {
+          // Photo queued for later upload — skip local state
+        } else {
+          setPhoto({
+            url: result.url,
+            fecha: new Date().toISOString(),
+            gps: null,
+          });
+          await completeArrival(reporteId);
+          onComplete();
+        }
       } else {
         setUploadError(result.error);
         setTimeout(() => setUploadError(null), 4000);

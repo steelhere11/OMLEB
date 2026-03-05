@@ -182,8 +182,18 @@ export function EquipmentRegistrationCard({
       fotoId: string;
       gps: string | null;
       fecha: string;
+      queued?: boolean;
     }) => {
       if (!activeSlot) return;
+
+      setShowCamera(false);
+      setShowVideoCapture(false);
+
+      // Photo queued for later upload — skip local state
+      if (result.queued) {
+        setActiveSlot(null);
+        return;
+      }
 
       const newPhoto: ReporteFoto = {
         id: result.fotoId,
@@ -201,8 +211,6 @@ export function EquipmentRegistrationCard({
       };
 
       setPhotos((prev) => ({ ...prev, [activeSlot]: newPhoto }));
-      setShowCamera(false);
-      setShowVideoCapture(false);
       setActiveSlot(null);
 
       // Re-evaluate registration completeness after photo upload
@@ -240,33 +248,38 @@ export function EquipmentRegistrationCard({
       if (fileInputRef.current) fileInputRef.current.value = "";
 
       if (result.success) {
-        const newPhoto: ReporteFoto = {
-          id: result.fotoId,
-          reporte_id: reporteId,
-          equipo_id: equipo.id,
-          reporte_paso_id: null,
-          url: result.url,
-          etiqueta: activeSlot,
-          tipo_media: file.type.startsWith("video/") ? "video" : "foto",
-          estatus_revision: "pendiente",
-          nota_admin: null,
-          metadata_gps: null,
-          metadata_fecha: new Date().toISOString(),
-          created_at: new Date().toISOString(),
-        };
+        if ("queued" in result && result.queued) {
+          // Photo queued for later upload — skip local state
+          setActiveSlot(null);
+        } else {
+          const newPhoto: ReporteFoto = {
+            id: result.fotoId,
+            reporte_id: reporteId,
+            equipo_id: equipo.id,
+            reporte_paso_id: null,
+            url: result.url,
+            etiqueta: activeSlot,
+            tipo_media: file.type.startsWith("video/") ? "video" : "foto",
+            estatus_revision: "pendiente",
+            nota_admin: null,
+            metadata_gps: null,
+            metadata_fecha: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+          };
 
-        setPhotos((prev) => ({ ...prev, [activeSlot]: newPhoto }));
-        setActiveSlot(null);
+          setPhotos((prev) => ({ ...prev, [activeSlot]: newPhoto }));
+          setActiveSlot(null);
 
-        // Re-evaluate completeness
-        const statusResult = await updateRegistrationStatus(
-          reporteEquipoId,
-          equipo.id
-        );
-        if (statusResult.success && statusResult.data !== undefined) {
-          const isNowComplete = statusResult.data as boolean;
-          setComplete(isNowComplete);
-          onRegistrationChange(reporteEquipoId, isNowComplete);
+          // Re-evaluate completeness
+          const statusResult = await updateRegistrationStatus(
+            reporteEquipoId,
+            equipo.id
+          );
+          if (statusResult.success && statusResult.data !== undefined) {
+            const isNowComplete = statusResult.data as boolean;
+            setComplete(isNowComplete);
+            onRegistrationChange(reporteEquipoId, isNowComplete);
+          }
         }
       }
     },

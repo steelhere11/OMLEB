@@ -7,6 +7,7 @@ import { WorkflowPreventive } from "./workflow-preventive";
 import { WorkflowCorrective } from "./workflow-corrective";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { VoiceInput } from "@/components/shared/voice-input";
 import { Button } from "@/components/ui/button";
 import type { ReporteEquipo, Equipo, TipoTrabajo } from "@/types";
 
@@ -243,9 +244,19 @@ export function EquipmentEntryForm({
 
           {/* General observations textarea */}
           <div>
-            <Label htmlFor={`observaciones-${entry.id}`} className="mb-2">
-              Observaciones generales
-            </Label>
+            <div className="flex items-center justify-between mb-2">
+              <Label htmlFor={`observaciones-${entry.id}`}>
+                Observaciones generales
+              </Label>
+              <VoiceInput
+                currentValue={observaciones}
+                onTranscript={(text) => {
+                  setObservaciones(text);
+                  handleFieldChange();
+                }}
+                disabled={isCompleted}
+              />
+            </div>
             <Textarea
               id={`observaciones-${entry.id}`}
               value={observaciones}
