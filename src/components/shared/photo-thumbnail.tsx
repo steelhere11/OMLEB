@@ -6,6 +6,7 @@ import type { ReporteFoto } from "@/types";
 import { reverseGeocode } from "@/lib/gps";
 import { PhotoAnnotator } from "@/components/shared/photo-annotator";
 import { overwriteAnnotatedPhoto } from "@/app/actions/fotos";
+import { downloadFromUrl } from "@/lib/save-to-device";
 
 interface PhotoThumbnailProps {
   foto: ReporteFoto;
@@ -317,6 +318,22 @@ export function PhotoThumbnail({
           {/* Action buttons */}
           {!showConfirm && (
             <div className="absolute bottom-8 inset-x-0 flex justify-center gap-3">
+              {/* Download button */}
+              <button
+                type="button"
+                onClick={() => {
+                  const ext = isVideo ? "mp4" : "jpg";
+                  const name = `OMLEB_${foto.etiqueta ?? "foto"}_${(foto.metadata_fecha ?? new Date().toISOString()).slice(0, 10)}.${ext}`;
+                  downloadFromUrl(foto.url, name);
+                }}
+                className="flex items-center gap-2 rounded-xl bg-gray-700 px-5 py-3 text-sm font-semibold text-white shadow-lg active:bg-gray-600"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Guardar
+              </button>
+
               {/* Annotate button (photos only) */}
               {!isVideo && !disabled && (
                 <button

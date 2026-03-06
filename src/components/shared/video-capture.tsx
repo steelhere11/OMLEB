@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState, useCallback } from "react";
 import { getGpsPosition, reverseGeocode, type GpsPosition, type GpsErrorReason } from "@/lib/gps";
 import { compressAndUpload } from "@/lib/photo-uploader";
+import { saveToDevice, generateMediaFilename } from "@/lib/save-to-device";
 
 const MAX_RECORDING_SECONDS = 60;
 const WARNING_SECONDS = 50;
@@ -253,6 +254,11 @@ export function VideoCapture({
         // Determine the base MIME type (strip codecs)
         const baseMime = mimeType.split(";")[0];
         const videoBlob = new Blob(chunks, { type: baseMime });
+
+        // Fire-and-forget save to device gallery
+        const ext = baseMime.includes("mp4") ? "mp4" : "webm";
+        saveToDevice(videoBlob, generateMediaFilename("video", label.toLowerCase(), ext));
+
         uploadVideo(videoBlob);
       };
 

@@ -4,6 +4,7 @@ import { useRef, useEffect, useState, useCallback } from "react";
 import { getGpsPosition, reverseGeocode, type GpsPosition, type GpsErrorReason } from "@/lib/gps";
 import { drawOverlayBadge } from "@/lib/photo-stamper";
 import { compressAndUpload } from "@/lib/photo-uploader";
+import { saveToDevice, generateMediaFilename } from "@/lib/save-to-device";
 
 interface CameraCaptureProps {
   label: string;
@@ -234,6 +235,9 @@ export function CameraCapture({
           setUploadError("Error al capturar la imagen.");
           return;
         }
+
+        // Fire-and-forget save to device gallery
+        saveToDevice(blob, generateMediaFilename("foto", label.toLowerCase(), "jpg"));
 
         const gps = gpsRef.current;
         const gpsString =
