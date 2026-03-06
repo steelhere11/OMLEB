@@ -38,6 +38,7 @@ export interface PdfStepData {
 export interface PdfRegistrationEntry {
   equipoTag: string;
   tipoEquipo: string | null;
+  formaFactor: string | null;
   ubicacion: string | null;
   marca: string | null;
   modelo: string | null;
@@ -74,6 +75,7 @@ export interface PdfReportData {
       numero_etiqueta: string;
       marca: string | null;
       modelo: string | null;
+      forma_factor?: string | null;
     };
     tipo_trabajo: string;
     diagnostico: string | null;
@@ -1164,6 +1166,7 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
             </Text>
             {data.registrationEntries.map((reg, rIdx) => {
               const nameplateFields = [
+                { label: "Forma/Factor", value: reg.formaFactor },
                 { label: "Marca", value: reg.marca },
                 { label: "Modelo", value: reg.modelo },
                 { label: "No. Serie", value: reg.numero_serie },
@@ -1254,6 +1257,9 @@ export function ReportDocument({ data }: { data: PdfReportData }) {
                         ? ` \u2014 ${[entry.equipo.marca, entry.equipo.modelo]
                             .filter(Boolean)
                             .join(" ")}`
+                        : ""}
+                      {entry.equipo.forma_factor
+                        ? ` (${entry.equipo.forma_factor})`
                         : ""}
                     </Text>
                     <Text

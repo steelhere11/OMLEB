@@ -35,6 +35,7 @@ import { RevisionHistoryPanel } from "@/components/admin/revision-history-panel"
 import { createRevision } from "@/app/actions/admin-revisions";
 import type { RevisionWithAuthor } from "@/app/actions/admin-revisions";
 import type { ReporteComentario } from "@/types";
+import { formaFactorLabel } from "@/lib/constants/equipment-taxonomy";
 
 const ReportPdfButton = dynamic(
   () => import("@/components/admin/report-pdf-button"),
@@ -677,6 +678,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
             numero_etiqueta: e.equipos!.numero_etiqueta,
             marca: e.equipos!.marca,
             modelo: e.equipos!.modelo,
+            forma_factor: e.equipos!.forma_factor,
           }))}
         fotos={reporte.reporte_fotos.filter(
           (f) => f.etiqueta === "equipo_general" || f.etiqueta === "placa"
@@ -821,6 +823,11 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                     {(entry.equipos?.marca || entry.equipos?.modelo) && (
                       <span className="text-[12px] text-text-3">
                         {[entry.equipos?.marca, entry.equipos?.modelo].filter(Boolean).join(" — ")}
+                      </span>
+                    )}
+                    {formaFactorLabel(entry.equipos?.forma_factor) && (
+                      <span className="text-[11px] text-text-3">
+                        {formaFactorLabel(entry.equipos?.forma_factor)}
                       </span>
                     )}
                     <span
@@ -1132,6 +1139,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                   equipo_id: entry.equipo_id,
                   numero_etiqueta: entry.equipos!.numero_etiqueta,
                   tipo_equipo: entry.equipos!.tipo_equipo,
+                  forma_factor: entry.equipos!.forma_factor,
                   ubicacion: entry.equipos!.ubicacion,
                   marca: entry.equipos!.marca,
                   modelo: entry.equipos!.modelo,
@@ -1172,6 +1180,7 @@ export function ReportDetail({ reporte, teamMembers, tiposEquipo, comments, revi
                       entry.equipos?.numero_etiqueta ?? "Equipo desconocido",
                     marca: entry.equipos?.marca ?? null,
                     modelo: entry.equipos?.modelo ?? null,
+                    forma_factor: formaFactorLabel(entry.equipos?.forma_factor),
                   },
                   tipo_trabajo: entry.tipo_trabajo,
                   diagnostico: entry.diagnostico,
@@ -1268,6 +1277,7 @@ function RegistroEquiposSection({
     numero_etiqueta: string;
     marca: string | null;
     modelo: string | null;
+    forma_factor?: string | null;
   }>;
   fotos: ReporteFotoData[];
   onFlagPhoto: (fotoId: string, estatus: FotoEstatusRevision, nota?: string) => Promise<void>;
@@ -1365,6 +1375,11 @@ function RegistroEquiposSection({
                   {(equipo.marca || equipo.modelo) && (
                     <span className="text-[12px] text-text-3">
                       {[equipo.marca, equipo.modelo].filter(Boolean).join(" — ")}
+                    </span>
+                  )}
+                  {formaFactorLabel(equipo.forma_factor) && (
+                    <span className="text-[11px] text-text-3">
+                      {formaFactorLabel(equipo.forma_factor)}
                     </span>
                   )}
                   <span className="ml-auto flex items-center gap-1.5">
@@ -2346,6 +2361,11 @@ function EquipmentCard({
           {equipo?.marca || equipo?.modelo
             ? ` - ${[equipo.marca, equipo.modelo].filter(Boolean).join(" ")}`
             : ""}
+          {formaFactorLabel(equipo?.forma_factor) && (
+            <span className="ml-1.5 text-[12px] font-normal text-text-2">
+              ({formaFactorLabel(equipo?.forma_factor)})
+            </span>
+          )}
         </h3>
         {!isEditing && (
           <span

@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { VoiceInput } from "@/components/shared/voice-input";
 import { Button } from "@/components/ui/button";
 import type { ReporteEquipo, Equipo, TipoTrabajo } from "@/types";
+import { formaFactorLabel } from "@/lib/constants/equipment-taxonomy";
 
 interface EquipmentEntryFormProps {
   entry: ReporteEquipo & {
@@ -114,9 +115,10 @@ export function EquipmentEntryForm({
                 {[equipo.marca, equipo.modelo].filter(Boolean).join(" ")}
               </p>
             )}
-            {equipo.tipos_equipo && (
+            {(equipo.tipos_equipo || formaFactorLabel(equipo.forma_factor)) && (
               <span className="text-label text-tech-text-muted">
-                · {equipo.tipos_equipo.nombre}
+                {equipo.tipos_equipo && `· ${equipo.tipos_equipo.nombre}`}
+                {formaFactorLabel(equipo.forma_factor) && ` · ${formaFactorLabel(equipo.forma_factor)}`}
               </span>
             )}
           </div>

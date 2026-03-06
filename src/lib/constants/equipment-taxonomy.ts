@@ -20,6 +20,13 @@ export const CATEGORIA_ORDER = [
   "Especializado",
 ] as const;
 
+// Resolve forma_factor slug to display label (returns null if not set)
+const FF_MAP = new Map<string, string>(FORMA_FACTORES.map((f) => [f.value, f.label]));
+export function formaFactorLabel(slug: string | null | undefined): string | null {
+  if (!slug) return null;
+  return FF_MAP.get(slug) ?? slug;
+}
+
 // Slugs where forma_factor is relevant (indoor DX units + fan coil)
 export const SLUGS_WITH_FORMA_FACTOR = new Set([
   "mini_split_interior",

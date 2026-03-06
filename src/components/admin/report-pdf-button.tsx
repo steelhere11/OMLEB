@@ -5,6 +5,7 @@ import { pdf } from "@react-pdf/renderer";
 import JSZip from "jszip";
 import { ReportDocument } from "@/components/pdf/report-document";
 import type { PdfReportData, PdfRegistrationEntry } from "@/components/pdf/report-document";
+import { formaFactorLabel } from "@/lib/constants/equipment-taxonomy";
 import {
   fetchImageAsBase64,
   fetchAllPhotosAsBase64,
@@ -60,6 +61,7 @@ interface ReportPdfButtonProps {
     equipo_id: string;
     numero_etiqueta: string;
     tipo_equipo: string | null;
+    forma_factor: string | null;
     ubicacion: string | null;
     marca: string | null;
     modelo: string | null;
@@ -268,6 +270,7 @@ export default function ReportPdfButton({
       return {
         equipoTag: eq.numero_etiqueta,
         tipoEquipo: eq.tipo_equipo,
+        formaFactor: formaFactorLabel(eq.forma_factor),
         ubicacion: eq.ubicacion,
         marca: eq.marca,
         modelo: eq.modelo,

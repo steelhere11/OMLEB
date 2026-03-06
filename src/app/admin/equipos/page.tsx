@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import type { Equipo, Sucursal } from "@/types";
+import { formaFactorLabel } from "@/lib/constants/equipment-taxonomy";
 
 type EquipoWithRelations = Equipo & {
   sucursales: Pick<Sucursal, "nombre" | "numero"> | null;
@@ -127,6 +128,9 @@ export default async function EquiposPage() {
                       </div>
                       <div className="w-[100px] text-[13px] text-text-1">
                         {equipo.tipos_equipo?.nombre ?? equipo.tipo_equipo ?? "—"}
+                        {formaFactorLabel(equipo.forma_factor) && (
+                          <span className="block text-[11px] text-text-3">{formaFactorLabel(equipo.forma_factor)}</span>
+                        )}
                       </div>
                       <div className="flex-1 text-[13px] text-text-2">
                         {ordenCount === 0
